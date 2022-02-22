@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 #include <getopt.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <string.h>
 
 const struct option table[]={
   {"show-pids"    ,no_argument  ,NULL ,'p'},
@@ -37,19 +40,39 @@ void prase_args(int argc,char * argv[]){
 }
 
 #define N 10000
-#define M 100
+#define M 256
 int n;
 pid_t pid[N],fa[N];
 char name[N][M];
 
-/*void work(){
-  DIR dir=open_dir("/proc/")
+int check(const char * st){
+  for(;*st;st++) if(*st<'0'||*st>'9') return 0;
+  return 1;
+}
+char st[M]="/proc/";
+void work(){
+  DIR *dir=opendir("/proc/");assert(dir);
+  struct dirent *entry;
+  FILE * fp;
+  n=0;
+  while(entry=readdir(dir))
+  if(check(entry->d_name)&&entry->d_type==DT_DIR){
+    int i=strlen("/proc/");
+    for(char * ch=entry->d_name;*ch;++ch,++i) st[i]=*ch;
+    st[i]=0;strcat(st,"/stat");
+    fp=fopen(st,"r");assert(fp);
+    char ch;
+    fscanf(fp,"%d%s%c%d",pid[n],name[n],&ch,fa[n]);
+    printf("%d %s %d\n",pid[n],name[n],fa[n]);
+    fclose(fp);
+    n++;
+  }
   return;
-}*/
+}
 
 int main(int argc, char *argv[]) {
   prase_args(argc,argv);
-//  work();
+  work();
 
   return 0;
 }

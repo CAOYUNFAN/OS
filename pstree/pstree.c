@@ -55,7 +55,7 @@ void work(){
   struct dirent *entry;
   FILE * fp;
   n=0;
-  while(entry=readdir(dir))
+  while((entry=readdir(dir)))
   if(check(entry->d_name)&&entry->d_type==DT_DIR){
     int i=strlen("/proc/");
     for(char * ch=entry->d_name;*ch;++ch,++i) st[i]=*ch;

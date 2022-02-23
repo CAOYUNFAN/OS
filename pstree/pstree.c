@@ -87,6 +87,7 @@ void dfs(pid_t fa,int len){
     for(int i=0;i<len;++i) putchar(' ');
     printf("%s",a[i].name);
     if(flag_p) printf("(%d)",a[i].pid);
+    putchar('\n');
     dfs(a[i].pid,len+2);
   }
 }

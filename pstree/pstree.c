@@ -67,6 +67,7 @@ void work(){
     fclose(fp);
     n++;
   }
+  printf("%d\n",n);
   return;
 }
 

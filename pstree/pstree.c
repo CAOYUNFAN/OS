@@ -75,12 +75,13 @@ void work(){
   return;
 }
 
-size_t cmp(const unit a,const unit b){return a.pid<b.pid;}
+int cmp(const unit a,const unit b){return a.pid<b.pid;}
 
 int main(int argc, char *argv[]) {
   prase_args(argc,argv);
   work();
-  if(flag_n) qsort(a,n,cmp);
+  if(flag_n) qsort(a,n,sizeof(unit),cmp);
+  for(int i=0;i<n;++i) printf("%d %s %c %d\n",a[i].pid,a[i].name,a[i].comm,a[i].fa);
   return 0;
 }
 

@@ -23,10 +23,10 @@ void prase_args(int argc,char * argv[]){
       fprintf(stderr,"pstree (for OS) 0.0\n");
       exit(0);
     case 'n':
-      flag_n=1;printf("-n!\n");
+      flag_n=1;//printf("-n!\n");
       break;
     case 'p':
-      flag_p=1;printf("-p!\n");
+      flag_p=1;//printf("-p!\n");
       break;
     default:
       fprintf(stderr,"Usage : pstree [OPTION]\n");

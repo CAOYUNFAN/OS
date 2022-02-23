@@ -87,7 +87,7 @@ void dfs(pid_t fa,int len){
     for(int i=0;i<len;++i) putchar(' ');
     printf("%s",a[i].name);
     if(flag_p) printf("(%d)",a[i].pid);
-
+    dfs(a[i].pid,len+2);
   }
 }
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
   work();
   if(flag_n) qsort(a,n,sizeof(unit),cmp);
   for(int i=0;i<n;++i) printf("%d %s %c %d\n",a[i].pid,a[i].name,a[i].comm,a[i].fa);
-//  dfs(0,0);
+  dfs(0,0);
   return 0;
 }
 

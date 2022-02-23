@@ -67,7 +67,7 @@ void work(){
     st[i]=0;strcat(st,"/stat");
     fp=fopen(st,"r");assert(fp);
     fscanf(fp,"%d %s %c %d",&a[n].pid,a[n].name,&a[n].comm,&a[n].fa);
-    if(n==232)
+    if(n==231)
     printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].comm,a[n].fa);
     if(a[n].name[0]=='('&&a[n].name[strlen(a[n].name)-1]==')'){
       int len=strlen(a[n].name);

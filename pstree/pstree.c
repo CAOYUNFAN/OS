@@ -67,13 +67,15 @@ void work(){
     st[i]=0;strcat(st,"/stat");
     fp=fopen(st,"r");assert(fp);
     fscanf(fp,"%d %s %c %d",&a[n].pid,a[n].name,&a[n].comm,&a[n].fa);
-    printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].comm,a[n].fa);
+//    printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].comm,a[n].fa);
     fclose(fp);
     n++;
   }
   printf("%d\n",n);
   return;
 }
+
+int cmp(const uint a,const uint b){return a.pid<b.pid;}
 
 int main(int argc, char *argv[]) {
   prase_args(argc,argv);

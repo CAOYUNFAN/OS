@@ -42,8 +42,13 @@ void prase_args(int argc,char * argv[]){
 #define N 10000
 #define M 256
 int n;
-pid_t pid[N],fa[N];
-char name[N][M];
+typedef struct
+{
+  pid_t pid,fa;
+  char comm;
+  char name[M];
+} unit;
+unit a[N];
 
 int check(const char * st){
   for(;*st;st++) if(*st<'0'||*st>'9') return 0;
@@ -61,9 +66,8 @@ void work(){
     for(char * ch=entry->d_name;*ch;++ch,++i) st[i]=*ch;
     st[i]=0;strcat(st,"/stat");
     fp=fopen(st,"r");assert(fp);
-    char ch;
-    fscanf(fp,"%d %s %c %d",pid+n,name[n],&ch,fa+n);
-    printf("%d %s %c %d\n",pid[n],name[n],ch,fa[n]);
+    fscanf(fp,"%d %s %c %d",&a[n].pid,&a[n].name,&a[n].comm,&a[n].fa);
+    printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].comm,a[n].fa);
     fclose(fp);
     n++;
   }

@@ -70,14 +70,14 @@ void work(){
     while(ch!='(') ch=fgetc(fp);
     ch=fgetc(fp);
     int flag=0;
-    for(char * temp=a[n].name;ch!=')'&&!flag;ch=fgetc(fp),temp++){
+    for(char * temp=a[n].name;ch!=')'||flag;ch=fgetc(fp),temp++){
       *temp=ch;
       if(ch=='(') ++flag;
       if(ch==')') --flag;
     }
     for(ch=fgetc(fp);ch==' ';ch=fgetc(fp)) putchar(ch);
     fscanf(fp,"%d",&a[n].fa);
-    printf("!!!%d %s %d\n",a[n].pid,a[n].name,a[n].fa);
+//    printf("!!!%d %s %d\n",a[n].pid,a[n].name,a[n].fa);
 //    if(a[n].name[0]=='(') printf("%d:%s\n",n,a[n].name);
     fclose(fp);
     n++;

@@ -45,7 +45,6 @@ int n;
 typedef struct
 {
   pid_t pid,fa;
-  char comm;
   char name[M];
 } unit;
 unit a[N];
@@ -66,14 +65,19 @@ void work(){
     for(char * ch=entry->d_name;*ch;++ch,++i) st[i]=*ch;
     st[i]=0;strcat(st,"/stat");
     fp=fopen(st,"r");assert(fp);
-    fscanf(fp,"%d %s %c %d",&a[n].pid,a[n].name,&a[n].comm,&a[n].fa);
-    if(n==231)
-    printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].comm,a[n].fa);
-    if(a[n].name[0]=='('&&a[n].name[strlen(a[n].name)-1]==')'){
-      int len=strlen(a[n].name);
-      for(int i=0;i<len-2;++i) a[n].name[i]=a[n].name[i+1];
-      a[n].name[len-2]=0;
+    fscanf(fp,"%d",&a[n].pid);
+    char ch=fgetc(fp);
+    while(ch!='(') ch=fgetc(fp);
+    ch=fgetc(fp);
+    int flag=0;
+    for(char * temp=a[n].name;ch!=')'&&!flag;ch=fgetc(fp),temp++){
+      *temp=ch;
+      if(ch=='(') ++flag;
+      if(ch==')') --flag;
     }
+    for(ch=fgetc(fp);ch!=' ';ch=fgetc(fp));
+    fscanf(fp,"%d",a[n].fa);
+    printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].fa);
     if(a[n].name[0]=='(') printf("%d:%s\n",n,a[n].name);
     fclose(fp);
     n++;

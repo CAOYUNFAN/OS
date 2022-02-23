@@ -75,12 +75,12 @@ void work(){
   return;
 }
 
-int cmp(const unit a,const unit b){return a.pid<b.pid;}
+size_t cmp(const unit a,const unit b){return a.pid<b.pid;}
 
 int main(int argc, char *argv[]) {
   prase_args(argc,argv);
   work();
-  if(flag_n) qsort(a,a+n,cmp);
+  if(flag_n) qsort(a,n,cmp);
   return 0;
 }
 

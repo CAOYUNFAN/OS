@@ -75,7 +75,7 @@ void work(){
   return;
 }
 
-int cmp(const uint a,const uint b){return a.pid<b.pid;}
+int cmp(const unit a,const unit b){return a.pid<b.pid;}
 
 int main(int argc, char *argv[]) {
   prase_args(argc,argv);

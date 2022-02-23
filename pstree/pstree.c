@@ -80,7 +80,7 @@ int cmp(const unit a,const unit b){return a.pid<b.pid;}
 int main(int argc, char *argv[]) {
   prase_args(argc,argv);
   work();
-  if(flag_n) sort(a,a+n,cmp);
+  if(flag_n) qsort(a,a+n,cmp);
   return 0;
 }
 

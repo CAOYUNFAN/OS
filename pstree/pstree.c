@@ -77,7 +77,7 @@ void work(){
     }
     for(ch=fgetc(fp);ch!=' ';ch=fgetc(fp));
     fscanf(fp,"%d",a[n].fa);
-    printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].fa);
+    printf("%d %s %d\n",a[n].pid,a[n].name,a[n].fa);
     if(a[n].name[0]=='(') printf("%d:%s\n",n,a[n].name);
     fclose(fp);
     n++;

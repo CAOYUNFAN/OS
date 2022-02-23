@@ -67,14 +67,14 @@ void work(){
     st[i]=0;strcat(st,"/stat");
     fp=fopen(st,"r");assert(fp);
     fscanf(fp,"%d %s %c %d",&a[n].pid,a[n].name,&a[n].comm,&a[n].fa);
-    if(a[n].name[0]=='('&&a[n].name[1]=='(')
-    printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].comm,a[n].fa);
+//    if(a[n].name[0]=='('&&a[n].name[1]=='(')
+//    printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].comm,a[n].fa);
     if(a[n].name[0]=='('&&a[n].name[strlen(a[n].name)-1]==')'){
       int len=strlen(a[n].name);
       for(int i=0;i<len-2;++i) a[n].name[i]=a[n].name[i+1];
       a[n].name[len-2]=0;
     }
-    if(a[n].name[0]=='(') printf("%s\n",a[n].name);
+    if(a[n].name[0]=='(') printf("%d:%s\n",n,a[n].name);
     fclose(fp);
     n++;
   }

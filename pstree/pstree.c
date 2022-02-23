@@ -73,6 +73,7 @@ void work(){
       for(int i=0;i<len-2;++i) a[n].name[i]=a[n].name[i+1];
       a[n].name[len-2]=0;
     }
+    if(a[n].name[0]=='(') printf("%s\n",a[n].name);
     fclose(fp);
     n++;
   }

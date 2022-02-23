@@ -75,9 +75,9 @@ void work(){
       if(ch=='(') ++flag;
       if(ch==')') --flag;
     }
-    for(ch=fgetc(fp);ch!=' ';ch=fgetc(fp));
+    for(ch=fgetc(fp);ch!=' ';ch=fgetc(fp)) putchar(ch);
     fscanf(fp,"%d",&a[n].fa);
-//    printf("%d %s %d\n",a[n].pid,a[n].name,a[n].fa);
+    printf("!!!%d %s %d\n",a[n].pid,a[n].name,a[n].fa);
 //    if(a[n].name[0]=='(') printf("%d:%s\n",n,a[n].name);
     fclose(fp);
     n++;
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
   prase_args(argc,argv);
   work();
   if(flag_n) qsort(a,n,sizeof(unit),cmp);
-  for(int i=0;i<n;++i) printf("%d %s %d\n",a[i].pid,a[i].name,a[i].fa);
+//  for(int i=0;i<n;++i) printf("%d %s %d\n",a[i].pid,a[i].name,a[i].fa);
   dfs(0,0);
   return 0;
 }

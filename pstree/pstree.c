@@ -62,7 +62,7 @@ void work(){
     st[i]=0;strcat(st,"/stat");
     fp=fopen(st,"r");assert(fp);
     char ch;
-    fscanf(fp,"%d%s%c%d",pid+n,name[n],&ch,fa+n);
+    fscanf(fp,"%d %s %c %d",pid+n,name[n],&ch,fa+n);
     printf("%d %s %c %d\n",pid[n],name[n],ch,fa[n]);
     fclose(fp);
     n++;

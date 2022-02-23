@@ -75,7 +75,7 @@ void work(){
       if(ch=='(') ++flag;
       if(ch==')') --flag;
     }
-    for(ch=fgetc(fp);ch!=' ';ch=fgetc(fp)) putchar(ch);
+    for(ch=fgetc(fp);ch==' ';ch=fgetc(fp)) putchar(ch);
     fscanf(fp,"%d",&a[n].fa);
     printf("!!!%d %s %d\n",a[n].pid,a[n].name,a[n].fa);
 //    if(a[n].name[0]=='(') printf("%d:%s\n",n,a[n].name);

@@ -66,7 +66,7 @@ void work(){
     for(char * ch=entry->d_name;*ch;++ch,++i) st[i]=*ch;
     st[i]=0;strcat(st,"/stat");
     fp=fopen(st,"r");assert(fp);
-    fscanf(fp,"%d %s %c %d",&a[n].pid,&a[n].name,&a[n].comm,&a[n].fa);
+    fscanf(fp,"%d %s %c %d",&a[n].pid,a[n].name,&a[n].comm,&a[n].fa);
     printf("%d %s %c %d\n",a[n].pid,a[n].name,a[n].comm,a[n].fa);
     fclose(fp);
     n++;

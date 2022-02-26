@@ -6,7 +6,7 @@
 inline uint64_t uptime(){
   AM_TIMER_UPTIME_T ret;
   ioe_read(AM_TIMER_UPTIME,&ret);
-  printf("%lld",ret.us);
+  printf("%d",ret.us);
   return ret.us/1000000;
 }
 

@@ -28,13 +28,13 @@ void splash() {
   if(posx>=w-4*SIDE) posx=w-4*SIDE;
   if(posy<0) posy=0;
   if(posy>=h-4*SIDE) posy=h-4*SIDE;
-  draw_tile(posx,posy,4*SIDE,4*SIDE,0xffffff);
-  printf("%d %d\n",posx,posy);
-/*  for (int x = 0; x * SIDE <= w; x ++) {
+//  draw_tile(posx,posy,4*SIDE,4*SIDE,0xffffff);
+//  printf("%d %d\n",posx,posy);
+  for (int x = 0; x * SIDE <= w; x ++) {
     for (int y = 0; y * SIDE <= h; y++) {
       if ((x & 1) ^ (y & 1)) {
         draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xffffff); // white
       }
     }
-  }*/
+  }
 }

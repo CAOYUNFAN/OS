@@ -23,7 +23,7 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) {
 
 #define Min(a,b) ((a)<(b)?(a):(b))
 void splash() {
-  init();
+  init();printf("HELLO!\n");
   if(posx<0) posx=0;
   if(posx>=w-4*SIDE) posx=w-4*SIDE;
   if(posy<0) posy=0;

@@ -1,6 +1,6 @@
 #include <game.h>
 
-#define SIDE 16
+#define SIDE 100
 static int w, h;
 static void init() {
   AM_GPU_CONFIG_T info = {0};

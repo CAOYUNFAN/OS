@@ -15,6 +15,7 @@ void func_key() {
     if(event.keycode==43) posx-=16;
     if(event.keycode==44) posy+=16;
     if(event.keycode==45) posx+=16;
+    printf("%s\n",key_names[event.keycode]);
   }
 }
 /*

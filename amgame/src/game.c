@@ -19,7 +19,7 @@ int main(const char *args) {
   uint64_t next_frame=0;
   while (1) {
 //    printf("A!\n");
-    while(uptime()<next_frame);
+//    while(uptime()<next_frame);
     func_key();
     splash();
     next_frame+=1000/FPS;

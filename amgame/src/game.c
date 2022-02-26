@@ -1,7 +1,7 @@
 #include <game.h>
 
 // Operating system is a C program!
-#define FPS 50
+#define FPS 250
 
 inline uint64_t uptime(){
   AM_TIMER_UPTIME_T ret;
@@ -15,10 +15,10 @@ int main(const char *args) {
 //  puts("mainargs = \"");
 //  puts(args); // make run mainargs=xxx
 //  puts("\"\n");
-  printf("HERE!");
+//  printf("HERE!");
   uint64_t next_frame=0;
   while (1) {
-    printf("A!");
+    //printf("A!");
     while(uptime()<next_frame);
     func_key();
     splash();

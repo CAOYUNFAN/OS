@@ -15,10 +15,10 @@ int main(const char *args) {
 //  puts("mainargs = \"");
 //  puts(args); // make run mainargs=xxx
 //  puts("\"\n");
-//  printf("HERE!");
+  printf("HERE!\n");
   uint64_t next_frame=0;
   while (1) {
-    //printf("A!");
+    printf("A!\n");
     while(uptime()<next_frame);
     func_key();
     splash();

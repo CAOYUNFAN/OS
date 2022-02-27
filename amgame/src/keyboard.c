@@ -5,7 +5,7 @@
 static const char *key_names[] = {
   AM_KEYS(KEYNAME)
 };
-int posx,posy;
+int posx=0,posy=0;
 void func_key() {
   AM_INPUT_KEYBRD_T event = { .keycode = AM_KEY_NONE };
   ioe_read(AM_INPUT_KEYBRD, &event);

@@ -22,14 +22,18 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) {
 }
 
 #define Min(a,b) ((a)<(b)?(a):(b))
+int prex=-1,prey=-1;
 void splash() {
   init();//printf("HELLO!\n");
+  if(posx==prex&&posy==prey) return;
   if(posx<0) posx=0;
   if(posx>=w-SIDE) posx=w-SIDE;
   if(posy<0) posy=0;
   if(posy>=h-SIDE) posy=h-SIDE;
   draw_tile(posx,posy,SIDE,SIDE,0);
   usedx=usedy=0;
+  if(prex!=-1&&prey!=-1) draw_tile(prex,prey,SIDE,SIDE,0xffffff);
+  prex=posx;prey=posy;
 /*  printf("%d %d\n",posx,posy);
   for (int x = 0; x * SIDE <= w; x ++) {
     for (int y = 0; y * SIDE <= h; y++) {
@@ -38,6 +42,7 @@ void splash() {
       }
     }
   }*/
+  return;
 }
 void splash_init(){
   init();

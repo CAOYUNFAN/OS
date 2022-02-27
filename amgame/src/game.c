@@ -19,7 +19,7 @@ int main(const char *args) {
  
   uint64_t next_frame=0;
   while (1) {
-    printf("%d\n",next_frame);
+//    printf("%d\n",next_frame);
     while(uptime()<next_frame);
     func_key();
     splash();

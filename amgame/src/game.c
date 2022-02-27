@@ -1,7 +1,7 @@
 #include <game.h>
 
 // Operating system is a C program!
-#define FPS 1
+#define FPS 10
 
 inline uint64_t uptime(){
   AM_TIMER_UPTIME_T ret;

@@ -5,16 +5,16 @@
 static const char *key_names[] = {
   AM_KEYS(KEYNAME)
 };
-int posx=0,posy=0;
+int posx=0,posy=0,usedx=0,usedy=0;
 void func_key() {
   AM_INPUT_KEYBRD_T event = { .keycode = AM_KEY_NONE };
   ioe_read(AM_INPUT_KEYBRD, &event);
   if (event.keycode != AM_KEY_NONE && event.keydown) {
     if(event.keycode==1) halt(0);
-    if(*key_names[event.keycode]=='A') posy-=16;
-    if(event.keycode==43) posx-=16;
-    if(event.keycode==44) posy+=16;
-    if(event.keycode==45) posx+=16;
+    if(*key_names[event.keycode]=='A'&&!usedy) posy-=16,usedy=1;
+    if(event.keycode==43&&!usedx) posx-=16,usedx=1;
+    if(event.keycode==44&&!usedy) posy+=16,usedy=1;
+    if(event.keycode==45&&!usedx) posx+=16,usedx=1;
 //    printf("%s\n",key_names[event.keycode]);
   }
 }

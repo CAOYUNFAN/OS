@@ -8,7 +8,7 @@ static void init() {
   w = info.width;
   h = info.height;
 }
-extern int posx,posy;
+extern int posx,posy,usedx,usedy;
 static void draw_tile(int x, int y, int w, int h, uint32_t color) {
   uint32_t pixels[w * h]; // WARNING: large stack-allocated memory
   AM_GPU_FBDRAW_T event = {
@@ -29,14 +29,15 @@ void splash() {
   if(posy<0) posy=0;
   if(posy>=h-SIDE) posy=h-SIDE;
   draw_tile(posx,posy,SIDE,SIDE,0);
-  printf("%d %d\n",posx,posy);
+  usedx=usedy=0;
+/*  printf("%d %d\n",posx,posy);
   for (int x = 0; x * SIDE <= w; x ++) {
     for (int y = 0; y * SIDE <= h; y++) {
       if ((x & 1) ^ (y & 1)) {
         draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xffffff); // white
       }
     }
-  }
+  }*/
 }
 void splash_init(){
   init();

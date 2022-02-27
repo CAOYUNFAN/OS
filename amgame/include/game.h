@@ -8,3 +8,4 @@ void func_key();
 static inline void puts(const char *s) {
   for (; *s; s++) putch(*s);
 }
+void splash_init();

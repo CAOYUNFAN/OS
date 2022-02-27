@@ -25,10 +25,10 @@ static void draw_tile(int x, int y, int w, int h, uint32_t color) {
 void splash() {
   init();//printf("HELLO!\n");
   if(posx<0) posx=0;
-  if(posx>=w-4*SIDE) posx=w-4*SIDE;
+  if(posx>=w-SIDE) posx=w-SIDE;
   if(posy<0) posy=0;
-  if(posy>=h-4*SIDE) posy=h-4*SIDE;
-  draw_tile(posx,posy,4*SIDE,4*SIDE,0xffffff);
+  if(posy>=h-SIDE) posy=h-SIDE;
+  draw_tile(posx,posy,SIDE,SIDE,0);
   printf("%d %d\n",posx,posy);
   for (int x = 0; x * SIDE <= w; x ++) {
     for (int y = 0; y * SIDE <= h; y++) {
@@ -37,4 +37,11 @@ void splash() {
       }
     }
   }
+}
+void splash_init(){
+  init();
+  for (int x = 0; x <= w; x+=SIDE) 
+    for(int y =0; y <= h; y+=SIDE) 
+      draw_tile(x,y,SIDE,SIDE,0xffffff);
+  return;
 }

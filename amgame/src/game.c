@@ -18,6 +18,7 @@ int main(const char *args) {
 //  printf("HERE!\n");
  
   uint64_t next_frame=0;
+  splash_init();
   while (1) {
 //    printf("%d\n",next_frame);
     while(uptime()<next_frame);

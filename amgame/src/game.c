@@ -6,7 +6,7 @@
 inline uint64_t uptime(){
   AM_TIMER_UPTIME_T ret;
   ioe_read(AM_TIMER_UPTIME,&ret);
-  return ret.us/1000000;
+  return ret.us/1000;
 }
 
 int main(const char *args) {
@@ -19,7 +19,7 @@ int main(const char *args) {
  
   uint64_t next_frame=0;
   while (1) {
-//    printf("A!\n");
+    printf("%d\n",next_frame);
     while(uptime()<next_frame);
     func_key();
     splash();

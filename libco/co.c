@@ -65,6 +65,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 }
 
 void for_running(struct co *co){
+  CAO_DEBUG(co->name);
   current=co;
   longjmp(co->context,1);
   return;
@@ -96,7 +97,7 @@ void for_new(struct co * co){
 }
 
 void co_wait(struct co *co) {
-  CAO_DEBUG(co->name);
+//  CAO_DEBUG(co->name);
   assert(co);assert(co->waiter==NULL);assert(current->status==CO_RUNNING);
   current->status=CO_WAITING;
   co->waiter=current;

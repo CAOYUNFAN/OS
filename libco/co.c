@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #ifdef LOCAL_MACHINE
+  #include <stdio.h>
   #define DEBUG(...) printf(__VA_ARGS__)
 #else
   #define DEBUG()

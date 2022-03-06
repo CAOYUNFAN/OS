@@ -86,7 +86,7 @@ static inline void stack_switch_call(uintptr_t sp, void *entry, uintptr_t arg) {
 
 void for_new(struct co * co){
   CAO_DEBUG(co->name);
-  current=co;co->status=CO_RUNNING;DEBUG("%p\n",co->stack+STACK_SIZE);
+  current=co;co->status=CO_RUNNING;DEBUG("%p %x\n",co->stack+STACK_SIZE,~16);
   stack_switch_call( ( (uintptr_t)co->stack+STACK_SIZE ) &~16,co->func,(uintptr_t)co->arg);
   co->status=CO_DEAD;
   if(co->waiter) {

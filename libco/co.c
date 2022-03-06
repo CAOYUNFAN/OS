@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <setjmp.h>
 #include <assert.h>
+#include <stdint.h>
 
 #ifdef LOCAL_MACHINE
   #define DEBUG(...) printf(__VA_ARGS__)

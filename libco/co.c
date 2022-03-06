@@ -20,7 +20,7 @@ typedef enum{
   CO_DEAD,
 }co_status;
 
-#define STACK_SIZE (64*1024+16)
+#define STACK_SIZE (4*1024)
 struct co {
   const char * name;
   void (*func) (void *);
@@ -31,7 +31,7 @@ struct co {
   struct co * pre;
   struct co * nxt;
   jmp_buf context;
-  u_int8_t stack[STACK_SIZE] ;
+  long double stack[STACK_SIZE] ;
 };
 
 struct co * st=NULL;
@@ -71,7 +71,7 @@ void for_running(struct co *co){
   return;
 }
 
-static inline void stack_switch_call(uintptr_t sp, void *entry, uintptr_t arg) {
+static inline void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
   DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
   asm volatile (
 #if __x86_64__
@@ -87,7 +87,7 @@ static inline void stack_switch_call(uintptr_t sp, void *entry, uintptr_t arg) {
 void for_new(struct co * co){
   CAO_DEBUG(co->name);
   current=co;co->status=CO_RUNNING;DEBUG("%p %x\n",co->stack+STACK_SIZE,~15);
-  stack_switch_call( ( (uintptr_t)co->stack+STACK_SIZE ) &~(uintptr_t)15,co->func,(uintptr_t)co->arg);
+  stack_switch_call(co->stack+STACK_SIZE,co->func,(uintptr_t)co->arg);
   co->status=CO_DEAD;
   if(co->waiter) {
     assert(co->waiter->status==CO_WAITING);

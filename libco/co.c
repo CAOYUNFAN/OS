@@ -66,7 +66,7 @@ void for_new(struct co * co){
   stack_switch_call( ( (uintptr_t)co->stack+STACK_SIZE ) &~16,co->func,co->arg);
   co->status=CO_DEAD;
   if(co->waiter) {
-    assert(co->waiter==CO_WAITING);
+    assert(co->waiter->status==CO_WAITING);
     co->waiter->status=CO_RUNNING;
     for_running(co->waiter);
   }

@@ -92,6 +92,7 @@ void for_new(struct co * co){
 }
 
 void co_wait(struct co *co) {
+  DEBUG("wait!:%s\n",co->name);
   assert(co);assert(co->waiter==NULL);
   current->status=CO_WAITING;
   co->waiter=current;

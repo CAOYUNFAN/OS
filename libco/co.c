@@ -1,15 +1,118 @@
 #include "co.h"
 #include <stdlib.h>
+#include <setjmp.h>
+#include <assert.h>
 
+#ifdef LOCAL_MACHINE
+  #define DEBUG(...) printf(__VA_ARGS__)
+#else
+  #define DEBUG()
+#endif
+
+typedef enum{
+  CO_NEW=1,
+  CO_RUNNING,
+  CO_WAITING,
+  CO_DEAD,
+}co_status;
+
+#define STACK_SIZE (64*1024+16)
 struct co {
+  char * name;
+  void (*func) (void *);
+  void * arg;
+
+  co_status status;
+  struct co * waiter;
+  struct co * pre;
+  struct co * nxt;
+  jmp_buf context;
+  u_int8_t stack[STACK_SIZE] ;
 };
 
+struct co * st=NULL;
+
+struct co * current=NULL;
+
+void add_list(struct co * x){
+  x->nxt=st->nxt;st->nxt=x;
+  x->nxt->pre=x;x->pre=st;
+  return;
+}
+
+void del_list(struct co * x){
+  x->nxt->pre=x->pre;x->pre->nxt=x->nxt;
+  free(x);
+  return;
+}
+
+void * malloc__(size_t size){
+  void * ret=malloc(size);
+  while (ret==NULL) ret=malloc(size);
+  return ret;
+}
+
 struct co *co_start(const char *name, void (*func)(void *), void *arg) {
-  return NULL;
+  struct co *ret = malloc__(sizeof(struct co));
+  ret->name=name;ret->func=func;ret->arg=arg;ret->waiter=NULL;
+  add_list(ret);
+  ret->status=CO_NEW;
+  return ret;
+}
+
+void for_new(struct co * co){
+  current=co;co->status=CO_RUNNING;
+  stack_switch_call( ( (uintptr_t)co->stack+STACK_SIZE ) &~16,co->func,co->arg);
+  co->status=CO_DEAD;
+  if(co->waiter) {
+    assert(co->waiter==CO_WAITING);
+    co->waiter->status=CO_RUNNING;
+    for_running(co->waiter);
+  }
+  co_yield();
+}
+
+void for_running(struct co *co){
+  current=co;
+  longjmp(co->context,1);
+  return;
 }
 
 void co_wait(struct co *co) {
+  assert(co);assert(co->waiter==NULL);
+  current->status=CO_WAITING;
+  co->waiter=current;
+  int tag=setjmp(current->context);
+  while (!tag){
+      switch (co->status) {
+      case CO_NEW: for_new(co); break;
+      case CO_RUNNING: for_running(co); break;
+      case CO_WAITING: co_yield(); break;
+      default: tag=1;break;
+    }
+  }
+  assert(co->status==CO_DEAD&&current->status==CO_RUNNING);
+  del_list(co);
+  return;
 }
 
 void co_yield() {
+  int val=setjmp(current->context);
+  if(!val){
+    current=current->nxt;
+    while (current->status!=CO_NEW&&current->status!=CO_RUNNING) current=current->nxt;
+    switch(current->status){
+      case CO_NEW: for_new(current); break;
+      case CO_RUNNING: for_running(current);break;
+      default: assert(0);
+    }
+  }
+  return;
+}
+
+void __attribute__((constructor)) init(){
+  while(!( current=malloc__(sizeof(struct co)) ));
+  st=current;current->pre=current->nxt=current;
+  current->name="main";
+  current->status=CO_RUNNING;  
 }

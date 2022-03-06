@@ -61,6 +61,12 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   return ret;
 }
 
+void for_running(struct co *co){
+  current=co;
+  longjmp(co->context,1);
+  return;
+}
+
 void for_new(struct co * co){
   current=co;co->status=CO_RUNNING;
   stack_switch_call( ( (uintptr_t)co->stack+STACK_SIZE ) &~16,co->func,co->arg);
@@ -71,12 +77,6 @@ void for_new(struct co * co){
     for_running(co->waiter);
   }
   co_yield();
-}
-
-void for_running(struct co *co){
-  current=co;
-  longjmp(co->context,1);
-  return;
 }
 
 void co_wait(struct co *co) {

@@ -67,6 +67,18 @@ void for_running(struct co *co){
   return;
 }
 
+static inline void stack_switch_call(void *sp, void *entry, uintptr_t arg) {
+  asm volatile (
+#if __x86_64__
+    "movq %0, %%rsp; movq %2, %%rdi; jmp *%1"
+      : : "b"((uintptr_t)sp), "d"(entry), "a"(arg) : "memory"
+#else
+    "movl %0, %%esp; movl %2, 4(%0); jmp *%1"
+      : : "b"((uintptr_t)sp - 8), "d"(entry), "a"(arg) : "memory"
+#endif
+  );
+}
+
 void for_new(struct co * co){
   current=co;co->status=CO_RUNNING;
   stack_switch_call( ( (uintptr_t)co->stack+STACK_SIZE ) &~16,co->func,co->arg);

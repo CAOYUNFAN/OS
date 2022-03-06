@@ -11,6 +11,8 @@
   #define DEBUG()
 #endif
 
+#define CAO_DEBUG(name) DEBUG("[%3d:%10s]%s!\n",__LINE__,__FUNCTION__,name)
+
 typedef enum{
   CO_NEW=1,
   CO_RUNNING,
@@ -81,6 +83,7 @@ static inline void stack_switch_call(uintptr_t sp, void *entry, uintptr_t arg) {
 }
 
 void for_new(struct co * co){
+  CAO_DEBUG(co->name);
   current=co;co->status=CO_RUNNING;
   stack_switch_call( ( (uintptr_t)co->stack+STACK_SIZE ) &~16,co->func,(uintptr_t)co->arg);
   co->status=CO_DEAD;
@@ -93,8 +96,8 @@ void for_new(struct co * co){
 }
 
 void co_wait(struct co *co) {
-  DEBUG("wait!:%s\n",co->name);
-  assert(co);assert(co->waiter==NULL);
+  CAO_DEBUG(co->name);
+  assert(co);assert(co->waiter==NULL);assert(current->status==CO_RUNNING);
   current->status=CO_WAITING;
   co->waiter=current;
   int tag=setjmp(current->context);

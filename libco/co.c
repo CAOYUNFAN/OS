@@ -67,7 +67,7 @@ void for_running(struct co *co){
   return;
 }
 
-static inline void stack_switch_call(void *sp, void *entry, uintptr_t arg) {
+static inline void stack_switch_call(uintptr_t sp, void *entry, uintptr_t arg) {
   asm volatile (
 #if __x86_64__
     "movq %0, %%rsp; movq %2, %%rdi; jmp *%1"
@@ -81,7 +81,7 @@ static inline void stack_switch_call(void *sp, void *entry, uintptr_t arg) {
 
 void for_new(struct co * co){
   current=co;co->status=CO_RUNNING;
-  stack_switch_call( ( (uintptr_t)co->stack+STACK_SIZE ) &~16,co->func,co->arg);
+  stack_switch_call( ( (uintptr_t)co->stack+STACK_SIZE ) &~16,co->func,(uintptr_t)co->arg);
   co->status=CO_DEAD;
   if(co->waiter) {
     assert(co->waiter->status==CO_WAITING);

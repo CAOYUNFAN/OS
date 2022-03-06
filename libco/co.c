@@ -72,6 +72,7 @@ void for_running(struct co *co){
 }
 
 static inline void stack_switch_call(uintptr_t sp, void *entry, uintptr_t arg) {
+  CAO_DEBUG("!");
   asm volatile (
 #if __x86_64__
     "movq %0, %%rsp; movq %2, %%rdi; jmp *%1"

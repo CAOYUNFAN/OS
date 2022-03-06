@@ -18,7 +18,7 @@ typedef enum{
 
 #define STACK_SIZE (64*1024+16)
 struct co {
-  char * name;
+  const char * name;
   void (*func) (void *);
   void * arg;
 

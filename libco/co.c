@@ -20,7 +20,7 @@ typedef enum{
   CO_DEAD,
 }co_status;
 
-#define STACK_SIZE (4*1024)
+#define STACK_SIZE (64*1024+16)
 struct co {
   const char * name;
   void (*func) (void *);
@@ -31,7 +31,7 @@ struct co {
   struct co * pre;
   struct co * nxt;
   jmp_buf context;
-  long double stack[STACK_SIZE] ;
+  uint8_t stack[STACK_SIZE] ;
 };
 
 struct co * st=NULL;
@@ -72,7 +72,7 @@ void for_running(struct co *co){
 }
 
 static inline void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
-  sp=(void *)( (uintptr_t) sp & -16 );
+  sp=(void *)( ((uintptr_t) sp & -16) +8 );
   DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
   asm volatile (
 #if __x86_64__

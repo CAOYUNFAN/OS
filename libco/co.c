@@ -36,7 +36,7 @@ struct co {
 
 struct co * st=NULL;
 
-struct co * current=NULL;
+static volatile struct co * current=NULL;
 
 static void add_list(struct co * x){
   x->nxt=st->nxt;st->nxt=x;

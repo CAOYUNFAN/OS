@@ -91,7 +91,7 @@ void co_wait(struct co *co) {
   current->status=CO_WAITING;
   co->waiter=current;
   setjmp(current->context);
-  if(current->status!=CO_DEAD) co_yield();
+  if(co->status!=CO_DEAD) co_yield();
   assert(co->status==CO_DEAD&&current->status==CO_RUNNING);
   del_list(co);
   return;

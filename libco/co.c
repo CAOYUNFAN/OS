@@ -83,6 +83,7 @@ static inline void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
       : : "b"((uintptr_t)sp - 8), "d"(entry), "a"(arg) : "memory"
 #endif
   );
+  CAO_DEBUG("END REACH HERE!");
 }
 
 void for_new(struct co * co){

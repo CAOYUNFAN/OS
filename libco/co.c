@@ -91,10 +91,10 @@ void for_new(struct co * co){
   current=co;co->status=CO_RUNNING;
 //  DEBUG("%p\n",co->stack);
   stack_switch_call(co->stack+STACK_SIZE,co->func,(uintptr_t)co->arg);
-  co->status=CO_DEAD;
-  if(co->waiter) {
-    assert(co->waiter->status==CO_WAITING);
-    co->waiter->status=CO_RUNNING;
+  current->status=CO_DEAD;
+  if(current->waiter) {
+    assert(current->waiter->status==CO_WAITING);
+    current->waiter->status=CO_RUNNING;
   }
   co_yield();
 }

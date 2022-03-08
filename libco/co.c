@@ -71,7 +71,7 @@ void for_running(struct co *co){
   return;
 }
 
-static inline void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
+static void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
   sp=(void *)( ((uintptr_t) sp & -16) );
 //  DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
   asm volatile (
@@ -83,6 +83,12 @@ static inline void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
       : : "b"((uintptr_t)sp - 8), "d"(entry), "a"(arg) : "memory"
 #endif
   );
+  current->status=CO_DEAD;
+  if(current->waiter) {
+    assert(current->waiter->status==CO_WAITING);
+    current->waiter->status=CO_RUNNING;
+  }
+  co_yield();
 //  CAO_DEBUG("END REACH HERE!");
 }
 
@@ -91,12 +97,6 @@ void for_new(struct co * co){
   current=co;co->status=CO_RUNNING;
 //  DEBUG("%p\n",co->stack);
   stack_switch_call(co->stack+STACK_SIZE,co->func,(uintptr_t)co->arg);
-  current->status=CO_DEAD;
-  if(current->waiter) {
-    assert(current->waiter->status==CO_WAITING);
-    current->waiter->status=CO_RUNNING;
-  }
-  co_yield();
 }
 
 void co_wait(struct co *co) {

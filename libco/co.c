@@ -71,7 +71,7 @@ void for_running(struct co *co){
   return;
 }
 
-static void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
+static volatile void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
   sp=(void *)( ((uintptr_t) sp & -16) );
 //  DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
   asm volatile (

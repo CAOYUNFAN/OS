@@ -64,6 +64,8 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   return ret;
 }
 
+static void stack_switch_call(void * sp, void *entry, void * arg);
+
 static void __co_yield(){
   for(current=current->nxt;current->status!=CO_RUNNING&&current->status!=CO_NEW;current=current->nxt);
 

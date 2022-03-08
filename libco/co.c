@@ -20,7 +20,7 @@ typedef enum{
   CO_DEAD,
 }co_status;
 
-#define STACK_SIZE (64*1024+16)
+#define STACK_SIZE (64*1024+32)
 struct co {
   const char * name;
   void (*func) (void *);

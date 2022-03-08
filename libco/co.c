@@ -87,7 +87,7 @@ static volatile void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
       : : "b"((uintptr_t)sp), "d"(entry), "a"(arg) : "memory"
 #else
     "movl %0, %%esp; movl %2, (%0); call *%1"
-      : : "b"((uintptr_t)sp - 8), "d"(entry), "a"(arg) : "memory"
+      : : "b"((uintptr_t)sp), "d"(entry), "a"(arg) : "memory"
 #endif
   );
   current->status=CO_DEAD;

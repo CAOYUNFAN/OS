@@ -95,7 +95,6 @@ void for_new(struct co * co){
   if(co->waiter) {
     assert(co->waiter->status==CO_WAITING);
     co->waiter->status=CO_RUNNING;
-    for_running(co->waiter);
   }
   co_yield();
 }

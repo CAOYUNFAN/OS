@@ -78,6 +78,15 @@ static void __co_yield(){
   }
 }
 
+void deal(){
+  current->status=CO_DEAD;
+  if(current->waiter) {
+    assert(current->waiter->status==CO_WAITING);
+    current->waiter->status=CO_RUNNING;
+  }
+  __co_yield();
+}
+
 static volatile void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
   sp=(void *)( ((uintptr_t) sp & -16) );
 //  DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
@@ -90,12 +99,7 @@ static volatile void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
       : : "b"((uintptr_t)sp - 8), "d"(entry), "a"(arg) : "memory"
 #endif
   );
-  current->status=CO_DEAD;
-  if(current->waiter) {
-    assert(current->waiter->status==CO_WAITING);
-    current->waiter->status=CO_RUNNING;
-  }
-  __co_yield();
+  deal();
 //  CAO_DEBUG("END REACH HERE!");
 }
 

@@ -80,7 +80,7 @@ static void __co_yield(){
 
 static volatile void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
   sp=(void *)( ((uintptr_t) sp & -16) );
-//  DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
+  DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
   asm volatile (
 #if __x86_64__
     "movq %0, %%rsp; movq %2, %%rdi; call *%1"

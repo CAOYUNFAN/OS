@@ -64,7 +64,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   return ret;
 }
 
-static void stack_switch_call(void * sp, void *entry, void * arg);
+static void stack_switch_call(void * sp, void *entry, uintptr_t arg);
 
 static void __co_yield(){
   for(current=current->nxt;current->status!=CO_RUNNING&&current->status!=CO_NEW;current=current->nxt);
@@ -72,13 +72,13 @@ static void __co_yield(){
   switch(current->status){
     case CO_NEW: 
       current->status=CO_RUNNING;
-      stack_switch_call(current->stack+STACK_SIZE,current->func,current->arg);
+      stack_switch_call(current->stack+STACK_SIZE,current->func,(uintptr_t)current->arg);
     case CO_RUNNING: longjmp(current->context,1);
     default: assert(0);
   }
 }
 
-static void stack_switch_call(void * sp, void *entry, void * arg) {
+static void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
   sp=(void *)( ((uintptr_t) sp & -16) );
 //  DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
   asm volatile (

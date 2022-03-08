@@ -102,11 +102,12 @@ static void stack_switch_call(void * sp, void *entry, void * arg) {
 void co_wait(struct co *co) {
 //  CAO_DEBUG(co->name);
   assert(co);assert(co->waiter==NULL);assert(current->status==CO_RUNNING);
-  current->status=CO_WAITING;
-  co->waiter=current;
-  setjmp(current->context);
-  if(co->status!=CO_DEAD) __co_yield();
-  assert(co->status==CO_DEAD&&current->status==CO_RUNNING);
+  if(co->status!=CO_DEAD){
+    current->status=CO_WAITING;
+    co->waiter=current;
+    if(!setjmp(current->context)) __co_yield();
+    assert(co->status==CO_DEAD&&current->status==CO_RUNNING);
+  }
   del_list(co);
   return;
 }

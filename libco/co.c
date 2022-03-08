@@ -64,14 +64,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   return ret;
 }
 
-void for_running(struct co *co){
-//  CAO_DEBUG(co->name);
-  current=co;
-  longjmp(co->context,1);
-  return;
-}
-
-static volatile void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
+static void stack_switch_call(void * sp, void *entry, void * arg) {
   sp=(void *)( ((uintptr_t) sp & -16) );
 //  DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
   asm volatile (
@@ -92,27 +85,13 @@ static volatile void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
 //  CAO_DEBUG("END REACH HERE!");
 }
 
-void for_new(struct co * co){
-//  CAO_DEBUG(co->name);
-  current=co;co->status=CO_RUNNING;
-//  DEBUG("%p\n",co->stack);
-  stack_switch_call(co->stack+STACK_SIZE,co->func,(uintptr_t)co->arg);
-}
-
 void co_wait(struct co *co) {
 //  CAO_DEBUG(co->name);
   assert(co);assert(co->waiter==NULL);assert(current->status==CO_RUNNING);
   current->status=CO_WAITING;
   co->waiter=current;
-  int tag=setjmp(current->context);
-  while (!tag){
-      switch (co->status) {
-      case CO_NEW: for_new(co); break;
-      case CO_RUNNING: for_running(co); break;
-      case CO_WAITING: co_yield(); break;
-      default: tag=1;break;
-    }
-  }
+  setjmp(current->context);
+  if(current->status!=CO_DEAD) co_yield();
   assert(co->status==CO_DEAD&&current->status==CO_RUNNING);
   del_list(co);
   return;
@@ -121,11 +100,13 @@ void co_wait(struct co *co) {
 void co_yield() {
   int val=setjmp(current->context);
   if(!val){
-    current=current->nxt;
-    while (current->status!=CO_NEW&&current->status!=CO_RUNNING) current=current->nxt;
+    for(current=current->nxt;current->status!=CO_RUNNING&&current->status!=CO_NEW;current=current->nxt);
+
     switch(current->status){
-      case CO_NEW: for_new(current); break;
-      case CO_RUNNING: for_running(current);break;
+      case CO_NEW: 
+        current->status=CO_RUNNING;
+        stack_switch_call(current->stack+STACK_SIZE,current->func,current->arg);
+      case CO_RUNNING: longjmp(current->context,1);
       default: assert(0);
     }
   }

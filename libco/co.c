@@ -65,7 +65,7 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 }
 
 void for_running(struct co *co){
-  CAO_DEBUG(co->name);
+//  CAO_DEBUG(co->name);
   current=co;
   longjmp(co->context,1);
   return;

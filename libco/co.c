@@ -38,19 +38,19 @@ struct co * st=NULL;
 
 struct co * current=NULL;
 
-void add_list(struct co * x){
+static void add_list(struct co * x){
   x->nxt=st->nxt;st->nxt=x;
   x->nxt->pre=x;x->pre=st;
   return;
 }
 
-void del_list(struct co * x){
+static void del_list(struct co * x){
   x->nxt->pre=x->pre;x->pre->nxt=x->nxt;
   free(x);
   return;
 }
 
-void * malloc__(size_t size){
+static void * malloc__(size_t size){
   void * ret=malloc(size);
   while (ret==NULL) ret=malloc(size);
   return ret;
@@ -62,6 +62,18 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   add_list(ret);
   ret->status=CO_NEW;
   return ret;
+}
+
+static void __co_yield(){
+  for(current=current->nxt;current->status!=CO_RUNNING&&current->status!=CO_NEW;current=current->nxt);
+
+  switch(current->status){
+    case CO_NEW: 
+      current->status=CO_RUNNING;
+      stack_switch_call(current->stack+STACK_SIZE,current->func,current->arg);
+    case CO_RUNNING: longjmp(current->context,1);
+    default: assert(0);
+  }
 }
 
 static void stack_switch_call(void * sp, void *entry, void * arg) {
@@ -81,7 +93,7 @@ static void stack_switch_call(void * sp, void *entry, void * arg) {
     assert(current->waiter->status==CO_WAITING);
     current->waiter->status=CO_RUNNING;
   }
-  co_yield();
+  __co_yield();
 //  CAO_DEBUG("END REACH HERE!");
 }
 
@@ -91,7 +103,7 @@ void co_wait(struct co *co) {
   current->status=CO_WAITING;
   co->waiter=current;
   setjmp(current->context);
-  if(co->status!=CO_DEAD) co_yield();
+  if(co->status!=CO_DEAD) __co_yield();
   assert(co->status==CO_DEAD&&current->status==CO_RUNNING);
   del_list(co);
   return;
@@ -99,17 +111,7 @@ void co_wait(struct co *co) {
 
 void co_yield() {
   int val=setjmp(current->context);
-  if(!val){
-    for(current=current->nxt;current->status!=CO_RUNNING&&current->status!=CO_NEW;current=current->nxt);
-
-    switch(current->status){
-      case CO_NEW: 
-        current->status=CO_RUNNING;
-        stack_switch_call(current->stack+STACK_SIZE,current->func,current->arg);
-      case CO_RUNNING: longjmp(current->context,1);
-      default: assert(0);
-    }
-  }
+  if(!val) __co_yield();
   return;
 }
 

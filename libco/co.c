@@ -137,5 +137,4 @@ void __attribute__((constructor)) init(){
 
 void __attribute__ ((destructor)) free_main_malloc(){
   free(st);
-  printf("destructor!\n");
 }

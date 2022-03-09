@@ -67,7 +67,8 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
 static void __co_yield();
 
 static void start(){
-  assert(current->status==CO_RUNNING);
+  assert(current->status==CO_NEW);
+  current->status=CO_RUNNING;
   current->func(current->arg);
   current->status=CO_DEAD;
   if(current->waiter) {
@@ -84,12 +85,11 @@ static void __co_yield(){
 
   switch(current->status){
     case CO_NEW: 
-      current->status=CO_RUNNING;
       stack_switch_call(current->stack+STACK_SIZE,start);
-      assert(0);
+      assert(0);//should not reach here!
     case CO_RUNNING: 
       longjmp(current->context,1);
-      assert(0);
+      assert(0);//should not reach here!
     default: assert(0);
   }
 }
@@ -106,8 +106,7 @@ static volatile void stack_switch_call(void * sp, void *entry) {
       : : "b"((uintptr_t)sp - 8), "d"(entry) : "memory"
 #endif
   );
-  assert(0);
-//  CAO_DEBUG("END REACH HERE!");
+  assert(0);//should not reach here!
 }
 
 void co_wait(struct co *co) {

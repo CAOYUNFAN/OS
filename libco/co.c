@@ -94,7 +94,7 @@ static void __co_yield(){
   }
 }
 
-static volatile void stack_switch_call(void * sp, void *entry) {
+static inline void stack_switch_call(void * sp, void *entry) {
   sp=(void *)( ((uintptr_t) sp & -16) );
 //  DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
   asm volatile (
@@ -129,8 +129,12 @@ void co_yield() {
 }
 
 void __attribute__((constructor)) init(){
-  while(!( current=malloc__(sizeof(struct co)) ));
+  current=malloc__(sizeof(struct co));
   st=current;current->pre=current->nxt=current;
   current->name="main";
   current->status=CO_RUNNING;  
+}
+
+void __attribute__ ((destructor)) free_main_malloc(){
+  free(st);
 }

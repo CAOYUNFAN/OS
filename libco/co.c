@@ -64,6 +64,8 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   return ret;
 }
 
+static void __co_yield();
+
 static void start(){
   assert(current->status==CO_RUNNING);
   current->func(current->arg);

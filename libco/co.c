@@ -70,6 +70,10 @@ static void start(){
   assert(current->status==CO_RUNNING);
   current->func(current->arg);
   current->status=CO_DEAD;
+  if(current->waiter) {
+    assert(current->waiter->status==CO_WAITING);
+    current->waiter->status=CO_RUNNING;
+  }
   __co_yield();
 }
 
@@ -82,18 +86,12 @@ static void __co_yield(){
     case CO_NEW: 
       current->status=CO_RUNNING;
       stack_switch_call(current->stack+STACK_SIZE,start);
-    case CO_RUNNING: longjmp(current->context,1);
+      assert(0);
+    case CO_RUNNING: 
+      longjmp(current->context,1);
+      assert(0);
     default: assert(0);
   }
-}
-
-void deal(){
-  current->status=CO_DEAD;
-  if(current->waiter) {
-    assert(current->waiter->status==CO_WAITING);
-    current->waiter->status=CO_RUNNING;
-  }
-  __co_yield();
 }
 
 static volatile void stack_switch_call(void * sp, void *entry) {
@@ -108,7 +106,7 @@ static volatile void stack_switch_call(void * sp, void *entry) {
       : : "b"((uintptr_t)sp - 8), "d"(entry) : "memory"
 #endif
   );
-  deal();
+  assert(0);
 //  CAO_DEBUG("END REACH HERE!");
 }
 

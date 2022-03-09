@@ -64,7 +64,14 @@ struct co *co_start(const char *name, void (*func)(void *), void *arg) {
   return ret;
 }
 
-static void stack_switch_call(void * sp, void *entry, uintptr_t arg);
+static void start(){
+  assert(current->status==CO_RUNNING);
+  current->func(current->arg);
+  current->status=CO_DEAD;
+  __co_yield();
+}
+
+static void stack_switch_call(void * sp, void *entry);
 
 static void __co_yield(){
   for(current=current->nxt;current->status!=CO_RUNNING&&current->status!=CO_NEW;current=current->nxt);
@@ -72,7 +79,7 @@ static void __co_yield(){
   switch(current->status){
     case CO_NEW: 
       current->status=CO_RUNNING;
-      stack_switch_call(current->stack+STACK_SIZE,current->func,(uintptr_t)current->arg);
+      stack_switch_call(current->stack+STACK_SIZE,start);
     case CO_RUNNING: longjmp(current->context,1);
     default: assert(0);
   }
@@ -87,16 +94,16 @@ void deal(){
   __co_yield();
 }
 
-static volatile void stack_switch_call(void * sp, void *entry, uintptr_t arg) {
+static volatile void stack_switch_call(void * sp, void *entry) {
   sp=(void *)( ((uintptr_t) sp & -16) );
 //  DEBUG("%p %p %p\n",(void *)sp,entry,(void *)arg);
   asm volatile (
 #if __x86_64__
-    "movq %0, %%rsp; movq %2, %%rdi; call *%1"
-      : : "b"((uintptr_t)sp), "d"(entry), "a"(arg) : "memory"
+    "movq %0, %%rsp; call *%1"
+      : : "b"((uintptr_t)sp), "d"(entry) : "memory"
 #else
-    "movl %0, %%esp; movl %2, (%0); call *%1"
-      : : "b"((uintptr_t)sp - 8), "d"(entry), "a"(arg) : "memory"
+    "movl %0, %%esp; call *%1"
+      : : "b"((uintptr_t)sp - 8), "d"(entry) : "memory"
 #endif
   );
   deal();

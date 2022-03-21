@@ -112,6 +112,7 @@ static inline void init_mm(uintptr_t begin,uintptr_t end){
   return;
 }*/
 
+#ifndef TEST
 static void pmm_init() {
   uintptr_t pmsize = ((uintptr_t)heap.end - (uintptr_t)heap.start);
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
@@ -119,6 +120,17 @@ static void pmm_init() {
 //  init_mm(begin=(((uintptr_t)heap.end-Unit_size+1)&Unit_mask)+Unit_size,end=(uintptr_t)heap.end&Unit_mask);
   return;
 }
+#else
+static void pmm_init() {
+  char *ptr  = malloc(HEAP_SIZE);
+  heap.start = ptr;
+  heap.end   = ptr + HEAP_SIZE;
+  printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
+
+//  init_mm(begin=(((uintptr_t)heap.end-Unit_size+1)&Unit_mask)+Unit_size,end=(uintptr_t)heap.end&Unit_mask);
+  return;
+}
+#endif
 
 static int lock;
 

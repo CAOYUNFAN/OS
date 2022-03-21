@@ -13,13 +13,6 @@
 
 typedef int spinlock_t;
 
-static inline int atomic_xcchg(volatile int *addr, int newval) {
-  int result;
-  asm volatile ("lock xchg %0, %1":
-    "+m"(*addr), "=a"(result) : "1"(newval) : "memory");
-  return result;
-}
-
 typedef struct __free_list{
   uintptr_t size;
   struct __free_list *nxt;
@@ -34,14 +27,14 @@ static uintptr_t begin,end,tot_num;
 
 void spin_lock(spinlock_t *lk) {
   while (1) {
-    intptr_t value = atomic_xcchg(lk, MAGIC_LOCKED);
+    intptr_t value = atomic_xchg(lk, MAGIC_LOCKED);
     if (value == MAGIC_UNLOCKED) {
       break;
     }
   }
 }
 void spin_unlock(spinlock_t *lk) {
-  atomic_xcchg(lk, MAGIC_UNLOCKED);
+  atomic_xchg(lk, MAGIC_UNLOCKED);
 }
 
 static inline uintptr_t check(free_list * now,size_t len){
@@ -62,7 +55,7 @@ static void *kalloc(size_t size) {
   if(size>MAX_malloc) return NULL;
   int vis_num=0;
   for(uintptr_t now=begin;vis_num<tot_num;now=(now+Unit_size==end?begin:now+Unit_size))
-  if(atomic_xcchg((int *)LOCK_ADDR(now),MAGIC_LOCKED)==MAGIC_UNLOCKED){
+  if(atomic_xchg((int *)LOCK_ADDR(now),MAGIC_LOCKED)==MAGIC_UNLOCKED){
     ++vis_num;
     uintptr_t ret=try_alloc(now,LOCK_ADDR(now),size);
     spin_unlock((int *)LOCK_ADDR(now));

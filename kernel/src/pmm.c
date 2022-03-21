@@ -87,7 +87,7 @@ static void pmm_init() {
   heap.end   = ptr + HEAP_SIZE;
   printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
   init_mm();
-  printf("Initialize memory Completed!");
+  printf("Initialize memory Completed!\n");
 //  init_mm(begin=(((uintptr_t)heap.end-Unit_size+1)&Unit_mask)+Unit_size,end=(uintptr_t)heap.end&Unit_mask);
   return;
 }

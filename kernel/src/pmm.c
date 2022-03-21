@@ -62,7 +62,7 @@ void init_mm(){
     *lock_addr(j)=MAGIC_LOCKED;
     start_of_free_list(j)=(free_list *)i;
     #ifdef TEST
-    memset((void *)i,MAGIC_UNUSED,Unit_size));
+    memset((void *)i,MAGIC_UNUSED,Unit_size);
     #endif
     ((free_list *)i)->size=Unit_size;
     ((free_list *)i)->nxt=NULL;

@@ -68,7 +68,6 @@ void init_mm(){
     ((free_list *)i)->size=Unit_size;
     ((free_list *)i)->nxt=NULL;
     *lock_addr(j)=MAGIC_UNLOCKED;
-    printf("123\n");
   }
 }
 

@@ -59,6 +59,7 @@ static inline size_t up_bound(size_t size){
 void init_mm(){
   num_of_block=(HEAP_END-HEAP_START)/Unit_size;
   for(uintptr_t i=HEAP_START,j=0;i<HEAP_END;i+=Unit_size,j++){
+    printf("%ld\n",i);
     *lock_addr(j)=MAGIC_LOCKED;
     start_of_free_list(j)=(free_list *)i;
     #ifdef TEST

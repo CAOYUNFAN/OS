@@ -124,7 +124,7 @@ static inline void free(uintptr_t ptr){
     if(((mem_tag *)pos)->size+ptr==pos+sizeof(mem_tag)&&((mem_tag *)pos)->magic==MAGIC_MHD) break;
   }
   #ifdef TEST
-    memset(ptr,len,MAGIC_UNUSED);
+    memset((void *)ptr,len,MAGIC_UNUSED);
   #endif
 
 }

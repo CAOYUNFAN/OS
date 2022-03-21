@@ -22,7 +22,7 @@ typedef struct{
   uintptr_t size;
   uintptr_t magic;
 }mem_head;
-
+/*
 static inline void spin_lock(spinlock_t *lk) {
   while (1) {
     intptr_t value = atomic_xchg(lk, MAGIC_LOCKED);
@@ -137,7 +137,7 @@ static int lock;
 
 static void * kalloc(size_t size){
   if(size>MAX_malloc) return NULL;
-  spin_lock(&lock);
+//  spin_lock(&lock);
   return NULL;
 }
 

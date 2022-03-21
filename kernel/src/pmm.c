@@ -35,7 +35,7 @@ static inline void spin_lock(spinlock_t *lk) {
 static inline void spin_unlock(spinlock_t *lk) {
   atomic_xchg(lk, MAGIC_UNLOCKED);
 }
-static int lock;
+static int lock;*/
 /*
 static inline uintptr_t check(free_list * now,size_t len){
   if(now->size<len+sizeof(mem_head)) return 0;

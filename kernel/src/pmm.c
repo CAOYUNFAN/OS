@@ -91,12 +91,12 @@ static void pmm_init() {
 }
 #endif
 
-static void * find(size_t len){
+static inline void * find(size_t len){
 
   return NULL;
 }
 
-void work(void * ptr,size_t len){
+static inline void work(void * ptr,size_t len){
   mem_tag * pos=(mem_tag *)((uintptr_t)ptr+len-sizeof(mem_tag));
   pos->size=len;
   pos->magic=MAGIC_MHD;

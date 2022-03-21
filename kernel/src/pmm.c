@@ -61,12 +61,15 @@ static void pmm_init() {
 
 static void * kalloc(size_t size){
   if(size>MAX_malloc) return NULL;
-//  spin_lock(&lock);
+  spin_lock(&lock);
+  spin_unlock(&lock);
   return NULL;
 }
 
 static void kfree(void * ptr){
+  spin_lock(&lock);
 
+  spin_unlock(&lock);
 }
 
 MODULE_DEF(pmm) = {

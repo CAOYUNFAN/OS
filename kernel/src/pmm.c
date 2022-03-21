@@ -23,9 +23,7 @@ typedef struct{
   uintptr_t magic;
 }mem_head;
 
-static uintptr_t begin,end,tot_num;
-
-void spin_lock(spinlock_t *lk) {
+static inline void spin_lock(spinlock_t *lk) {
   while (1) {
     intptr_t value = atomic_xchg(lk, MAGIC_LOCKED);
     if (value == MAGIC_UNLOCKED) {
@@ -33,10 +31,11 @@ void spin_lock(spinlock_t *lk) {
     }
   }
 }
-void spin_unlock(spinlock_t *lk) {
+
+static inline void spin_unlock(spinlock_t *lk) {
   atomic_xchg(lk, MAGIC_UNLOCKED);
 }
-
+/*
 static inline uintptr_t check(free_list * now,size_t len){
   if(now->size<len+sizeof(mem_head)) return 0;
   return 0;
@@ -111,7 +110,7 @@ static inline void init_mm(uintptr_t begin,uintptr_t end){
     *((spinlock_t *)j)=MAGIC_UNLOCKED;
   }
   return;
-}
+}*/
 
 static void pmm_init() {
   uintptr_t pmsize = ((uintptr_t)heap.end - (uintptr_t)heap.start);
@@ -119,6 +118,18 @@ static void pmm_init() {
 
 //  init_mm(begin=(((uintptr_t)heap.end-Unit_size+1)&Unit_mask)+Unit_size,end=(uintptr_t)heap.end&Unit_mask);
   return;
+}
+
+static int lock;
+
+static void * kalloc(size_t size){
+  if(size>MAX_malloc) return NULL;
+  spin_lock(&lock);
+  return NULL;
+}
+
+static void kfree(void * ptr){
+
 }
 
 MODULE_DEF(pmm) = {

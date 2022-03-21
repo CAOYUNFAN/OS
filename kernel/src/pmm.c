@@ -1,98 +1,131 @@
 #include <common.h>
 
 #define MAX_malloc (16*1024*1024)
+#define Unit_size (MAX_malloc<<3)
+#define Unit_mask (-Unit_size)
+
+#define MAGIC_UNUSED (0x7c)
+#define MAGIC_UNLOCKED (0)
+#define MAGIC_LOCKED (1)
+#define MAGIC_MHD (0x19810114)
+
+#define LOCK_ADDR(x) ((x)+Unit_size-sizeof(int))
+
+typedef int spinlock_t;
+
+static inline int atomic_xcchg(volatile int *addr, int newval) {
+  int result;
+  asm volatile ("lock xchg %0, %1":
+    "+m"(*addr), "=a"(result) : "1"(newval) : "memory");
+  return result;
+}
+
+typedef struct __free_list{
+  uintptr_t size;
+  struct __free_list *nxt;
+}free_list;
 
 typedef struct{
-  int is_cover,max_len,left_len;
-}tree_unit;
-tree_unit tree[4*MAX_malloc];
+  uintptr_t size;
+  uintptr_t magic;
+}mem_head;
 
-static void build_tree(uintptr_t l,uintptr_t r,int now){
-  tree[now].is_cover=0;tree[now].max_len=tree[now].left_len=(int)(r-l);
-  if(r-l>1){
-    uintptr_t mid=(l+r)>>1;
-    build_tree(l,mid,now<<1);
-    build_tree(mid,r,now<<1|1);
+static uintptr_t begin,end,tot_num;
+
+void spin_lock(spinlock_t *lk) {
+  while (1) {
+    intptr_t value = atomic_xcchg(lk, MAGIC_LOCKED);
+    if (value == MAGIC_UNLOCKED) {
+      break;
+    }
   }
-  return;
+}
+void spin_unlock(spinlock_t *lk) {
+  atomic_xcchg(lk, MAGIC_UNLOCKED);
 }
 
-#define Max(a,b) ((a)>(b)?(a):(b))
-
-static inline void update(int now,uintptr_t l,uintptr_t r){
-  int ls=now<<1,rs=now<<1|1;
-  uintptr_t mid=(l+r)>>1;
-  if(tree[ls].max_len==mid-l){
-    tree[now].max_len=tree[now].left_len=tree[rs].left_len+mid-l;
-  }else{
-    tree[now].left_len=tree[ls].left_len;
-    tree[now].max_len=Max(tree[ls].max_len,tree[rs].max_len);
-  }
-  return;
+static inline uintptr_t check(free_list * now,size_t len){
+  if(now->size<len+sizeof(mem_head)) return 0;
+  return 0;
+//  uintptr_t testptr=(uintptr_t) now+
 }
 
-static inline void cover(int now,int tag,uintptr_t x){
-  tree[now].is_cover=tag;
-  tree[now].left_len=tree[now].max_len=x;
-  return;
+static inline uintptr_t try_alloc(uintptr_t begin,uintptr_t end,size_t len){
+  free_list * now=(free_list *)*((uintptr_t *)begin);
+  uintptr_t l;
+  while(now&&!(l=check(now,len))) now=now->nxt;
+  if(!now) return 0;
+  return 0;
 }
-
-static inline void push_down(int now){
-  if(tree[now].is_cover){
-    tree[now].is_cover=0;
-    cover(now<<1,1,0);cover(now<<1|1,1,0);
-  }
-  return;
-}
-
-static void add_tag(int tag,uintptr_t left, uintptr_t right,uintptr_t l,uintptr_t r,int now){
-  push_down(now);
-  if(left<=l&&right>=r){
-    cover(now,tag,tag?0:r-l);
-    return;
-  }
-  uintptr_t mid=(l+r)>>1;
-  if(left<mid) add_tag(tag,left,right,l,mid,now<<1);
-  if(right>mid) add_tag(tag,left,right,mid,r,now<<1|1); 
-  update(now,l,r);
-}
-
-#define no_ans ((uintptr_t)-1)
-
-static uintptr_t detect(size_t len,int l,int r,int now){
-  if(tree[now].max_len<len) return no_ans;
-  push_down(now);
-  if(r-l==1) return l;
-  uintptr_t mid=(l+r)>>1;
-  uintptr_t ans=detect(len,mid,r,now<<1);
-  if(ans==no_ans) ans=detect(len,l,mid,now<<1|1);
-  return ans==no_ans?l:ans;
-}
-
-static uintptr_t tree_l,tree_r;
-
-static int pair[MAX_malloc];
 
 static void *kalloc(size_t size) {
   if(size>MAX_malloc) return NULL;
-  uintptr_t l=detect(size,tree_l,tree_r,1);
-  if(l==no_ans) return NULL;
-  pair[l-tree_l]=size;
-  add_tag(1,l,l+size,tree_l,tree_r,1);
-  return (void *)l;
+  int vis_num=0;
+  for(uintptr_t now=begin;vis_num<tot_num;now=(now+Unit_size==end?begin:now+Unit_size))
+  if(atomic_xcchg((int *)LOCK_ADDR(now),MAGIC_LOCKED)==MAGIC_UNLOCKED){
+    ++vis_num;
+    uintptr_t ret=try_alloc(now,LOCK_ADDR(now),size);
+    spin_unlock((int *)LOCK_ADDR(now));
+    if(ret) return (void *)ret;
+  }
+
+  return NULL;
+}
+
+static void add_list(uintptr_t pos,free_list * insert){
+  free_list * head=(free_list *)(*(uintptr_t *)pos);
+  if((uintptr_t)head>(uintptr_t)insert){
+    insert->nxt=head;
+    *(uintptr_t *)pos=(uintptr_t)insert;
+  }else{
+    while((uintptr_t)head+head->size<(uintptr_t)insert&&(head->nxt==NULL||(uintptr_t)head->nxt>(uintptr_t)insert)) head=head->nxt;
+    insert->nxt=head->nxt;head->nxt=insert;
+    if((uintptr_t)head+head->size==(uintptr_t)insert){
+      head->size+=insert->size;head->nxt=insert->nxt;
+      memset(insert,MAGIC_UNUSED,sizeof(free_list));
+      insert=head;
+    }
+  }
+  if((uintptr_t)insert+insert->size==(uintptr_t)insert->nxt){
+    insert->size+=insert->nxt->size;
+    free_list *temp=insert->nxt;
+    insert->nxt=insert->nxt->nxt;
+    memset(temp,MAGIC_UNUSED,sizeof(free_list));
+  }
 }
 
 static void kfree(void *ptr) {
-  add_tag(0,(uintptr_t)ptr,(uintptr_t)ptr+pair[(uintptr_t)ptr-tree_l],tree_l,tree_r,1);
+  spin_lock((int *)LOCK_ADDR((uintptr_t)ptr&Unit_mask));
+  mem_head *mhd=(mem_head *)ptr-1;
+  assert(mhd->magic==MAGIC_MHD);
+  uintptr_t len=mhd->size;
+  int j=0;
+  for(unsigned char *i=(unsigned char *)ptr;j<len;++i,++j) *i=MAGIC_UNUSED;
+  ((free_list *) mhd)->size=len+sizeof(mem_head);
+  add_list((uintptr_t)ptr&Unit_mask,(free_list *)mhd);
+  spin_unlock((int *)LOCK_ADDR((uintptr_t)ptr&Unit_mask));
+  return;
+}
+
+static inline void init_mm(uintptr_t begin,uintptr_t end){
+  tot_num=0;
+  for(uintptr_t i=begin;i<end;i+=Unit_size,++tot_num){
+    uintptr_t j=i+sizeof(uintptr_t);
+    *((uintptr_t *)i)=j;
+    ((free_list *)j)->size=Unit_size-sizeof(uintptr_t);
+    ((free_list *)j)->nxt=NULL;
+    for(j+=sizeof(free_list);j<i+Unit_size-sizeof(spinlock_t);j++) *((unsigned char *)j)=MAGIC_UNUSED;
+    *((spinlock_t *)j)=MAGIC_UNLOCKED;
+  }
   return;
 }
 
 static void pmm_init() {
   uintptr_t pmsize = ((uintptr_t)heap.end - (uintptr_t)heap.start);
   printf("Got %d MiB heap: [%p, %p)\n", pmsize >> 20, heap.start, heap.end);
-  tree_l=((uintptr_t)heap.start+(uintptr_t)MAX_malloc-1)&-(uintptr_t)MAX_malloc;
-  tree_r=tree_l+MAX_malloc;
-  build_tree(tree_l,tree_r,1);
+
+  init_mm(begin=(((uintptr_t)heap.end-Unit_size+1)&Unit_mask)+Unit_size,end=(uintptr_t)heap.end&Unit_mask);
+  return;
 }
 
 MODULE_DEF(pmm) = {

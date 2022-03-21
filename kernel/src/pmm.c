@@ -111,6 +111,7 @@ static void * kalloc(size_t size){
   uintptr_t try_num=0;
   for(uintptr_t i=0,j=HEAP_START;try_num<num_of_block;i=(i+1)%num_of_block,j=(j+Unit_size==HEAP_END?HEAP_START:j+HEAP_END))
   if(atomic_xchg(lock_addr(i),MAGIC_LOCKED)==MAGIC_UNLOCKED){
+    ++try_num;
     void * ret=find(size);
     if(ret) work(ret,size);
     spin_unlock(lock_addr(i));

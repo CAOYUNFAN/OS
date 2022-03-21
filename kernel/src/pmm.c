@@ -69,7 +69,7 @@ void init_mm(){
     ((free_list *)i)->nxt=NULL;
     *lock_addr(j)=MAGIC_UNLOCKED;
   }
-//  printf("END!");
+  printf("END!\n");
 }
 
 #ifndef TEST

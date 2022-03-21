@@ -117,7 +117,7 @@ static void * kalloc(size_t size){
   return NULL;
 }
 
-static inline void free(uintptr_t ptr){
+static inline void real_free(uintptr_t ptr){
   uintptr_t len=LOWBIT(ptr);
   for(;len;len>>=1){
     uintptr_t pos=ptr+len-sizeof(mem_tag);
@@ -132,7 +132,7 @@ static inline void free(uintptr_t ptr){
 static void kfree(void * ptr){
   uintptr_t pos=(ROUNDDOWN((uintptr_t)ptr,Unit_size)-HEAP_START)/Unit_size;
   spin_lock(lock_addr(pos));
-  free((uintptr_t)ptr);
+  real_free((uintptr_t)ptr);
   spin_unlock(lock_addr(pos));
 }
 

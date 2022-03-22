@@ -151,10 +151,10 @@ static inline void real_free(uintptr_t ptr){
 }
 
 static void kfree(void * ptr){
-  uintptr_t pos=(ROUNDDOWN((uintptr_t)ptr,Unit_size)-HEAP_START)/Unit_size;
+/*  uintptr_t pos=(ROUNDDOWN((uintptr_t)ptr,Unit_size)-HEAP_START)/Unit_size;
   spin_lock(lock_addr(pos));
   real_free((uintptr_t)ptr);
-  spin_unlock(lock_addr(pos));
+  spin_unlock(lock_addr(pos));*/
 }
 
 MODULE_DEF(pmm) = {

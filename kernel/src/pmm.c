@@ -80,16 +80,14 @@ void init_128(){
   return;
 }
 void * kalloc_128(size_t size){
-  printf("HERE!\n");
   if(start_of_128==NULL) return NULL;
-  printf("HERE2!\n");
   spin_lock(&lock_128);
   void * ret=(void *) start_of_128;
   if(ret){
     start_of_128=start_of_128->nxt;
   }
   spin_unlock(&lock_128);
-  return NULL;
+  return ret;
 }
 void kfree_128(void * ptr){
   free_list * hdr=ptr;

@@ -48,7 +48,15 @@ static inline void spin_unlock(spinlock_t *lk) {
   atomic_xchg(lk, MAGIC_UNLOCKED);
 }
 
-//static int lock;
+static int lock;
+
+static inline void * kernel_alloc(size_t len){
+  static uintptr_t sbrk_now=0;
+  if(!sbrk_now) sbrk_now=0;
+  void * previous=(void *)sbrk_now;
+  sbrk_now+=len;
+  return previous;
+}
 
 static inline size_t up_bound(size_t size){
   int i=0;
@@ -62,9 +70,7 @@ void init_mm(){
 //    printf("%lx,%lx,i=%lx,j=%d,num=%d\n",HEAP_USE_START,HEAP_END,i,j,num_of_block);
     *lock_addr(j)=MAGIC_LOCKED;
     start_of_free_list(j)=(free_list *)i;
-    #ifdef TEST
     memset((void *)i,MAGIC_UNUSED,Unit_size);
-    #endif
     ((free_list *)i)->size=Unit_size;
     ((free_list *)i)->nxt=NULL;
     *lock_addr(j)=MAGIC_UNLOCKED;
@@ -105,9 +111,19 @@ static inline void work(void * ptr,size_t len){
   return;
 }
 
+static inline void * kalloc_case3(size_t size){
+  uintptr_t ret=0;
+  spin_lock(&lock);
+
+  spin_unlock(&lock);
+  return (void *)ret;
+}
+
 static void * kalloc(size_t size){
   if(size>MAX_malloc) return NULL;
-  size=up_bound(size+sizeof(mem_tag));
+  return kalloc_case3(size);
+
+/*  size=up_bound(size+sizeof(mem_tag));
   uintptr_t try_num=0;
   for(uintptr_t i=0,j=HEAP_START;try_num<num_of_block;i=(i+1)%num_of_block,j=(j+Unit_size==HEAP_END?HEAP_START:j+HEAP_END))
   if(atomic_xchg(lock_addr(i),MAGIC_LOCKED)==MAGIC_UNLOCKED){
@@ -117,18 +133,17 @@ static void * kalloc(size_t size){
     spin_unlock(lock_addr(i));
     if(ret) return ret;
   }
-  return NULL;
+  return NULL;*/
 }
 
 static inline void real_free(uintptr_t ptr){
-  uintptr_t len=LOWBIT(ptr);
+  spin_lock(&lock);
+  /*uintptr_t len=LOWBIT(ptr);
   for(;len;len>>=1){
     uintptr_t pos=ptr+len-sizeof(mem_tag);
     if(((mem_tag *)pos)->size+ptr==pos+sizeof(mem_tag)&&((mem_tag *)pos)->magic==MAGIC_MHD) break;
   }
-  #ifdef TEST
-    memset((void *)ptr,len,MAGIC_UNUSED);
-  #endif
+  memset((void *)ptr,len,MAGIC_UNUSED);*/
 
 }
 

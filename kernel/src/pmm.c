@@ -1,18 +1,11 @@
 #include <common.h>
 
 #define MAX_malloc (16*1024*1024)
-#define Unit_size (MAX_malloc<<2)
+#define Unit_size (MAX_malloc)
 #define Unit_mask (-Unit_size)
 
-#define HEAP_USE_START ROUNDUP((uintptr_t)heap.start,Unit_size)
-#define HEAP_START (HEAP_USE_START+Unit_size)
+#define HEAP_START ROUNDUP((uintptr_t)heap.start,Unit_size)
 #define HEAP_END ROUNDDOWN((uintptr_t)heap.end,Unit_size)
-
-#define num_of_block (*((int *)HEAP_USE_START))
-#define lock_addr(i) ((int *)(HEAP_USE_START+(i+1)*sizeof(int)))
-#define start_free_list (HEAP_USE_START+(num_of_block+1)*sizeof(int))
-#define start_of_free_list_addr(i) ((free_list **)(start_free_list+i*sizeof(free_list *)))
-#define start_of_free_list(i) (*(start_of_free_list_addr( i )))
 
 #define LOWBIT(x) ((x)&((x)^((x)-1)))
 
@@ -52,10 +45,9 @@ static int lock;
 
 static inline void * kernel_alloc(size_t len){
   static uintptr_t sbrk_now=0;
-  if(!sbrk_now) sbrk_now=0;
-  void * previous=(void *)sbrk_now;
-  sbrk_now+=len;
-  return previous;
+  if(!sbrk_now) sbrk_now=HEAP_END;
+  sbrk_now-=len;
+  return sbrk_now;
 }
 
 static inline size_t up_bound(size_t size){
@@ -64,8 +56,19 @@ static inline size_t up_bound(size_t size){
   return i;
 }
 
+free_list * start_of_128;
+
+void init_128(){
+  start_of_128=kernel_alloc(sizeof(free_list *));
+
+}
+
+void init_
+
 void init_mm(){
-  num_of_block=(HEAP_END-HEAP_START)/Unit_size;
+  
+
+/*  num_of_block=(HEAP_END-HEAP_START)/Unit_size;
   for(uintptr_t i=HEAP_START,j=0;i<HEAP_END;i+=Unit_size,j++){
 //    printf("%lx,%lx,i=%lx,j=%d,num=%d\n",HEAP_USE_START,HEAP_END,i,j,num_of_block);
     *lock_addr(j)=MAGIC_LOCKED;
@@ -74,7 +77,7 @@ void init_mm(){
     ((free_list *)i)->size=Unit_size;
     ((free_list *)i)->nxt=NULL;
     *lock_addr(j)=MAGIC_UNLOCKED;
-  }
+  }*/
 }
 
 #ifndef TEST

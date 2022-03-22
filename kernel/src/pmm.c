@@ -26,7 +26,7 @@
 #define LOCK_ADDR(x) ((x)+Unit_size-sizeof(int))
 
 typedef int spinlock_t;
-typedef unsigned long uintptr_t;
+//typedef unsigned long uintptr_t;
 
 typedef struct __free_list{
   uintptr_t size;
@@ -190,7 +190,7 @@ static inline void real_free(uintptr_t ptr){
 }
 
 static void kfree(void * ptr){
-  if(ptr>=heap_128_start&&ptr<heap_128_end) kfree_128(ptr);
+  if((uintptr_t)ptr>=heap_128_start&&(uintptr_t)ptr<heap_128_end) kfree_128(ptr);
 /*  uintptr_t pos=(ROUNDDOWN((uintptr_t)ptr,Unit_size)-HEAP_START)/Unit_size;
   spin_lock(lock_addr(pos));
   real_free((uintptr_t)ptr);

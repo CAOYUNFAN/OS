@@ -80,7 +80,9 @@ void init_128(){
   return;
 }
 void * kalloc_128(size_t size){
+  printf("HERE!\n");
   if(start_of_128==NULL) return NULL;
+  printf("HERE2!\n");
   spin_lock(&lock_128);
   void * ret=(void *) start_of_128;
   if(ret){

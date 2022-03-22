@@ -1,6 +1,5 @@
 #include <common.h>
 
-#define TEST
 #ifdef TEST
   #include <assert.h>
   #define DEBUG(...) (__VA_ARGS__)

@@ -1,7 +1,16 @@
 #include <common.h>
 
+#define TEST
+#ifdef TEST
+  #include <assert.h>
+  #define DEBUG(...) (__VA_ARGS__)
+#else
+  #define DEBUG()
+#endif
+
+
 #define MAX_malloc (16*1024*1024)
-#define Unit_size (MAX_malloc)
+#define Unit_size (MAX_malloc*2)
 #define Unit_mask (-Unit_size)
 
 #define HEAP_START ROUNDUP((uintptr_t)heap.start,Unit_size)
@@ -17,6 +26,7 @@
 #define LOCK_ADDR(x) ((x)+Unit_size-sizeof(int))
 
 typedef int spinlock_t;
+typedef unsigned long uintptr_t;
 
 typedef struct __free_list{
   uintptr_t size;
@@ -43,11 +53,11 @@ static inline void spin_unlock(spinlock_t *lk) {
 
 static int lock;
 
+static uintptr_t sbrk_now=0;
+
 static inline void * kernel_alloc(size_t len){
-  static uintptr_t sbrk_now=0;
-  if(!sbrk_now) sbrk_now=HEAP_END;
   sbrk_now-=len;
-  return sbrk_now;
+  return (void *)sbrk_now;
 }
 
 static inline size_t up_bound(size_t size){
@@ -57,17 +67,45 @@ static inline size_t up_bound(size_t size){
 }
 
 free_list * start_of_128;
-
+static uintptr_t heap_128_start,heap_128_end;
+int lock_128;
 void init_128(){
-  start_of_128=kernel_alloc(sizeof(free_list *));
+  heap_128_start=HEAP_START;heap_128_end=(HEAP_END+HEAP_START)>>1;
+  start_of_128=(free_list *)heap_128_start;
+  ((free_list *)heap_128_start)->size=128;
+  for(uintptr_t ptr=heap_128_start+128;ptr<heap_128_end;ptr+=128){
+    ((free_list *)ptr)->size=128;
+    ((free_list *)(ptr-128))->nxt=(free_list *)ptr;
+  }
+  ((free_list *)(heap_128_end-128))->nxt=NULL;
+  return;
+}
+void * kalloc_128(size_t size){
+  if(start_of_128==NULL) return NULL;
+  spin_lock(&lock_128);
+  void * ret=(void *) start_of_128;
+  if(ret){
+    start_of_128=start_of_128->nxt;
+  }
+  spin_unlock(&lock_128);
+  return NULL;
+}
+void kfree_128(void * ptr){
+  free_list * hdr=ptr;
+  hdr->size=128;
+  spin_lock(&lock_128);
+  hdr->nxt=start_of_128->nxt;
+  start_of_128=hdr;
+  spin_unlock(&lock_128);
+}
+
+void init_4096(){
 
 }
 
-void init_
-
 void init_mm(){
-  
-
+  sbrk_now=HEAP_END;
+  init_128();
 /*  num_of_block=(HEAP_END-HEAP_START)/Unit_size;
   for(uintptr_t i=HEAP_START,j=0;i<HEAP_END;i+=Unit_size,j++){
 //    printf("%lx,%lx,i=%lx,j=%d,num=%d\n",HEAP_USE_START,HEAP_END,i,j,num_of_block);
@@ -124,6 +162,7 @@ static inline void * kalloc_case3(size_t size){
 
 static void * kalloc(size_t size){
   if(size>MAX_malloc) return NULL;
+  if(size<=128) return kalloc_128(size);
   return kalloc_case3(size);
 
 /*  size=up_bound(size+sizeof(mem_tag));
@@ -151,6 +190,7 @@ static inline void real_free(uintptr_t ptr){
 }
 
 static void kfree(void * ptr){
+  if(ptr>=heap_128_start&&ptr<heap_128_end) kfree_128(ptr);
 /*  uintptr_t pos=(ROUNDDOWN((uintptr_t)ptr,Unit_size)-HEAP_START)/Unit_size;
   spin_lock(lock_addr(pos));
   real_free((uintptr_t)ptr);

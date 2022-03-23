@@ -213,7 +213,10 @@ static inline free_list * update(free_list ** head){
     #ifdef TEST
     memset((void *)ret->nxt,MAGIC_UNUSED,sizeof(free_list));
     int jj=0;
-    for(unsigned char *x=((unsigned char *)ret+sizeof(free_list));jj<(len<<1)-sizeof(free_list);++jj,++x) assert(*x==MAGIC_UNUSED);
+    for(unsigned char *x=((unsigned char *)ret+sizeof(free_list));jj<(len<<1)-sizeof(free_list);++jj,++x) {
+      if(*x!=MAGIC_UNUSED) printf("%p-%lx\n",x,jj+sizeof(free_list));
+      assert(*x==MAGIC_UNUSED);
+    }
     #endif
     return ret;
   }

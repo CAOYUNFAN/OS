@@ -227,12 +227,13 @@ static void pmm_init() {
   return;
 }
 #else
+extern FILE * fd;
 #define HEAP_SIZE 0x40000000
 static void pmm_init() {
   char *ptr  = malloc(HEAP_SIZE);
   heap.start = ptr;
   heap.end   = ptr + HEAP_SIZE;
-  printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
+  fprintf(fd,"Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
   init_mm();
 //  printf("Initialize memory Completed!\n");
   return;

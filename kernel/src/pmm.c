@@ -41,7 +41,6 @@ typedef struct{
 
 static inline void spin_lock(spinlock_t *lk) {
   while (1) {
-    printf("123!\n");
     intptr_t value = atomic_xchg(lk, MAGIC_LOCKED);
     if (value == MAGIC_UNLOCKED) {
       break;

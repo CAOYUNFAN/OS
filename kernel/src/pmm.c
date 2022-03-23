@@ -147,8 +147,8 @@ void init_rest(){
 }
 static inline void insert(free_list * insert,free_list ** head){
   if(*head==NULL||(uintptr_t)*head>(uintptr_t)insert){
-    *head=insert;
     insert->nxt=*head;
+    *head=insert;
     return;
   }
   for(free_list * now=*head;now!=NULL;now=now->nxt)

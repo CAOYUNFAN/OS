@@ -190,7 +190,7 @@ static inline void * kalloc_rest(size_t size){
     for(;(i>>1)>=size;i>>=1){
       ret->size>>=1;
       free_list * divide=(free_list *)((uintptr_t)ret+ret->size);
-      divide->size=i;
+      divide->size=(i>>1);
       insert(divide,&start_of_rest[--j]);
     }
     MTG_addr(ret,i)->size=i;MTG_addr(ret,i)->magic=MAGIC_MTG;

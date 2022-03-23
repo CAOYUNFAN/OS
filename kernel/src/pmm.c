@@ -167,7 +167,7 @@ static inline void * kalloc_rest(size_t size){
     if(i<size||!start_of_rest[j]) continue;
     ret=start_of_rest[j];
     start_of_rest[j]=start_of_rest[j]->nxt;
-    for(;i>=size;i>>=1){
+    for(;(i>>1)>=size;i>>=1){
       ret->size>>=1;
       free_list * divide=(free_list *)((uintptr_t)ret+ret->size);
       divide->size=i;

@@ -79,12 +79,17 @@ static inline void * kalloc_128(){
   void * ret=(void *) start_of_128;
   if(ret){
     start_of_128=start_of_128->nxt;
+    #ifdef TEST
+    unsigned long j=0;
+    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<128-sizeof(free_list);++i,++j) assert(*ptr==MAGIC_UNUSED);
+    #endif
   }
   spin_unlock(&lock_128);
   return ret;
 }
 static inline void kfree_128(void * ptr){
   free_list * hdr=ptr;
+  memset(ptr,128,MAGIC_UNUSED);
   hdr->size=128;
   spin_lock(&lock_128);
   hdr->nxt=start_of_128->nxt;
@@ -114,12 +119,17 @@ static inline void * kalloc_4096(){
   void * ret=(void *) start_of_4096;
   if(ret){
     start_of_4096=start_of_4096->nxt;
+    #ifdef TEST
+    unsigned long j=0;
+    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<4096-sizeof(free_list);++i,++j) assert(*ptr==MAGIC_UNUSED);
+    #endif
   }
   spin_unlock(&lock_4096);
   return ret;
 }
 static inline void kfree_4096(void * ptr){
   free_list * hdr=ptr;
+  memset(ptr,4096,MAGIC_UNUSED);
   hdr->size=4096;
   spin_lock(&lock_4096);
   hdr->nxt=start_of_4096->nxt;
@@ -156,8 +166,8 @@ static inline void insert(free_list * insert,free_list ** head){
   if((uintptr_t)now<(uintptr_t)insert&&(now->nxt==NULL||(uintptr_t)now->nxt>(uintptr_t)insert)){
     insert->nxt=now->nxt;
     now->nxt=insert;
+    return;
   }
-  return;
 }
 static inline void * kalloc_rest(size_t size){
   size+=sizeof(mem_tag);
@@ -167,6 +177,10 @@ static inline void * kalloc_rest(size_t size){
     if(i<size||!start_of_rest[j]) continue;
     ret=start_of_rest[j];
     start_of_rest[j]=start_of_rest[j]->nxt;
+    #ifdef TEST
+    unsigned long j=0;
+    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<i-sizeof(free_list);++i,++j) assert(*ptr==MAGIC_UNUSED);
+    #endif
     for(;(i>>1)>=size;i>>=1){
       ret->size>>=1;
       free_list * divide=(free_list *)((uintptr_t)ret+ret->size);

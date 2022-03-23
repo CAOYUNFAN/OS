@@ -131,7 +131,6 @@ static uintptr_t heap_rest_start,heap_rest_end;
 static free_list ** start_of_rest;
 static int lock_rest;
 void init_rest(){
-  printf("IN!\n");
   heap_rest_start=heap_4096_end;heap_rest_end=HEAP_END-Unit_size;
   uintptr_t num=0;
   for(uintptr_t i=8192;i<=(MAX_malloc);i<<=1) num++;
@@ -139,6 +138,7 @@ void init_rest(){
   uintptr_t j=0;
   for(uintptr_t i=8192;i<MAX_malloc;i<<=1,++j) start_of_rest[i]=NULL;
   if(j!=num-1) printf("FAIL!\n");
+  printf("IN!\n");
   start_of_rest[j]=(free_list *)heap_rest_start;
   ((free_list *)heap_rest_start)->size=MAX_malloc;
   for(uintptr_t ptr=heap_rest_start+MAX_malloc;ptr<heap_rest_end;ptr+=MAX_malloc){
@@ -146,6 +146,7 @@ void init_rest(){
     ((free_list *)(ptr-MAX_malloc))->nxt=(free_list *)ptr;
   }
   ((free_list *)(heap_rest_end-MAX_malloc))->nxt=NULL;
+  printf("OUT!\n");
 }
 static inline void insert(free_list * insert,free_list ** head){
   if(*head==NULL||(uintptr_t)*head>(uintptr_t)insert){

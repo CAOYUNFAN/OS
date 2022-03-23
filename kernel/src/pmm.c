@@ -19,7 +19,7 @@
 
 #define LOWBIT(x) ((x)&((x)^((x)-1)))
 
-#define MAGIC_UNUSED (0x7c)
+#define MAGIC_UNUSED (0x77)
 #define MAGIC_UNLOCKED (0)
 #define MAGIC_LOCKED (1)
 #define MAGIC_MTG (0x11451419)

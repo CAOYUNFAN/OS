@@ -90,6 +90,10 @@ static inline void * kalloc_128(){
 static inline void kfree_128(void * ptr){
   free_list * hdr=ptr;
   memset(ptr,128,MAGIC_UNUSED);
+    #ifdef TEST
+    unsigned long j=0;
+    for(unsigned char * ptr=((unsigned char *)ptr)+sizeof(free_list);j<128-sizeof(free_list);++ptr,++j) assert(*ptr==MAGIC_UNUSED);
+    #endif
   hdr->size=128;
   spin_lock(&lock_128);
   hdr->nxt=start_of_128->nxt;

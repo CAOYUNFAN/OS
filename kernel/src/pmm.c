@@ -19,7 +19,9 @@
 
 #define LOWBIT(x) ((x)&((x)^((x)-1)))
 
+#ifdef TEST
 #define MAGIC_UNUSED (0x77)
+#endif
 #define MAGIC_UNLOCKED (0)
 #define MAGIC_LOCKED (1)
 #define MAGIC_MTG (0x11451419)
@@ -89,7 +91,9 @@ static inline void * kalloc_128(){
 }
 static inline void kfree_128(void * ptr){
   free_list * hdr=ptr;
+  #ifdef TEST
   memset(ptr,MAGIC_UNUSED,128);
+  #endif
   hdr->size=128;
   spin_lock(&lock_128);
   hdr->nxt=start_of_128->nxt;
@@ -129,7 +133,9 @@ static inline void * kalloc_4096(){
 }
 static inline void kfree_4096(void * ptr){
   free_list * hdr=ptr;
+  #ifdef TEST
   memset(ptr,MAGIC_UNUSED,4096);
+  #endif
   hdr->size=4096;
   spin_lock(&lock_4096);
   hdr->nxt=start_of_4096->nxt;
@@ -200,14 +206,20 @@ static inline free_list * update(free_list ** head){
   if(LOWBIT((uintptr_t)*head)>len&&(uintptr_t)*head+len==(uintptr_t)((*head)->nxt)){
     free_list * ret=*head;
     *head=(*head)->nxt->nxt;
-    ret->size=(len<<1);memset((void *)ret->nxt,MAGIC_UNUSED,sizeof(free_list));
+    ret->size=(len<<1);
+    #ifdef TEST
+    memset((void *)ret->nxt,MAGIC_UNUSED,sizeof(free_list));
+    #endif
     return ret;
   }
   for(free_list * now=*head;now->nxt!=NULL;now=now->nxt){
     free_list * next=now->nxt;
     if(LOWBIT((uintptr_t)next)>len&&(uintptr_t)next+len==(uintptr_t)(next->nxt)){
       now->nxt=next->nxt->nxt;
-      next->size=len<<1;memset(next->nxt,MAGIC_UNUSED,sizeof(free_list));
+      next->size=len<<1;
+      #ifdef TEST
+      memset(next->nxt,MAGIC_UNUSED,sizeof(free_list));
+      #endif
       return next;
     }
   }
@@ -218,7 +230,9 @@ static inline void kfree_rest(void * ptr){
   for(;len;len>>=1){
     if(MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
   }
+  #ifdef TEST
   memset((void *)ptr,len,MAGIC_UNUSED);
+  #endif
   int pos=0;
   for(uintptr_t i=8192;i<len;i<<=1) ++pos;
   ((free_list *)ptr)->size=len;
@@ -230,7 +244,9 @@ static inline void kfree_rest(void * ptr){
 
 void init_mm(){
   sbrk_now=HEAP_END;
+  #ifdef TEST
   memset((void *)HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START);
+  #endif
   init_128();init_4096();init_rest();
 }
 

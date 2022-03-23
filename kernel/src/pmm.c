@@ -182,7 +182,8 @@ static inline void * kalloc_rest(size_t size){
 static inline free_list * update(free_list ** head){
   if(*head==NULL) return NULL;
   uintptr_t len=(*head)->size;
-  if(len==MAX_malloc) return NULL;printf("%ld\n",len);
+  if(len==MAX_malloc) return NULL;
+  printf("%ld\n",len);
   if(LOWBIT((uintptr_t)*head)>len&&(uintptr_t)*head+len==(uintptr_t)((*head)->nxt)){
     free_list * ret=*head;
     *head=(*head)->nxt->nxt;

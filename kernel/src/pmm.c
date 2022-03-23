@@ -239,7 +239,7 @@ static inline void kfree_rest(void * ptr){
     if(MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
   }
   #ifdef TEST
-  memset((void *)ptr,len,MAGIC_UNUSED);
+  memset((void *)ptr,MAGIC_UNUSED,len);
   #endif
   int pos=0;
   for(uintptr_t i=8192;i<len;i<<=1) ++pos;

@@ -178,8 +178,8 @@ static inline void * kalloc_rest(size_t size){
     ret=start_of_rest[j];
     start_of_rest[j]=start_of_rest[j]->nxt;
     #ifdef TEST
-    unsigned long j=0;
-    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<i-sizeof(free_list);++ptr,++j) assert(*ptr==MAGIC_UNUSED);
+    unsigned long jj=0;
+    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);jj<i-sizeof(free_list);++ptr,++jj) assert(*ptr==MAGIC_UNUSED);
     #endif
     for(;(i>>1)>=size;i>>=1){
       ret->size>>=1;

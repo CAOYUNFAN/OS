@@ -89,11 +89,7 @@ static inline void * kalloc_128(){
 }
 static inline void kfree_128(void * ptr){
   free_list * hdr=ptr;
-  memset(ptr,128,MAGIC_UNUSED);
-    #ifdef TEST
-    unsigned long j=0;
-    for(unsigned char * pttr=((unsigned char *)ptr)+sizeof(free_list);j<128-sizeof(free_list);++pttr,++j) assert(*pttr==MAGIC_UNUSED);
-    #endif
+  memset(ptr,MAGIC_UNUSED,128);
   hdr->size=128;
   spin_lock(&lock_128);
   hdr->nxt=start_of_128->nxt;
@@ -133,7 +129,7 @@ static inline void * kalloc_4096(){
 }
 static inline void kfree_4096(void * ptr){
   free_list * hdr=ptr;
-  memset(ptr,4096,MAGIC_UNUSED);
+  memset(ptr,MAGIC_UNUSED,4096);
   hdr->size=4096;
   spin_lock(&lock_4096);
   hdr->nxt=start_of_4096->nxt;

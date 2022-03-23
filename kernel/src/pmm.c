@@ -92,7 +92,7 @@ static inline void kfree_128(void * ptr){
   memset(ptr,128,MAGIC_UNUSED);
     #ifdef TEST
     unsigned long j=0;
-    for(unsigned char * ptr=((unsigned char *)ptr)+sizeof(free_list);j<128-sizeof(free_list);++ptr,++j) assert(*ptr==MAGIC_UNUSED);
+    for(unsigned char * pttr=((unsigned char *)ptr)+sizeof(free_list);j<128-sizeof(free_list);++pttr,++j) assert(*pttr==MAGIC_UNUSED);
     #endif
   hdr->size=128;
   spin_lock(&lock_128);

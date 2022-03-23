@@ -153,7 +153,7 @@ static inline void insert(free_list * insert,free_list ** head){
     return;
   }
   for(free_list * now=*head;now!=NULL;now=now->nxt)
-  if((uintptr_t)now<(uintptr_t)insert&&(now->nxt==NULL||(uintptr_t)now->nxt>insert)){
+  if((uintptr_t)now<(uintptr_t)insert&&(now->nxt==NULL||(uintptr_t)now->nxt>(uintptr_t)insert)){
     insert->nxt=now->nxt;
     now->nxt=insert;
   }
@@ -189,7 +189,7 @@ static inline free_list * update(free_list ** head){
     ret->size=(len<<1);memset((void *)ret->nxt,MAGIC_UNUSED,sizeof(free_list));
     return ret;
   }
-  for(free_list * now=*head;now->nxt=NULL;now=now->nxt){
+  for(free_list * now=*head;now->nxt!=NULL;now=now->nxt){
     free_list * next=now->nxt;
     if(LOWBIT((uintptr_t)next)>len&&(uintptr_t)next+len==(uintptr_t)(next->nxt)){
       now->nxt=next->nxt->nxt;

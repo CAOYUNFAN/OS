@@ -131,6 +131,7 @@ static uintptr_t heap_rest_start,heap_rest_end;
 static free_list ** start_of_rest;
 static int lock_rest;
 void init_rest(){
+  printf("IN!\n");
   heap_rest_start=heap_4096_end;heap_rest_end=HEAP_END-Unit_size;
   uintptr_t num=0;
   for(uintptr_t i=8192;i<=(MAX_malloc);i<<=1) num++;

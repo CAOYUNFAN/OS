@@ -215,6 +215,7 @@ static inline void kfree_rest(void * ptr){
 
 void init_mm(){
   sbrk_now=HEAP_END;
+  memset((void *)HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START);
   init_128();init_4096();init_rest();
 }
 

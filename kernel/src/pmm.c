@@ -160,7 +160,7 @@ static inline void insert(free_list * insert,free_list ** head){
   return;
 }
 static inline void * kalloc_rest(size_t size){
-  printf("ENTERING!\n");
+  printf("ENTERING_MALLOC!\n");
   size+=sizeof(mem_tag);
   free_list * ret=NULL;
   spin_lock(&lock_rest);
@@ -178,6 +178,7 @@ static inline void * kalloc_rest(size_t size){
     break;
   }
   spin_unlock(&lock_rest);
+  printf("EXIT!\n");
   return (void *)ret;
 }
 static inline free_list * update(free_list ** head){
@@ -201,7 +202,7 @@ static inline free_list * update(free_list ** head){
   return NULL;
 }
 static inline void kfree_rest(void * ptr){
-  printf("EXIT!\n");
+  printf("ENTERING_FREE!\n");
   uintptr_t len=LOWBIT((uintptr_t)ptr);
   for(;len;len>>=1){
     if(MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
@@ -213,6 +214,7 @@ static inline void kfree_rest(void * ptr){
   insert(ptr,&start_of_rest[pos]);
   while((ptr=update(&start_of_rest[pos]))!=NULL) insert(ptr,&start_of_rest[++pos]);
   spin_unlock(&lock_rest);
+  printf("EXIT!\n")
 }
 
 void init_mm(){

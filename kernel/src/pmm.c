@@ -135,7 +135,6 @@ void init_rest(){
   uintptr_t num=0;
   for(uintptr_t i=8192;i<=(MAX_malloc);i<<=1) num++;
   start_of_rest=kernel_alloc(sizeof(free_list *)*num);
-  printf("IN!\n");
   uintptr_t j=0;
   for(uintptr_t i=8192;i<MAX_malloc;i<<=1,++j) start_of_rest[j]=NULL;
   if(j!=num-1) printf("FAIL!\n");
@@ -146,7 +145,6 @@ void init_rest(){
     ((free_list *)(ptr-MAX_malloc))->nxt=(free_list *)ptr;
   }
   ((free_list *)(heap_rest_end-MAX_malloc))->nxt=NULL;
-  printf("OUT!\n");
 }
 static inline void insert(free_list * insert,free_list ** head){
   if(*head==NULL||(uintptr_t)*head>(uintptr_t)insert){

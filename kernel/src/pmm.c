@@ -135,10 +135,10 @@ void init_rest(){
   uintptr_t num=0;
   for(uintptr_t i=8192;i<=(MAX_malloc);i<<=1) num++;
   start_of_rest=kernel_alloc(sizeof(free_list *)*num);
+  printf("IN!\n");
   uintptr_t j=0;
   for(uintptr_t i=8192;i<MAX_malloc;i<<=1,++j) start_of_rest[i]=NULL;
   if(j!=num-1) printf("FAIL!\n");
-  printf("IN!\n");
   start_of_rest[j]=(free_list *)heap_rest_start;
   ((free_list *)heap_rest_start)->size=MAX_malloc;
   for(uintptr_t ptr=heap_rest_start+MAX_malloc;ptr<heap_rest_end;ptr+=MAX_malloc){

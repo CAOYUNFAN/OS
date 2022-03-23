@@ -214,7 +214,7 @@ static inline void kfree_rest(void * ptr){
   insert(ptr,&start_of_rest[pos]);
   while((ptr=update(&start_of_rest[pos]))!=NULL) insert(ptr,&start_of_rest[++pos]);
   spin_unlock(&lock_rest);
-  printf("EXIT!\n")
+  printf("EXIT!\n");
 }
 
 void init_mm(){

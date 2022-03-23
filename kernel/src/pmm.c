@@ -137,7 +137,6 @@ void init_rest(){
   start_of_rest=kernel_alloc(sizeof(free_list *)*num);
   uintptr_t j=0;
   for(uintptr_t i=8192;i<MAX_malloc;i<<=1,++j) start_of_rest[j]=NULL;
-  if(j!=num-1) printf("FAIL!\n");
   start_of_rest[j]=(free_list *)heap_rest_start;
   ((free_list *)heap_rest_start)->size=MAX_malloc;
   for(uintptr_t ptr=heap_rest_start+MAX_malloc;ptr<heap_rest_end;ptr+=MAX_malloc){
@@ -183,7 +182,7 @@ static inline free_list * update(free_list ** head){
   if(*head==NULL) return NULL;
   uintptr_t len=(*head)->size;
   if(len==MAX_malloc) return NULL;
-  printf("%ld\n",len);
+  printf("update:len=%ld\n",len);
   if(LOWBIT((uintptr_t)*head)>len&&(uintptr_t)*head+len==(uintptr_t)((*head)->nxt)){
     free_list * ret=*head;
     *head=(*head)->nxt->nxt;

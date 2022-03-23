@@ -173,7 +173,7 @@ static inline void * kalloc_rest(size_t size){
       divide->size=i;
       insert(divide,&start_of_rest[--j]);
     }
-    MTG_addr(ret,i)->size=i;MTG_addr(ret,i)->magic=MAGIC_MTG;
+    MTG_addr(ret,i)->size=i;MTG_addr(ret,i)->magic=MAGIC_MTG;printf("alloc_inside:%p\n",MTG_addr(ret,i));
     break;
   }
   spin_unlock(&lock_rest);

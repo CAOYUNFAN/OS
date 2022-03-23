@@ -203,7 +203,7 @@ static inline free_list * update(free_list ** head){
 }
 static inline void kfree_rest(void * ptr){printf("ENTERING free!\n");
   uintptr_t len=LOWBIT((uintptr_t)ptr);
-  for(;len;len>>=1){
+  for(;len;len>>=1){printf("%p+%lx=%lx",ptr,len,(uintptr_t)ptr+len)
     if(MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
   }
   memset((void *)ptr,len,MAGIC_UNUSED);

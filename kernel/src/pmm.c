@@ -174,7 +174,6 @@ static inline void * kalloc_rest(size_t size){
       insert(divide,&start_of_rest[--j]);
     }
     MTG_addr(ret,i)->size=i;MTG_addr(ret,i)->magic=MAGIC_MTG;
-    printf("alloc_inside:%p,len=%lx\n",ret,i);
     break;
   }
   spin_unlock(&lock_rest);
@@ -203,7 +202,7 @@ static inline free_list * update(free_list ** head){
 }
 static inline void kfree_rest(void * ptr){printf("ENTERING free!\n");
   uintptr_t len=LOWBIT((uintptr_t)ptr);
-  for(;len;len>>=1){printf("%p+%lx=%lx\n",ptr,len,(uintptr_t)ptr+len);
+  for(;len;len>>=1){//printf("%p+%lx=%lx\n",ptr,len,(uintptr_t)ptr+len);
     if(MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
   }
   memset((void *)ptr,len,MAGIC_UNUSED);

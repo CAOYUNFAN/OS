@@ -200,7 +200,7 @@ static inline free_list * update(free_list ** head){
   }
   return NULL;
 }
-static inline void kfree_rest(void * ptr){
+static inline void kfree_rest(void * ptr){printf("ENTERING free!\n")
   uintptr_t len=LOWBIT((uintptr_t)ptr);
   for(;len;len>>=1){
     if(MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;

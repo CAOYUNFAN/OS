@@ -2,6 +2,7 @@
 
 #ifdef TEST
   #include <assert.h>
+  #include <stdio.h>
   #define DEBUG(...) (__VA_ARGS__)
 #else
   #define DEBUG()

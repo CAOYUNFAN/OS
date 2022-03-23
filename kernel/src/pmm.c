@@ -81,7 +81,7 @@ static inline void * kalloc_128(){
     start_of_128=start_of_128->nxt;
     #ifdef TEST
     unsigned long j=0;
-    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<128-sizeof(free_list);++i,++j) assert(*ptr==MAGIC_UNUSED);
+    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<128-sizeof(free_list);++ptr,++j) assert(*ptr==MAGIC_UNUSED);
     #endif
   }
   spin_unlock(&lock_128);
@@ -121,7 +121,7 @@ static inline void * kalloc_4096(){
     start_of_4096=start_of_4096->nxt;
     #ifdef TEST
     unsigned long j=0;
-    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<4096-sizeof(free_list);++i,++j) assert(*ptr==MAGIC_UNUSED);
+    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<4096-sizeof(free_list);++ptr,++j) assert(*ptr==MAGIC_UNUSED);
     #endif
   }
   spin_unlock(&lock_4096);
@@ -179,7 +179,7 @@ static inline void * kalloc_rest(size_t size){
     start_of_rest[j]=start_of_rest[j]->nxt;
     #ifdef TEST
     unsigned long j=0;
-    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<i-sizeof(free_list);++i,++j) assert(*ptr==MAGIC_UNUSED);
+    for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);j<i-sizeof(free_list);++ptr,++j) assert(*ptr==MAGIC_UNUSED);
     #endif
     for(;(i>>1)>=size;i>>=1){
       ret->size>>=1;

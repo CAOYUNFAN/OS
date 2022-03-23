@@ -210,7 +210,7 @@ static inline void kfree_rest(void * ptr){printf("ENTERING free!\n");
   for(uintptr_t i=8192;i<len;i<<=1) ++pos;
   spin_lock(&lock_rest);
   insert(ptr,&start_of_rest[pos]);
-  while((ptr=update(&start_of_rest[pos]))!=NULL) insert(ptr,&start_of_rest[++pos]),printf("%d\n",pos);
+  while((ptr=update(&start_of_rest[pos]))!=NULL) insert(ptr,&start_of_rest[++pos]),printf("pos=%d\n",pos);
   spin_unlock(&lock_rest);
 }
 

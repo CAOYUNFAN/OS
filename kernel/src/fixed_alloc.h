@@ -38,9 +38,9 @@
   static inline void contact(kfree_,x)(void * ptr){\
     free_list * hdr=ptr;\
     DEBUG(memset(ptr,MAGIC_UNUSED,x));\
-    hdr->x=x;\
+    hdr->size=x;\
     spin_lock(&lock(x));\
-    hdr->nxt=start(x)->nxt;\
-    start(x)=hdr;\
+    hdr->nxt=head(x)->nxt;\
+    head(x)=hdr;\
     spin_unlock(&lock(x));\
   }

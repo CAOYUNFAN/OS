@@ -4,8 +4,14 @@
   #include <assert.h>
   #include <stdio.h>
   #define DEBUG(...) (__VA_ARGS__)
+  #define Assert(cond,format,...)\
+    ((void) sizeof ((cond) ? 1 : 0),__extension__({if(!(cond)){\
+        printf(format,__VA_ARGS__);\
+        assert(cond);\
+    }}))
 #else
-  #define DEBUG()
+  #define DEBUG() (0)
+  #define Assert() (0)
 #endif
 
 
@@ -187,6 +193,7 @@ void init_rest(){
   }  
 }
 static inline void insert(free_list * insert,free_list ** head){
+  Assert(*head==NULL||insert->size==(*head)->size,"INSERT:%p->%ld,%p->%ld\n",insert,insert->size,*head,(*head)->size);
   if(*head==NULL||(uintptr_t)*head>(uintptr_t)insert){
     insert->nxt=*head;
     *head=insert;

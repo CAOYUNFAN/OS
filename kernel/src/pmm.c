@@ -168,12 +168,13 @@ void init_rest(){
     start_of_rest[j]=(free_list *)(heap_rest_end-MAX_malloc);
     start_of_rest[j]->size=MAX_malloc;
     start_of_rest[j]->nxt=NULL;
-    printf("BEGIN:%p\n",start_of_rest[j]);
+    printf("END:%p\n",start_of_rest[j]);
   }
   if(heap_rest_start%(MAX_malloc<<1)!=0){
     free_list * temp=(free_list *)heap_rest_start;
     temp->size=MAX_malloc;temp->nxt=start_of_rest[j];
     start_of_rest[j]=temp;
+    printf("BEGIN:%p->%p->%p\n",start_of_rest[j],start_of_rest[j]->nxt,start_of_rest[j]->nxt->nxt);
   }
   ++j;
   if(ROUNDUP(heap_rest_start,MAX_malloc<<1)==ROUNDDOWN(heap_rest_end,MAX_malloc<<1)) start_of_rest[j]=NULL;

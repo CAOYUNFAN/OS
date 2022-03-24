@@ -1,4 +1,4 @@
-export TOKEN   := ???
+export TOKEN   := Zy12W6jj
 
 # ----- DO NOT MODIFY -----
 
@@ -23,11 +23,13 @@ $(NAME)-32: $(DEPS) # 32bit binary
  
 $(NAME)-64.so: $(DEPS) # 64bit shared library
 	gcc -fPIC -shared -m64 $(CFLAGS) $(SRCS) -o $@ $(LDFLAGS)
+#	objdump -d $(NAME)-64.so > $(NAME)-64-obj.txt
 
 $(NAME)-32.so: $(DEPS) # 32bit shared library
 	gcc -fPIC -shared -m32 $(CFLAGS) $(SRCS) -o $@ $(LDFLAGS)
+#	objdump -d $(NAME)-32.so > $(NAME)-32-obj.txt
 
 clean:
-	rm -f $(NAME)-64 $(NAME)-32 $(NAME)-64.so $(NAME)-32.so
+	rm -f $(NAME)-64 $(NAME)-32 $(NAME)-64.so $(NAME)-32.so $(NAME)-*-obj.txt result*
 
 include ../Makefile.lab

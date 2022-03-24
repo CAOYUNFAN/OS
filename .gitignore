@@ -3,7 +3,9 @@
 !.gitignore
 *~
 a.out
+*.txt
 a.out-*
 *-32*
 *-64*
 *.pdf
+test

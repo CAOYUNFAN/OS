@@ -32,11 +32,11 @@ static inline void * kernel_alloc(size_t len){
   return (void *)sbrk_now;
 }
 
-CAO_FIXED_INIT(64,HEAP_START,(total_num+1)*3/8*Unit_size/2)
+CAO_FIXED_INIT(64,HEAP_START,(total_num+1)*1/8*Unit_size/2)
 CAO_ALLOC(64)
 CAO_FREE(64)
 
-CAO_FIXED_INIT(256,heap_64_end,(total_num+1)/8*(Unit_size/2))
+CAO_FIXED_INIT(256,heap_64_end,(total_num+1)*3/8*(Unit_size/2))
 CAO_ALLOC(256)
 CAO_FREE(256)
 

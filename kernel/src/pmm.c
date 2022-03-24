@@ -186,13 +186,13 @@ static void pmm_init() {
 }
 #else
 extern FILE * fd;
-#define HEAP_SIZE 128*1024*1024+Unit_size
+#define HEAP_SIZE (128*1024*1024+Unit_size)
 static void pmm_init() {
   char *ptr  = malloc(HEAP_SIZE);
   heap.start = ptr;
   heap.end   = ptr + HEAP_SIZE;
   printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
-  fprintf(fd,"Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
+  fprintf(fd,"Got %d Byte heap: [%p, %p)\n", HEAP_SIZE , heap.start, heap.end);
   init_mm();
   printf("num:%lx\n",total_num);
   printf("128:[%lx,%lx) 4096:[%lx,%lx) rest: [%lx,%lx)\n",heap_128_start,heap_128_end,heap_4096_start,heap_4096_end,heap_rest_start,heap_rest_end);

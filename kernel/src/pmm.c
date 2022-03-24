@@ -31,7 +31,7 @@
 #endif
 #define MAGIC_UNLOCKED (0)
 #define MAGIC_LOCKED (1)
-#define MAGIC_MTG (0x11451419)
+#define MAGIC_MTG (0x11111111)
 
 #define MTG_addr(pos,len) ((mem_tag *)((uintptr_t)pos+len-sizeof(mem_tag)))
 
@@ -158,11 +158,11 @@ static int lock_rest;
 void init_rest(){
   heap_rest_start=heap_4096_end;heap_rest_end=HEAP_END-Unit_size;
   uintptr_t num=0;
-  for(uintptr_t i=8192;i<=(MAX_malloc);i<<=1) num++;
+  for(uintptr_t i=4096;i<=(MAX_malloc);i<<=1) num++;
   num++;
   start_of_rest=kernel_alloc(sizeof(free_list *)*num);
   uintptr_t j=0;
-  for(uintptr_t i=8192;i<MAX_malloc;i<<=1,++j) start_of_rest[j]=NULL;
+  for(uintptr_t i=4096;i<MAX_malloc;i<<=1,++j) start_of_rest[j]=NULL;
   start_of_rest[j]=NULL;
   if(heap_rest_end%(MAX_malloc<<1)!=0){
     start_of_rest[j]=(free_list *)(heap_rest_end-MAX_malloc);
@@ -205,7 +205,7 @@ static inline void * kalloc_rest(size_t size){
   size+=sizeof(mem_tag);
   free_list * ret=NULL;
   spin_lock(&lock_rest);
-  for(uintptr_t i=8192,j=0;i<=MAX_malloc<<1;i<<=1,++j){
+  for(uintptr_t i=4096,j=0;i<=MAX_malloc<<1;i<<=1,++j){
     if(i<size||!start_of_rest[j]) continue;
     ret=start_of_rest[j];
     start_of_rest[j]=start_of_rest[j]->nxt;
@@ -271,7 +271,7 @@ static inline void kfree_rest(void * ptr){
   }
   DEBUG(memset((void *)ptr,MAGIC_UNUSED,len));
   int pos=0;
-  for(uintptr_t i=8192;i<len;i<<=1) ++pos;
+  for(uintptr_t i=4096;i<len;i<<=1) ++pos;
   ((free_list *)ptr)->size=len;
   spin_lock(&lock_rest);
   insert(ptr,&start_of_rest[pos]);

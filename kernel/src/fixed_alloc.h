@@ -9,7 +9,7 @@
   static free_list * head(x);\
   static uintptr_t start(x),end(x);\
   static int lock(x);\
-  static inline void contact(init_,x){\
+  static inline void contact(init_,x)(){\
     start(x)=start_addr;end(x)=start_addr+(len);\
     head(x)=(free_list *)start(x);\
     head(x)->size=x;\

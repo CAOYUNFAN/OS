@@ -9,7 +9,7 @@
 #endif
 
 
-#define MAX_malloc (32*1024*1024)
+#define MAX_malloc (16*1024*1024)
 #define Unit_size (MAX_malloc)
 #define Unit_mask (-Unit_size)
 

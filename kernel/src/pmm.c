@@ -63,7 +63,11 @@ static inline void * kernel_alloc(size_t len){
 }
 
 static free_list * start_of_128;
+#ifndef TEST
 static uintptr_t heap_128_start,heap_128_end;
+#else
+uintptr_t heap_128_start,heap_128_end;
+#endif
 static int lock_128;
 static inline void init_128(){
   heap_128_start=HEAP_START;heap_128_end=HEAP_START+total_num/3*Unit_size;
@@ -107,7 +111,11 @@ static inline void kfree_128(void * ptr){
 
 
 static free_list * start_of_4096;
+#ifndef TEST
 static uintptr_t heap_4096_start,heap_4096_end;
+#else
+uintptr_t heap_4096_start,heap_4096_end;
+#endif
 static int lock_4096;
 static inline void init_4096(){
   heap_4096_start=heap_128_end;
@@ -150,8 +158,11 @@ static inline void kfree_4096(void * ptr){
   spin_unlock(&lock_4096);
 }
 
-
+#ifndef TEST
 static uintptr_t heap_rest_start,heap_rest_end;
+#else
+uintptr_t heap_rest_start,heap_rest_end;
+#endif
 static free_list ** start_of_rest;
 static int lock_rest;
 void init_rest(){

@@ -168,7 +168,8 @@ static int lock_rest;
 void init_rest(){
   heap_rest_start=heap_4096_end;heap_rest_end=HEAP_END-Unit_size;
   uintptr_t num=0;
-  for(uintptr_t i=8192;i<=(MAX_malloc);i<<=1) num++;num++;
+  for(uintptr_t i=8192;i<=(MAX_malloc);i<<=1) num++;
+  num++;
   start_of_rest=kernel_alloc(sizeof(free_list *)*num);
   uintptr_t j=0;
   for(uintptr_t i=8192;i<MAX_malloc;i<<=1,++j) start_of_rest[j]=NULL;

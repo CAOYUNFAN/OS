@@ -39,7 +39,6 @@
 
 #define CAO_ALLOC(x)\
   static inline void * contact(kalloc_,x)(){\
-    if(head(x)==NULL) return NULL;\
     spin_lock(&lock(x));\
     void * ret=(void *) head(x);\
     if(ret){\

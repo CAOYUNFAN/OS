@@ -285,6 +285,7 @@ static void pmm_init() {
   printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
   fprintf(fd,"Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
   init_mm();
+  printf("128:[%lx,%lx) 4096:[%lx,%lx) rest: [%lx,%lx)\n",heap_128_start,heap_128_end,heap_4096_start,heap_4096_end,heap_rest_start,heap_rest_end);
 //  printf("Initialize memory Completed!\n");
   return;
 }

@@ -10,8 +10,8 @@
         assert(cond);\
     }}))
 #else
-  #define DEBUG() (0)
-  #define Assert() (0)
+  #define DEBUG(...) (0)
+  #define Assert(...) (0)
 #endif
 
 
@@ -94,9 +94,7 @@ static inline void * kalloc_128(){
     #endif
   }
   spin_unlock(&lock_128);
-  #ifdef TEST
-  memset(ret,MAGIC_USED,128);
-  #endif
+  DEBUG(memset(ret,MAGIC_USED,128));
   return ret;
 }
 static inline void kfree_128(void * ptr){
@@ -139,9 +137,7 @@ static inline void * kalloc_4096(){
     #endif
   }
   spin_unlock(&lock_4096);
-  #ifdef TEST
-  memset(ret,MAGIC_USED,4096);
-  #endif
+  DEBUG(memset(ret,MAGIC_USED,4096));
   return ret;
 }
 static inline void kfree_4096(void * ptr){
@@ -172,6 +168,7 @@ void init_rest(){
     start_of_rest[j]=(free_list *)(heap_rest_end-MAX_malloc);
     start_of_rest[j]->size=MAX_malloc;
     start_of_rest[j]->nxt=NULL;
+    printf("BEGIN:%p\n",start_of_rest[j]);
   }
   if(heap_rest_start%(MAX_malloc<<1)!=0){
     free_list * temp=(free_list *)heap_rest_start;
@@ -231,9 +228,7 @@ static inline void * kalloc_rest(size_t size){
       divide->size=(i>>1);
       insert(divide,&start_of_rest[--j]);
     }
-    #ifdef TEST
-    memset(ret,MAGIC_USED,i);
-    #endif
+    DEBUG(memset(ret,MAGIC_USED,i));
     MTG_addr(ret,i)->size=i;MTG_addr(ret,i)->magic=MAGIC_MTG;
     break;
   }
@@ -263,9 +258,7 @@ static inline free_list * update(free_list ** head){
     if(LOWBIT((uintptr_t)next)>len&&(uintptr_t)next+len==(uintptr_t)(next->nxt)){
       now->nxt=next->nxt->nxt;
       next->size=len<<1;
-      #ifdef TEST
-      memset(next->nxt,MAGIC_UNUSED,sizeof(free_list));
-      #endif
+      DEBUG(memset(next->nxt,MAGIC_UNUSED,sizeof(free_list)));
       return next;
     }
   }
@@ -276,9 +269,7 @@ static inline void kfree_rest(void * ptr){
   for(;len;len>>=1){
     if((uintptr_t)ptr+len<=heap_rest_end&&MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
   }
-  #ifdef TEST
-  memset((void *)ptr,MAGIC_UNUSED,len);
-  #endif
+  DEBUG(memset((void *)ptr,MAGIC_UNUSED,len));
   int pos=0;
   for(uintptr_t i=8192;i<len;i<<=1) ++pos;
   ((free_list *)ptr)->size=len;
@@ -290,9 +281,7 @@ static inline void kfree_rest(void * ptr){
 
 void init_mm(){
   sbrk_now=HEAP_END;
-  #ifdef TEST
-  memset((void *)HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START);
-  #endif
+  DEBUG(memset((void *)HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START));
   init_128();init_4096();init_rest();
 }
 

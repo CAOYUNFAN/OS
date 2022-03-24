@@ -62,7 +62,7 @@ static inline void * kernel_alloc(size_t len){
   return (void *)sbrk_now;
 }
 
-static free_list * start_of_128,start_of_64,start_of_1024;
+static free_list * start_of_128;//,start_of_64,start_of_1024;
 static uintptr_t heap_128_start,heap_128_end;
 static int lock_128;
 static inline void init_128(){

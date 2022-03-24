@@ -277,7 +277,7 @@ static void pmm_init() {
 }
 #else
 extern FILE * fd;
-#define HEAP_SIZE 0x40000000
+#define HEAP_SIZE 128*1024*1024
 static void pmm_init() {
   char *ptr  = malloc(HEAP_SIZE);
   heap.start = ptr;

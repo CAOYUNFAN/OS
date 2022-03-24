@@ -195,7 +195,6 @@ static void pmm_init() {
   fprintf(fd,"Got %d Byte heap: [%p, %p)\n", HEAP_SIZE , heap.start, heap.end);
   init_mm();
   printf("num:%lx\n",total_num);
-  printf("128:[%lx,%lx) 4096:[%lx,%lx) rest: [%lx,%lx)\n",heap_128_start,heap_128_end,heap_4096_start,heap_4096_end,heap_rest_start,heap_rest_end);
 //  printf("Initialize memory Completed!\n");
   return;
 }
@@ -210,7 +209,7 @@ static void * kalloc(size_t size){
 }
 
 static void kfree(void * ptr){
-  if((uintptr_t)ptr>=heap_64_start&&(uintptr_t)ptr<heap_64_end) kfree_128(ptr);
+  if((uintptr_t)ptr>=heap_64_start&&(uintptr_t)ptr<heap_64_end) kfree_64(ptr);
   if((uintptr_t)ptr>=heap_256_start&&(uintptr_t)ptr<heap_256_end) kfree_256(ptr);
   if((uintptr_t)ptr>=heap_4096_start&&(uintptr_t)ptr<heap_4096_end) kfree_4096(ptr);
   if((uintptr_t)ptr>=heap_rest_start&&(uintptr_t)ptr<heap_rest_end) kfree_rest(ptr);

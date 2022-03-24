@@ -65,7 +65,6 @@ void init_rest(){
     free_list * temp=(free_list *)heap_rest_start;
     temp->size=MAX_malloc;temp->nxt=start_of_rest[j];
     start_of_rest[j]=temp;
-    printf("BEGIN:%p->%p->%p\n",start_of_rest[j],start_of_rest[j]->nxt,start_of_rest[j]->nxt->nxt);
   }
   ++j;
   if(ROUNDUP(heap_rest_start,MAX_malloc<<1)==ROUNDDOWN(heap_rest_end,MAX_malloc<<1)) start_of_rest[j]=NULL;

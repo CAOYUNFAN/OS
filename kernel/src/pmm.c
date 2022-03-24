@@ -66,7 +66,7 @@ static free_list * start_of_128;
 static uintptr_t heap_128_start,heap_128_end;
 static int lock_128;
 static inline void init_128(){
-  heap_128_start=HEAP_START;heap_128_end=HEAP_START+total_num/2*Unit_size;
+  heap_128_start=HEAP_START;heap_128_end=HEAP_START+total_num/3*Unit_size;
   start_of_128=(free_list *)heap_128_start;
   ((free_list *)heap_128_start)->size=128;
   for(uintptr_t ptr=heap_128_start+128;ptr<heap_128_end;ptr+=128){
@@ -111,7 +111,7 @@ static uintptr_t heap_4096_start,heap_4096_end;
 static int lock_4096;
 static inline void init_4096(){
   heap_4096_start=heap_128_end;
-  heap_4096_end=heap_4096_start+total_num/4*Unit_size;
+  heap_4096_end=heap_4096_start+total_num/3*Unit_size;
   start_of_4096=(free_list *)heap_4096_start;
   ((free_list *)heap_4096_start)->size=4096;
   for(uintptr_t ptr=heap_4096_start+4096;ptr<heap_4096_end;ptr+=4096){

@@ -14,6 +14,25 @@
   #define Assert(...)
 #endif
 
+#define MAGIC_UNLOCKED (0)
+#define MAGIC_LOCKED (1)
+
+typedef int spinlock_t;
+typedef unsigned long uintptr_t;
+
+static inline void spin_lock(spinlock_t *lk) {
+  while (1) {
+    intptr_t value = atomic_xchg(lk, MAGIC_LOCKED);
+    if (value == MAGIC_UNLOCKED) {
+      break;
+    }
+  }
+}
+
+static inline void spin_unlock(spinlock_t *lk) {
+  atomic_xchg(lk, MAGIC_UNLOCKED);
+}
+
 #define __contact(x,y) x##y
 #define contact(x,y) __contact(x,y)
 #define head(x) contact(start_of_,x)
@@ -61,22 +80,3 @@
     head(x)=hdr;\
     spin_unlock(&lock(x));\
   }
-
-#define MAGIC_UNLOCKED (0)
-#define MAGIC_LOCKED (1)
-
-typedef int spinlock_t;
-typedef unsigned long uintptr_t;
-
-static inline void spin_lock(spinlock_t *lk) {
-  while (1) {
-    intptr_t value = atomic_xchg(lk, MAGIC_LOCKED);
-    if (value == MAGIC_UNLOCKED) {
-      break;
-    }
-  }
-}
-
-static inline void spin_unlock(spinlock_t *lk) {
-  atomic_xchg(lk, MAGIC_UNLOCKED);
-}

@@ -13,7 +13,7 @@
 #define Unit_size (MAX_malloc)
 #define Unit_mask (-Unit_size)
 
-#define HEAP_START ROUNDUP((uintptr_t)heap.start,Unit_size)
+#define HEAP_START ROUNDUP((uintptr_t)heap.start,128)
 #define HEAP_END ROUNDDOWN((uintptr_t)heap.end,Unit_size)
 #define total_num ((HEAP_END-HEAP_START)/Unit_size)
 
@@ -70,7 +70,7 @@ uintptr_t heap_128_start,heap_128_end;
 #endif
 static int lock_128;
 static inline void init_128(){
-  heap_128_start=HEAP_START;heap_128_end=HEAP_START+total_num/4*Unit_size;
+  heap_128_start=HEAP_START;heap_128_end=ROUNDUP(HEAP_START,Unit_size)+total_num/4*Unit_size;
   start_of_128=(free_list *)heap_128_start;
   ((free_list *)heap_128_start)->size=128;
   for(uintptr_t ptr=heap_128_start+128;ptr<heap_128_end;ptr+=128){

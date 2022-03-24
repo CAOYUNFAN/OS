@@ -293,7 +293,7 @@ static void pmm_init() {
 #endif
 
 static void * kalloc(size_t size){
-  if(size>(MAX_malloc)>>1) return NULL;
+  if((size+sizeof(mem_tag))>MAX_malloc) return NULL;
   if(size<=128) return kalloc_128();
   if(size<=4096) return kalloc_4096();
   return kalloc_rest(size);

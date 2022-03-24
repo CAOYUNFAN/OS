@@ -32,11 +32,15 @@ static inline void * kernel_alloc(size_t len){
   return (void *)sbrk_now;
 }
 
-CAO_FIXED_INIT(128,HEAP_START,total_num/4*Unit_size)
-CAO_ALLOC(128)
-CAO_FREE(128)
+CAO_FIXED_INIT(64,HEAP_START,(total_num+1)*3/8*Unit_size/2)
+CAO_ALLOC(64)
+CAO_FREE(64)
 
-CAO_FIXED_INIT(4096,heap_128_end,total_num/4*Unit_size)
+CAO_FIXED_INIT(256,heap_64_end,(total_num+1)/8*(Unit_size/2))
+CAO_ALLOC(256)
+CAO_FREE(256)
+
+CAO_FIXED_INIT(4096,heap_256_end,total_num/4*Unit_size)
 CAO_ALLOC(4096)
 CAO_FREE(4096)
 
@@ -170,7 +174,7 @@ static inline void kfree_rest(void * ptr){
 void init_mm(){
   sbrk_now=HEAP_END;
   DEBUG(memset((void *)HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START);)
-  init_128();init_4096();init_rest();
+  init_64();init_256();init_4096();init_rest();
 }
 
 #ifndef TEST
@@ -182,7 +186,7 @@ static void pmm_init() {
 }
 #else
 extern FILE * fd;
-#define HEAP_SIZE 128*1024*1024
+#define HEAP_SIZE 128*1024*1024+Unit_size
 static void pmm_init() {
   char *ptr  = malloc(HEAP_SIZE);
   heap.start = ptr;
@@ -205,7 +209,8 @@ static void * kalloc(size_t size){
 }
 
 static void kfree(void * ptr){
-  if((uintptr_t)ptr>=heap_128_start&&(uintptr_t)ptr<heap_128_end) kfree_128(ptr);
+  if((uintptr_t)ptr>=heap_64_start&&(uintptr_t)ptr<heap_64_end) kfree_128(ptr);
+  if((uintptr_t)ptr>=heap_256_start&&(uintptr_t)ptr<heap_256_end) kfree_256(ptr);
   if((uintptr_t)ptr>=heap_4096_start&&(uintptr_t)ptr<heap_4096_end) kfree_4096(ptr);
   if((uintptr_t)ptr>=heap_rest_start&&(uintptr_t)ptr<heap_rest_end) kfree_rest(ptr);
 }

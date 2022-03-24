@@ -20,7 +20,8 @@
 #define LOWBIT(x) ((x)&((x)^((x)-1)))
 
 #ifdef TEST
-#define MAGIC_UNUSED (0x77)
+#define MAGIC_UNUSED (0x7f)
+#define MAGIC_USED (0x69)
 #endif
 #define MAGIC_UNLOCKED (0)
 #define MAGIC_LOCKED (1)
@@ -87,6 +88,9 @@ static inline void * kalloc_128(){
     #endif
   }
   spin_unlock(&lock_128);
+  #ifdef TEST
+  memset(ret,MAGIC_USED,128);
+  #endif
   return ret;
 }
 static inline void kfree_128(void * ptr){
@@ -129,6 +133,9 @@ static inline void * kalloc_4096(){
     #endif
   }
   spin_unlock(&lock_4096);
+  #ifdef TEST
+  memset(ret,MAGIC_USED,4096);
+  #endif
   return ret;
 }
 static inline void kfree_4096(void * ptr){
@@ -196,6 +203,9 @@ static inline void * kalloc_rest(size_t size){
       divide->size=(i>>1);
       insert(divide,&start_of_rest[--j]);
     }
+    #ifdef TEST
+    memset(ret,MAGIC_USED,i);
+    #endif
     MTG_addr(ret,i)->size=i;MTG_addr(ret,i)->magic=MAGIC_MTG;
     break;
   }

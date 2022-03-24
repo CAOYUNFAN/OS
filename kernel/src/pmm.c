@@ -206,7 +206,9 @@ static inline void * kalloc_rest(size_t size){
     ret=start_of_rest[j];
     start_of_rest[j]=start_of_rest[j]->nxt;
     #ifdef TEST
-    unsigned long jj=0;assert(ret->nxt==NULL||ret->nxt->size==i);
+    unsigned long jj=0;
+    if(!(ret->nxt==NULL||ret->nxt->size==i))printf("%p,%ld %ld\n",ret,i,ret->nxt->size);
+    assert();
     for(unsigned char * ptr=((unsigned char *)ret)+sizeof(free_list);jj<i-sizeof(free_list);++ptr,++jj) {
       if(*ptr!=MAGIC_UNUSED) {
         printf("%p-%lx,size=%ld\n",ptr,jj,size);

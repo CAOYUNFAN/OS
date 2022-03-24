@@ -17,6 +17,12 @@
 #define MAGIC_UNLOCKED (0)
 #define MAGIC_LOCKED (1)
 
+#define LOWBIT(x) ((x)&((x)^((x)-1)))
+
+#define MAGIC_MTG (0x13131313)
+
+#define MTG_addr(pos,len) ((mem_tag *)((uintptr_t)pos+len-sizeof(mem_tag)))
+
 typedef int spinlock_t;
 typedef unsigned long uintptr_t;
 
@@ -32,6 +38,16 @@ static inline void spin_lock(spinlock_t *lk) {
 static inline void spin_unlock(spinlock_t *lk) {
   atomic_xchg(lk, MAGIC_UNLOCKED);
 }
+
+typedef struct __free_list{
+  uintptr_t size;
+  struct __free_list *nxt;
+}free_list;
+
+typedef struct{
+  uintptr_t size;
+  uintptr_t magic;
+}mem_tag;
 
 #define __contact(x,y) x##y
 #define contact(x,y) __contact(x,y)

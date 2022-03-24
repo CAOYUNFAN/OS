@@ -186,6 +186,7 @@ void init_rest(){
       ((free_list *)(ptr-(MAX_malloc<<1)))->nxt=(free_list *)ptr;
     }
     ((free_list *)(ROUNDDOWN(heap_rest_end,MAX_malloc<<1)-(MAX_malloc<<1)))->nxt=NULL;
+    printf("NOW:%p->%p\n",start_of_rest[j],start_of_rest[j]->nxt);
   }  
 }
 static inline void insert(free_list * insert,free_list ** head){

@@ -70,7 +70,7 @@ uintptr_t heap_128_start,heap_128_end;
 #endif
 static int lock_128;
 static inline void init_128(){
-  heap_128_start=HEAP_START;heap_128_end=HEAP_START+total_num/3*Unit_size;
+  heap_128_start=HEAP_START;heap_128_end=HEAP_START+total_num/4*Unit_size;
   start_of_128=(free_list *)heap_128_start;
   ((free_list *)heap_128_start)->size=128;
   for(uintptr_t ptr=heap_128_start+128;ptr<heap_128_end;ptr+=128){
@@ -119,7 +119,7 @@ uintptr_t heap_4096_start,heap_4096_end;
 static int lock_4096;
 static inline void init_4096(){
   heap_4096_start=heap_128_end;
-  heap_4096_end=heap_4096_start+total_num/3*Unit_size;
+  heap_4096_end=heap_4096_start+total_num/4*Unit_size;
   start_of_4096=(free_list *)heap_4096_start;
   ((free_list *)heap_4096_start)->size=4096;
   for(uintptr_t ptr=heap_4096_start+4096;ptr<heap_4096_end;ptr+=4096){
@@ -168,17 +168,31 @@ static int lock_rest;
 void init_rest(){
   heap_rest_start=heap_4096_end;heap_rest_end=HEAP_END-Unit_size;
   uintptr_t num=0;
-  for(uintptr_t i=8192;i<=(MAX_malloc);i<<=1) num++;
+  for(uintptr_t i=8192;i<=(MAX_malloc);i<<=1) num++;num++;
   start_of_rest=kernel_alloc(sizeof(free_list *)*num);
   uintptr_t j=0;
   for(uintptr_t i=8192;i<MAX_malloc;i<<=1,++j) start_of_rest[j]=NULL;
-  start_of_rest[j]=(free_list *)heap_rest_start;
-  ((free_list *)heap_rest_start)->size=MAX_malloc;
-  for(uintptr_t ptr=heap_rest_start+MAX_malloc;ptr<heap_rest_end;ptr+=MAX_malloc){
-    ((free_list *)ptr)->size=MAX_malloc;
-    ((free_list *)(ptr-MAX_malloc))->nxt=(free_list *)ptr;
+  if(heap_rest_end%(MAX_malloc<<1)!=0){
+    start_of_rest[j]=(free_list *)(heap_rest_end-MAX_malloc);
+    start_of_rest[j]->size=MAX_malloc;
+    start_of_rest[j]->nxt=NULL;
   }
-  ((free_list *)(heap_rest_end-MAX_malloc))->nxt=NULL;
+  if(heap_rest_start%(MAX_malloc<<1)!=0){
+    free_list * temp=(free_list *)heap_rest_start;
+    temp->size=MAX_malloc;temp->nxt=start_of_rest[j];
+    start_of_rest[j]=temp;
+  }
+  ++j;
+  if(ROUNDUP(heap_rest_start,MAX_malloc<<1)==ROUNDDOWN(heap_rest_end,MAX_malloc<<1)) start_of_rest[j]=NULL;
+  else{
+    start_of_rest[j]=(free_list *)ROUNDUP(heap_rest_start,MAX_malloc<<1);
+    ((free_list *)heap_rest_start)->size=MAX_malloc<<1;
+    for(uintptr_t ptr=ROUNDUP(heap_rest_start,MAX_malloc<<1)+(MAX_malloc<<1);ptr<heap_rest_end;ptr+=MAX_malloc<<1){
+      ((free_list *)ptr)->size=MAX_malloc<<1;
+      ((free_list *)(ptr-(MAX_malloc<<1)))->nxt=(free_list *)ptr;
+    }
+    ((free_list *)(ROUNDDOWN(heap_rest_end,MAX_malloc<<1)-(MAX_malloc<<1)))->nxt=NULL;
+  }  
 }
 static inline void insert(free_list * insert,free_list ** head){
   if(*head==NULL||(uintptr_t)*head>(uintptr_t)insert){
@@ -197,7 +211,7 @@ static inline void * kalloc_rest(size_t size){
   size+=sizeof(mem_tag);
   free_list * ret=NULL;
   spin_lock(&lock_rest);
-  for(uintptr_t i=8192,j=0;i<=MAX_malloc;i<<=1,++j){
+  for(uintptr_t i=8192,j=0;i<=MAX_malloc<<1;i<<=1,++j){
     if(i<size||!start_of_rest[j]) continue;
     ret=start_of_rest[j];
     start_of_rest[j]=start_of_rest[j]->nxt;
@@ -257,7 +271,7 @@ static inline free_list * update(free_list ** head){
 static inline void kfree_rest(void * ptr){
   uintptr_t len=LOWBIT((uintptr_t)ptr);
   for(;len;len>>=1){
-    if(MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
+    if(ptr+len<=heap_rest_end&&MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
   }
   #ifdef TEST
   memset((void *)ptr,MAGIC_UNUSED,len);
@@ -304,7 +318,7 @@ static void pmm_init() {
 #endif
 
 static void * kalloc(size_t size){
-  if((size+sizeof(mem_tag))>MAX_malloc) return NULL;
+  if(size>MAX_malloc) return NULL;
   if(size<=128) return kalloc_128();
   if(size<=4096) return kalloc_4096();
   return kalloc_rest(size);

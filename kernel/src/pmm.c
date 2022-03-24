@@ -1,20 +1,5 @@
 #include <common.h>
-#include "fixed_alloc.h"
-
-#ifdef TEST
-  #include <assert.h>
-  #include <stdio.h>
-  #define DEBUG(...) __VA_ARGS__
-  #define Assert(cond,format,...)\
-    ((void) sizeof ((cond) ? 1 : 0),__extension__({if(!(cond)){\
-        printf(format,__VA_ARGS__);\
-        assert(cond);\
-    }}))
-#else
-  #define DEBUG(...)
-  #define Assert(...)
-#endif
-
+#include "macros_for_pmm.h"
 
 #define MAX_malloc (16*1024*1024)
 #define Unit_size (MAX_malloc)
@@ -26,12 +11,6 @@
 
 #define LOWBIT(x) ((x)&((x)^((x)-1)))
 
-#ifdef TEST
-#define MAGIC_UNUSED (0x7f)
-#define MAGIC_USED (0x69)
-#endif
-#define MAGIC_UNLOCKED (0)
-#define MAGIC_LOCKED (1)
 #define MAGIC_MTG (0x13131313)
 
 #define MTG_addr(pos,len) ((mem_tag *)((uintptr_t)pos+len-sizeof(mem_tag)))
@@ -48,19 +27,6 @@ typedef struct{
   uintptr_t size;
   uintptr_t magic;
 }mem_tag;
-
-static inline void spin_lock(spinlock_t *lk) {
-  while (1) {
-    intptr_t value = atomic_xchg(lk, MAGIC_LOCKED);
-    if (value == MAGIC_UNLOCKED) {
-      break;
-    }
-  }
-}
-
-static inline void spin_unlock(spinlock_t *lk) {
-  atomic_xchg(lk, MAGIC_UNLOCKED);
-}
 
 static uintptr_t sbrk_now=0;
 

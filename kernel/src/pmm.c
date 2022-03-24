@@ -1,4 +1,5 @@
 #include <common.h>
+#include "fixed_alloc.h"
 
 #ifdef TEST
   #include <assert.h>
@@ -31,7 +32,7 @@
 #endif
 #define MAGIC_UNLOCKED (0)
 #define MAGIC_LOCKED (1)
-#define MAGIC_MTG (0x11111111)
+#define MAGIC_MTG (0x13131313)
 
 #define MTG_addr(pos,len) ((mem_tag *)((uintptr_t)pos+len-sizeof(mem_tag)))
 
@@ -68,7 +69,16 @@ static inline void * kernel_alloc(size_t len){
   return (void *)sbrk_now;
 }
 
-static free_list * start_of_128;//,start_of_64,start_of_1024;
+CAO_FIXED_INIT(128,HEAP_START,total_num/4*Unit_size)
+CAO_ALLOC(128)
+CAO_FREE(128)
+
+CAO_FIXED_INIT(4096,heap_128_end,total_num/4*Unit_size)
+CAO_ALLOC(4096)
+CAO_FREE(4096)
+
+/*
+static free_list * start_of_128;
 static uintptr_t heap_128_start,heap_128_end;
 static int lock_128;
 static inline void init_128(){
@@ -150,7 +160,7 @@ static inline void kfree_4096(void * ptr){
   hdr->nxt=start_of_4096->nxt;
   start_of_4096=hdr;
   spin_unlock(&lock_4096);
-}
+}*/
 
 static uintptr_t heap_rest_start,heap_rest_end;
 static free_list ** start_of_rest;
@@ -267,7 +277,7 @@ static inline free_list * update(free_list ** head){
 static inline void kfree_rest(void * ptr){
   uintptr_t len=LOWBIT((uintptr_t)ptr);
   for(;len;len>>=1){
-    if((uintptr_t)ptr+len<=heap_rest_end&&MTG_addr(ptr,len)->magic==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
+    if((uintptr_t)ptr+len<=heap_rest_end&&MTG_addr(ptr,len)->magic|MAGIC_MTG==MAGIC_MTG&&MTG_addr(ptr,len)->size==len) break;
   }
   DEBUG(memset((void *)ptr,MAGIC_UNUSED,len));
   int pos=0;

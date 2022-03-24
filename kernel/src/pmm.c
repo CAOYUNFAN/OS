@@ -179,7 +179,7 @@ void init_rest(){
   else{
     start_of_rest[j]=(free_list *)ROUNDUP(heap_rest_start,MAX_malloc<<1);
     ((free_list *)heap_rest_start)->size=MAX_malloc<<1;
-    for(uintptr_t ptr=ROUNDUP(heap_rest_start,MAX_malloc<<1)+(MAX_malloc<<1);ptr<heap_rest_end;ptr+=MAX_malloc<<1){
+    for(uintptr_t ptr=ROUNDUP(heap_rest_start,MAX_malloc<<1)+(MAX_malloc<<1);ptr<ROUNDDOWN(heap_rest_end,MAX_malloc<<1);ptr+=MAX_malloc<<1){
       ((free_list *)ptr)->size=MAX_malloc<<1;
       ((free_list *)(ptr-(MAX_malloc<<1)))->nxt=(free_list *)ptr;
     }

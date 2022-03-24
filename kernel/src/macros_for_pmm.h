@@ -66,6 +66,9 @@
 #define MAGIC_UNLOCKED (0)
 #define MAGIC_LOCKED (1)
 
+typedef int spinlock_t;
+typedef unsigned long uintptr_t;
+
 static inline void spin_lock(spinlock_t *lk) {
   while (1) {
     intptr_t value = atomic_xchg(lk, MAGIC_LOCKED);

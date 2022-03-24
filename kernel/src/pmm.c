@@ -15,9 +15,6 @@
 
 #define MTG_addr(pos,len) ((mem_tag *)((uintptr_t)pos+len-sizeof(mem_tag)))
 
-typedef int spinlock_t;
-typedef unsigned long uintptr_t;
-
 typedef struct __free_list{
   uintptr_t size;
   struct __free_list *nxt;

@@ -11,8 +11,8 @@
         assert(cond);\
     }}))
 #else
-  #define DEBUG(...) 0;
-  #define Assert(...) 0;
+  #define DEBUG(...)
+  #define Assert(...)
 #endif
 
 

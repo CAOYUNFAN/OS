@@ -34,6 +34,7 @@
     DEBUG(memset(ret,MAGIC_USED,x));\
     return ret;\
   }
+
 #define CAO_FREE(x)\
   static inline void contact(kfree_,x)(void * ptr){\
     free_list * hdr=ptr;\

@@ -45,7 +45,6 @@ static void pmm_init() {
   printf("free_list size=%ld,mem_tag size=%d\n",sizeof(free_list),sizeof(mem_tag));
   fprintf(fd,"Got %d Byte heap: [%p, %p)\n", HEAP_SIZE , heap.start, heap.end);
   init_mm();
-  printf("num:%lx\n",total_num);
 //  printf("Initialize memory Completed!\n");
   return;
 }

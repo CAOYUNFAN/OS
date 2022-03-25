@@ -35,6 +35,7 @@ static void pmm_init() {
   return;
 }
 #else
+#include <stdio.h>
 extern FILE * fd;
 #define HEAP_SIZE (512*1024*1024)
 static void pmm_init() {

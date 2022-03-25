@@ -36,13 +36,12 @@ static void pmm_init() {
 }
 #else
 extern FILE * fd;
-#define HEAP_SIZE (512*1024*1024+Unit_size)
+#define HEAP_SIZE (512*1024*1024)
 static void pmm_init() {
   char *ptr  = malloc(HEAP_SIZE);
   heap.start = ptr;
   heap.end   = ptr + HEAP_SIZE;
   printf("Got %d MiB heap: [%p, %p)\n", HEAP_SIZE >> 20, heap.start, heap.end);
-  printf("free_list size=%ld,mem_tag size=%d\n",sizeof(free_list),sizeof(mem_tag));
   fprintf(fd,"Got %d Byte heap: [%p, %p)\n", HEAP_SIZE , heap.start, heap.end);
   init_mm();
 //  printf("Initialize memory Completed!\n");

@@ -103,6 +103,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
 
   if(!head->head){
     spin_lock(&head_all->lock);
+    printf("CPU %d TRYING TO get memory! %p,all=%p,len=%d\n",cpu_current(),head,head_all,size);
     int nr_slub=128;
     if(head_all->num_available<nr_slub) get_pages(head_all,size);
     for(int i=0;i<nr_slub&&head_all->head;++i){

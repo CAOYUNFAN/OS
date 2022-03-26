@@ -118,7 +118,7 @@ static inline void kfree_small(void * ptr,size_t len){
   DEBUG(memset((void *)now,MAGIC_BIG,len);)
   Assert(LOWBIT((uintptr_t)ptr)>=len,"NOT aligned! %p,len=%d\n",ptr,len);
   start_info * head;
-  #define CASE(X) head=contact(head_,X);break;
+  #define CASE(X) case X: head=contact(head_,X);break;
   switch (len){
     CASE(32)
     CASE(128)

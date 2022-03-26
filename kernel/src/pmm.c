@@ -24,7 +24,7 @@ static inline void init_mm(){
   DEBUG(memset((void *)HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START));
 
   head_64=init_start_info();head_256=init_start_info();head_4096=init_start_info();
-  self=buddy_init(HEAP_END-HEAP_OFFSET_START);self_lock=0;
+  self=buddy_init((HEAP_END-HEAP_OFFSET_START)/Unit_size);self_lock=0;
   return;
 }
 
@@ -37,7 +37,7 @@ static void pmm_init() {
 }
 #else
 extern FILE * fd;
-#define HEAP_SIZE (512*1024*1024+Unit_size)
+#define HEAP_SIZE (512*1024*1024)
 static void pmm_init() {
   char *ptr  = malloc(HEAP_SIZE);
   heap.start = ptr;

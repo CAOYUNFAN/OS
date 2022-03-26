@@ -115,7 +115,7 @@ static void * kalloc(size_t size){
 //free
 static inline void kfree_small(void * ptr,size_t len){
   free_list * now=(free_list *)ptr;
-  DEBUG(memset((void *)(now+1),MAGIC_BIG,len);)
+  DEBUG(memset((void *)now,MAGIC_BIG,len);)
   start_info * head;
   switch (len){
     case 64:head=head_64;break;

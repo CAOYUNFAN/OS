@@ -116,6 +116,7 @@ static void * kalloc(size_t size){
 static inline void kfree_small(void * ptr,size_t len){
   free_list * now=(free_list *)ptr;
   DEBUG(memset((void *)now,MAGIC_BIG,len);)
+  Assert(LOWBIT((uintptr_t)ptr)>=len,"NOT aligned! %p,len=%d\n",ptr,len);
   start_info * head;
   switch (len){
     case 64:head=head_64;break;

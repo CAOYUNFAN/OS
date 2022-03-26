@@ -49,8 +49,9 @@ void * buddy_alloc(buddy * self,size_t size){
 
     void * ret=(void *)(HEAP_OFFSET_START+offset*Unit_size);
     #ifdef TEST
+        printf("ALLOC_PAGE:%p-%ld\n",ret,size*Unit_size);
         int i=0;
-        for(unsigned char * ptr=(unsigned char *)ret;i<size*Unit_size;i++,ptr++) Assert(*ptr==MAGIC_UNUSED,"%p=%x\n",ptr,*ptr);
+        for(unsigned char * ptr=(unsigned char *)ret;i<size*Unit_size;i++,ptr++) Assert(*ptr==MAGIC_UNUSED,"Unexpected Magic%p=%x\n",ptr,*ptr);
         memset(ret,MAGIC_BIG,size*Unit_size);
     #endif
     return ret;

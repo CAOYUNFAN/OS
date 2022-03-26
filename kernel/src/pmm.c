@@ -19,7 +19,7 @@ static inline start_info * init_start_info(){
 
 static inline void init_mm(){
   kernel_max=HEAP_START;
-  DEBUG(memset(HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START));
+  DEBUG(memset((void *)HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START));
 
   head_64=init_start_info();head_256=init_start_info();head_4096=init_start_info();
   self=buddy_init(HEAP_END-HEAP_OFFSET_START);self_lock=0;

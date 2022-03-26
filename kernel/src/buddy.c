@@ -47,7 +47,7 @@ void * buddy_alloc(buddy * self,size_t size){
     for(index=fa(index);index;index=fa(index)) 
     self->longest[index]=Max(self->longest[lch(index)],self->longest[rch(index)]);
 
-    void * ret=(void *)(HEAP_OFFSET_START+index*Unit_size);
+    void * ret=(void *)(HEAP_OFFSET_START+offset*Unit_size);
     DEBUG(memset(ret,MAGIC_BIG,size);)
     return ret;
 }

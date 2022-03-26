@@ -32,7 +32,7 @@ void * kernel_alloc(size_t size);
 #define HEAP_START ((uintptr_t)heap.start)
 #define HEAP_END ((uintptr_t)heap.end)
 #define HEAP_OFFSET_START ROUNDDOWN(HEAP_START,MAX_alloc)
-
+#define cache_pages 16
 
 //lock_realated
 #define MAGIC_UNLOCKED (0)

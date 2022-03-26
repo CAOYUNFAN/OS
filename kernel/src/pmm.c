@@ -53,8 +53,8 @@ static void pmm_init() {
 //alloc:
 static inline free_list * init_pages(block_info * block,size_t size,free_list * head){
   if(size==4096){
-    free_list * head=(free_list *) block;
-    head->nxt=head;
+    free_list * now=(free_list *) block;
+    now->nxt=head;
     return head;
   }
   block->size=size;

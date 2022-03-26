@@ -112,6 +112,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
       now->nxt=head->head;
       head->head=now;
       head->num_all++;
+      head_all->num_available--;
     }
     spin_unlock(&head_all->lock);
   }

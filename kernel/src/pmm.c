@@ -167,13 +167,13 @@ static inline void kfree_small(void * ptr,size_t size){
   head->head=now;
   if(head->num_all>=nr_slub*2){
     spin_lock(&head_all->lock);
-    for(int i=head->num_all-nr_slub;i>=0;i--){
+    while(head->num_all>nr_slub){
       free_list * now=head->head;head->head=now->nxt;
       now->nxt=head_all->head;
       head_all->head=now;
+      head->num_all--;
       head_all->num_available++;
     }
-    head->num_all=nr_slub;
     spin_unlock(&head_all->lock);
   }
   spin_unlock(&head->lock);

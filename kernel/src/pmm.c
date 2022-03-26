@@ -1,8 +1,5 @@
-#include <common.h>
-#include "macros_for_pmm.h"
-#include "buddy.h"
+#include "pmm.h"
 
-static uintptr_t kernel_max; 
 void * kernel_alloc(size_t size){
   void * ret=(void *)kernel_max;
   kernel_max+=size;

@@ -35,14 +35,15 @@ void * buddy_alloc(buddy * self,size_t size){
     size=upp(size);
     if(self->longest[1]<size) return NULL;//cannot find available!
 
-    uintptr_t index=1,offset=0;
+    uintptr_t index=1;
     for(int node_size=self->size;node_size>size;node_size/=2){
         size_t lch_longest=self->longest[lch(index)],rch_longest=self->longest[rch(index)];
         if(lch_longest>=size&&(lch_longest<rch_longest||rch_longest<size)) index=lch(index);
         else index=rch(index);
     }
 
-    self->longest[index]=0;offset=index*size-self->size;
+    self->longest[index]=0;
+    uintptr_t offset=index*size-self->size;
 
     for(index=fa(index);index;index=fa(index)) 
     self->longest[index]=Max(self->longest[lch(index)],self->longest[rch(index)]);

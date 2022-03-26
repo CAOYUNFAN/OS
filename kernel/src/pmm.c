@@ -85,7 +85,7 @@ static inline void * kalloc_small(start_info * head,size_t size){
   }
   ret=head->head;
   if(ret) head->head=ret->nxt;
-  printf("%p %p\n",ret,head->head);
+  printf("kalloc_small:%p %p\n",ret,head->head);
   spin_unlock(&head->lock);
   #ifdef TEST
     if(ret){

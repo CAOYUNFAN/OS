@@ -86,7 +86,7 @@ static inline free_list * init_pages(block_info * block,size_t size,free_list * 
 static inline void get_pages(start_info_all * head,size_t size){
   spin_lock(&self_lock);
     int alloc_pages=head->num_all;
-    if(alloc_pages<16) alloc_pages=16;
+    if(alloc_pages<2) alloc_pages=2;
     for(int i=0;i<alloc_pages;++i){
       block_info * block=(block_info *)buddy_alloc(self,1);
       if(block) {
@@ -98,7 +98,7 @@ static inline void get_pages(start_info_all * head,size_t size){
 }
 
 static inline void * kalloc_small(start_info * head,size_t size,start_info_all * head_all){
-  int nr_slub=(size==4096?16:16*(Unit_size/size-1));
+  int nr_slub=(size==4096?2:2*(Unit_size/size-1));
   free_list * ret=NULL;
   spin_lock(&head->lock);
 
@@ -160,7 +160,7 @@ static inline void kfree_small(void * ptr,size_t size){
     CASE(4096)
     default: head=head_4096[cpu_current()];head_all=head_4096_all;break;
   }
-  int nr_slub=(size==4096?16:16*(Unit_size/size-1));
+  int nr_slub=(size==4096?2:2*(Unit_size/size-1));
   spin_lock(&head->lock);
   now->nxt=head->head;
   head->num_all++;

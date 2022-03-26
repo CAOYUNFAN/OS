@@ -55,7 +55,7 @@ static inline free_list * init_pages(block_info * block,size_t size,free_list * 
   if(size==4096){
     free_list * now=(free_list *) block;
     now->nxt=head;
-    return head;
+    return now;
   }
   block->size=size;
   uintptr_t start=(uintptr_t)block;uintptr_t end=((uintptr_t)block)+Unit_size;

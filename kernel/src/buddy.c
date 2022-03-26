@@ -1,4 +1,3 @@
-#include <common.h>
 #include "pmm.h"
 
 static inline size_t upp(size_t x){
@@ -69,6 +68,6 @@ void buddy_free(buddy * self,void * ptr){
     }
 }
 
-inline unsigned char is_block(buddy *self,size_t offset){
+unsigned char is_block(buddy *self,size_t offset){
     return self->longest[self->size+offset]==0;
 }

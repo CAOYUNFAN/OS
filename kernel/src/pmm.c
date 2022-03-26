@@ -1,5 +1,7 @@
 #include "pmm.h"
 
+uintptr_t kernel_max;
+
 void * kernel_alloc(size_t size){
   void * ret=(void *)kernel_max;
   kernel_max+=size;
@@ -14,6 +16,7 @@ int self_lock;
 static inline start_info * init_start_info(){
   start_info * ret=(start_info *)kernel_alloc(sizeof(start_info));
   ret->head=NULL;ret->num_all=0;ret->lock=0;
+  return ret;
 }
 
 static inline void init_mm(){

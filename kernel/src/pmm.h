@@ -16,7 +16,6 @@
 #else
   #define DEBUG(...) 
   #define Assert(...) ((void)0)
-  #define assert(ignore) ((void)0)
 #endif
 
 //macros that may be used
@@ -26,7 +25,7 @@
 #define contact(x,y) __contact(x,y)
 
 //heap_size related
-uintptr_t kernel_max;
+extern uintptr_t kernel_max;
 void * kernel_alloc(size_t size);
 #define MAX_alloc (16*1024*1024)
 #define Unit_size (4096)
@@ -59,7 +58,7 @@ typedef union{
 buddy * buddy_init(size_t size);
 void * buddy_alloc(buddy * self,size_t size);
 void buddy_free(buddy * self,void * ptr);
-inline unsigned char is_block(buddy * self,size_t offset);
+unsigned char is_block(buddy * self,size_t offset);
 
 //slub? related
 typedef struct __free_list{

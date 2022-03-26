@@ -3,7 +3,6 @@
 void * kernel_alloc(size_t size){
   void * ret=(void *)kernel_max;
   kernel_max+=size;
-  Assert(kernel_max<=HEAP_REAL_START,"TOO MUCH kernel use! %ld\n",size);
   return ret;
 }
 

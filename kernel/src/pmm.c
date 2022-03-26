@@ -37,10 +37,10 @@ static inline void init_mm(){
     init_start(1024)
     init_start(4096)
   }
-  head_32_all=init_start_info();
-  head_128_all=init_start_info();
-  head_1024_all=init_start_info();
-  head_4096_all=init_start_info();
+  head_32_all=init_start_info_all();
+  head_128_all=init_start_info_all();
+  head_1024_all=init_start_info_all();
+  head_4096_all=init_start_info_all();
   self=buddy_init((HEAP_END-HEAP_OFFSET_START)/Unit_size);self_lock=0;
   return;
 }

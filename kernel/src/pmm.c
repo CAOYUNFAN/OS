@@ -137,7 +137,7 @@ static void kfree(void * ptr){
   }
   int len=Unit_size;
   if(LOWBIT((uintptr_t)ptr)<Unit_size){
-    block_info * start=(block_info *)ptr;
+    block_info * start=(block_info *)ROUNDDOWN(ptr,Unit_size);
     len=start->size;
   }
   kfree_small(ptr,len);

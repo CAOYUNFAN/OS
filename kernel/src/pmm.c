@@ -8,7 +8,7 @@ void * kernel_alloc(size_t size){
   return ret;
 }
 
-start_info * head_32,* head_128, * head_1024,* head_4096;
+start_info * head_32[8],* head_128[8], * head_1024[8],* head_4096[8];
 buddy * self;
 int self_lock;
 
@@ -23,7 +23,13 @@ static inline void init_mm(){
   kernel_max=HEAP_START;
   DEBUG(memset((void *)HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START));
 
-  head_32=init_start_info();head_128=init_start_info();head_1024=init_start_info();head_4096=init_start_info();
+  for(uintptr_t i=0;i<8;++i){
+    #define init_start(x) contact(head_,x)[i]=init_start_info();
+    init_start(32)
+    init_start(128)
+    init_start(1024)
+    init_start(4096)
+  }
   self=buddy_init((HEAP_END-HEAP_OFFSET_START)/Unit_size);self_lock=0;
   return;
 }
@@ -105,11 +111,12 @@ static void * kalloc(size_t size){
     spin_unlock(&self_lock);
     return ret;
   }
-  #define CONDITION(X) if(size<=X) return kalloc_small(contact(head_,X),X);
+  #define CONDITION(X) if(size<=X) return kalloc_small(contact(head_,X)[cpu_current()],X);
   CONDITION(32)
   CONDITION(128)
   CONDITION(1024)
-  return kalloc_small(head_4096,4096);
+  CONDITION(4096)
+  return NULL;
 }
 
 //free
@@ -118,12 +125,12 @@ static inline void kfree_small(void * ptr,size_t len){
   DEBUG(memset((void *)now,MAGIC_BIG,len);)
   Assert(LOWBIT((uintptr_t)ptr)>=len,"NOT aligned! %p,len=%d\n",ptr,len);
   start_info * head;
-  #define CASE(X) case X: head=contact(head_,X);break;
+  #define CASE(X) case X: head=contact(head_,X)[cpu_current()];break;
   switch (len){
     CASE(32)
     CASE(128)
     CASE(1024)
-    default: head=head_4096;break;
+    default: head=head_4096[cpu_current()];break;
   }
   spin_lock(&head->lock);
   now->nxt=head->head;

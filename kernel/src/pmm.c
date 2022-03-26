@@ -82,7 +82,7 @@ static inline void * kalloc_small(start_info * head,size_t size){
     spin_unlock(&self_lock);
   }
   ret=head->head;
-  if(ret) head=ret->nxt;
+  if(ret) head->head=ret->nxt;
 
   spin_unlock(&head->lock);
   #ifdef TEST

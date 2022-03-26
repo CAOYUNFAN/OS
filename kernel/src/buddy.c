@@ -16,7 +16,7 @@ buddy * buddy_init(size_t size){
     buddy * self=(buddy *)kernel_alloc(2*size*sizeof(int));
     self->size=size;
 
-    uintptr_t heap_real_start=ROUNDUP(HEAP_START+kernel_alloc,Unit_size),heap_real_end=ROUNDDOWN(HEAP_END,Unit_size);
+    uintptr_t heap_real_start=ROUNDUP(HEAP_START+kernel_max,Unit_size),heap_real_end=ROUNDDOWN(HEAP_END,Unit_size);
     for(size_t i=size,j=HEAP_OFFSET_START;i<2*size;i++,j+=Unit_size){
         if(j>=heap_real_start&&j<heap_real_end) self->longest[i]=1;
         else self->longest[i]=0;

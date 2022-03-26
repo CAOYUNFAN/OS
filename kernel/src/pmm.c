@@ -8,8 +8,8 @@ void * kernel_alloc(size_t size){
   return ret;
 }
 
-start_info * head_32[8],* head_128[8], * head_1024[8],* head_4096[8];
-start_info_all * head_32_all, *head_128_all, *head_1024_all, *head_4096_all;
+start_info * head_32[8],* head_128[8], * head_512[8],* head_4096[8];
+start_info_all * head_32_all, *head_128_all, *head_512_all, *head_4096_all;
 buddy * self;
 int self_lock;
 
@@ -34,12 +34,12 @@ static inline void init_mm(){
     #define init_start(x) contact(head_,x)[i]=init_start_info();
     init_start(32)
     init_start(128)
-    init_start(1024)
+    init_start(512)
     init_start(4096)
   }
   head_32_all=init_start_info_all();
   head_128_all=init_start_info_all();
-  head_1024_all=init_start_info_all();
+  head_512_all=init_start_info_all();
   head_4096_all=init_start_info_all();
   self=buddy_init((HEAP_END-HEAP_OFFSET_START)/Unit_size);self_lock=0;
   return;
@@ -140,7 +140,7 @@ static void * kalloc(size_t size){
   #define CONDITION(X) if(size<=X) return kalloc_small(contact(head_,X)[cpu_current()],X,contact(head_,contact(X,_all)));
   CONDITION(32)
   CONDITION(128)
-  CONDITION(1024)
+  CONDITION(512)
   CONDITION(4096)
   return NULL;
 }
@@ -156,7 +156,7 @@ static inline void kfree_small(void * ptr,size_t size){
   switch (size){
     CASE(32)
     CASE(128)
-    CASE(1024)
+    CASE(512)
     CASE(4096)
     default: head=head_4096[cpu_current()];head_all=head_4096_all;break;
   }

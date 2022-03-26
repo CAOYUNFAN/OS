@@ -22,7 +22,7 @@ static inline start_info * init_start_info(){
 
 static inline start_info_all * init_start_info_all(){
   start_info_all * ret=(start_info_all *)kernel_alloc(sizeof(start_info_all));
-  ret->head=NULL;ret->num_all=16;ret->num_available=0;ret->lock=0;
+  ret->head=NULL;ret->num_all=0;ret->num_available=0;ret->lock=0;
   return ret;
 }
 
@@ -86,6 +86,7 @@ static inline free_list * init_pages(block_info * block,size_t size,free_list * 
 static inline void get_pages(start_info_all * head,size_t size){
   spin_lock(&self_lock);
     int alloc_pages=head->num_all;
+    if(alloc_pages<256*size/Unit_size) alloc_pages=256*size/Unit_size;
     for(int i=0;i<alloc_pages;++i){
       block_info * block=(block_info *)buddy_alloc(self,1);
       if(block) {
@@ -102,7 +103,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
 
   if(!head->head){
     spin_lock(&head_all->lock);
-    int nr_slub=16*(Unit_size==size?1:(Unit_size/size-1));
+    int nr_slub=128;
     if(head_all->num_available<nr_slub) get_pages(head_all,size);
     for(int i=0;i<nr_slub&&head_all->head;++i){
       free_list * now=head_all->head;
@@ -158,14 +159,14 @@ static inline void kfree_small(void * ptr,size_t size){
     CASE(4096)
     default: head=head_4096[cpu_current()];head_all=head_4096_all;break;
   }
-  int nr_slub=16*(Unit_size==size?1:(Unit_size/size-1));
+  int nr_slub=128;
   spin_lock(&head->lock);
   now->nxt=head->head;
   head->num_all++;
   head->head=now;
   if(head->num_all>=nr_slub*2){
     spin_lock(&head_all->lock);
-    for(int i=nr_slub;i<head->num_all;i++){
+    for(int i=head->num_all-nr_slub;i>=0;i--){
       free_list * now=head->head;head->head=now->nxt;
       now->nxt=head_all->head;
       head_all->head=now;

@@ -147,7 +147,7 @@ static void * kalloc(size_t size){
 static inline void kfree_small(void * ptr,size_t size){
   free_list * now=(free_list *)ptr;
   DEBUG(memset((void *)now,MAGIC_BIG,size);)
-  Assert(LOWBIT((uintptr_t)ptr)>=len,"NOT aligned! %p,size=%d\n",ptr,size);
+  Assert(LOWBIT((uintptr_t)ptr)>=size,"NOT aligned! %p,size=%d\n",ptr,size);
   start_info * head;
   start_info_all * head_all;
   #define CASE(X) case X: head=contact(head_,X)[cpu_current()];head_all=contact(head_,contact(X,_all));break;

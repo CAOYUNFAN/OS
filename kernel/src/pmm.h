@@ -73,3 +73,7 @@ typedef struct {
   int num_all,lock;
   free_list * head;
 }start_info;
+typedef struct {
+  int num_all,num_available,lock;
+  free_list *head;
+}start_info_all;

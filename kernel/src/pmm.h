@@ -11,7 +11,8 @@
         assert(cond);\
     }}))
   #define MAGIC_UNUSED (0x7f)
-  #define MAGIC_USED (0x69)
+  #define MAGIC_BIG (0x5d)
+  #define MAGIC_SMALL (0x3b)
 #else
   #define DEBUG(...) 
   #define Assert(...) ((void)0)
@@ -57,14 +58,19 @@ typedef union{
 }buddy;
 buddy * buddy_init(size_t size);
 void * buddy_alloc(buddy * self,size_t size);
-void buddy_free(buddy * self,size_t offset);
+void buddy_free(buddy * self,void * ptr);
+inline unsigned char is_block(buddy * self,size_t offset);
 
+//slub? related
 typedef struct __free_list{
   struct __free_list *nxt;
 }free_list;
-
 typedef struct{
   int size;
 }block_info;
 
-
+//top
+typedef struct {
+  int num_all,lock;
+  free_list * head;
+}start_info;

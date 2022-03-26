@@ -47,20 +47,27 @@ void * buddy_alloc(buddy * self,size_t size){
     for(index=fa(index);index;index=fa(index)) 
     self->longest[index]=Max(self->longest[lch(index)],self->longest[rch(index)]);
 
-    return (void *)(HEAP_OFFSET_START+index*Unit_size);
+    void * ret=(void *)(HEAP_OFFSET_START+index*Unit_size);
+    DEBUG(memset(ret,MAGIC_BIG,size);)
+    return ret;
 }
 
-void buddy_free(buddy * self,size_t offset){
-    size_t node_size=1;
+void buddy_free(buddy * self,void * ptr){
+    size_t node_size=1,offset=((uintptr_t)ptr-HEAP_OFFSET_START)/Unit_size;
     uintptr_t index=self->size+offset;
     for(;index&&self->longest[index];index=fa(index)) node_size<<=1;
     Assert(index,"HAS NOT BEEN ALLOCATED! %p\n",(void *)offset);
 
     self->longest[index]=node_size;
+    DEBUG(memset(ptr,MAGIC_UNUSED,node_size*Unit_size);)
 
     for(index=fa(index),node_size<<=1;index;index=fa(index),node_size<<=1){
         size_t lch_longest=self->longest[lch(index)],rch_longest=self->longest[rch(index)];
         if(lch_longest+rch_longest==node_size) self->longest[index]=node_size;
         else self->longest[index]=Max(lch_longest,rch_longest);
     }
+}
+
+inline unsigned char is_block(buddy *self,size_t offset){
+    return self->longest[self->size+offset]==0;
 }

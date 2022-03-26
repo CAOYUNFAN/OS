@@ -7,114 +7,23 @@ void * kernel_alloc(size_t size){
   return ret;
 }
 
-static free_list ** head;
-typedef struct{
-    block_start * header;
-    int num,lock;
-}info_start;
+start_info * head_64,* head_256, * head_4096;
+buddy * self;
+int self_lock;
 
-static info_start * head_64;
-static info_start * head_128;
-static info_start * head_4096;
-
-typedef struct {
-  int size,lock;
-  free_list * start;
-  block_start * nxt;
-}block_start;
-
-static inline void init_block(uintptr_t ptr,size_t size){
-  Assert(LOWBIT(ptr)>=Unit_size,"Do not alloc a page %p!\n",(void *)ptr);
-  Assert(size==64||size==256,"Unexpected size %ld!\n",size);
-  block_start * start=(block_start *)ptr;
-  start->size=size;start->start=NULL;start->lock=0;start->nxt=NULL;
-  for(uintptr_t i=ROUNDUP(ptr+sizeof(block_start),size);i<ptr+Unit_size;i+=size){
-    free_list * temp=(free_list *)i;
-    temp->size=size;temp->nxt=start->start;start->start=temp;
-  }
-  return;
-}
-
-static inline void get_pages(info_start * head,size_t len,block_start **start){
-}
-
-static inline void insert(block_start * block,free_list * insert){
-  Assert(LOWBIT((uintptr_t)block)>=Unit_size,"Do not input a page %p!\n",block);
-  int size=block->size;
-  Assert(LOWBIT((uintptr_t)insert)>=size,"Insert is not alligned %p\n",insert);
-  Assert((uintptr_t)insert>=(uintptr_t)(block+1)&&((uintptr_t)insert)+size<=((uintptr_t)block)+Unit_size,"Insert %p is not in Block %p",insert,block);
-  DEBUG(memset(insert,MAGIC_UNUSED,size);)
-  insert->size=size;
-  spin_lock(&block->lock);
-  insert->nxt=block->start;block->start=insert;
-  spin_unlock(&block->lock);
-}
-
-static inline void * get(block_start * block){
-  Assert(LOWBIT((uintptr_t)block)>=Unit_size,"Do not input a page %p!\n",block);
-  Assert(block->lock==MAGIC_LOCKED,"IT IS NOT LOCKED!!! %p\n",block);
-  int size=block->size;
-  Assert(size==64||size==256,"Block %p errors,len=%ld!\n",block,len);
-  void * ret=(void *)block->start;
-  if(ret) block->start=block->start->nxt;
-  DEBUG(memset(ret,size,MAGIC_USED));
-}
-
-static inline void * slab_alloc(info_start * head,size_t len){
-  void * ret=NULL;
-  block_start * start;
-  spin_lock(&head->lock);
-  start=head->header;
-  spin_unlock(&head->lock);
-  for(;start!=NULL;start=start->nxt)
-  if(start->start&&atomic_xchg(&start->lock,MAGIC_LOCKED)){
-    ret=get(start);
-    spin_unlock(&start->lock);
-    if(!ret) continue;
-    return ret;
-  }
-  get_pages(head,len,&start);
-  for(;start!=NULL;start=start->nxt)
-  if(start->start&&atomic_xchg(&start->lock,MAGIC_LOCKED)){
-    ret=get(start);
-    spin_unlock(&start->lock);
-    return ret;
-  }
-  return ret;
-}
-
-static inline void init_work(){
-    int num=0;
-    for(int i=Unit_size;i<=(MAX_alloc<<1);i<<=1) ++num;
-    head=kernel_alloc(sizeof(free_list *)*num);
-    memset(head,0,sizeof(free_list *)*num);
-    uintptr_t now=HEAP_END,len=Unit_size,cen=0;
-    for(;(now-len)>=HEAP_START&&LOWBIT(now)<(MAX_alloc<<1);len<<=1,++cen)
-    if(LOWBIT(now)==len){
-        free_list* temp=(free_list *)(now-len);
-        temp->size=len;temp->nxt=head[cen];head[cen]=temp;
-        now-=len;
-    }
-    for(;now-len>=HEAP_REAL_START;now-=len){
-        Assert(len==(MAX_alloc<<1)&&cen==(num-1),"%s\n","Initialization Errors!");
-        free_list * temp=(free_list *)(now-len);
-        temp->size=len;temp->nxt=head[cen];head[cen]=temp;
-    }
-    for(;now>HEAP_REAL_START;len>>=1,--cen)
-    if(now-len>=HEAP_REAL_START){
-        free_list * temp=(free_list *)(now-len);
-        temp->size=len;temp->nxt=head[cen];head[cen]=temp;
-        now-=len;
-    }
+//init:
+static inline start_info * init_start_info(){
+  start_info * ret=(start_info *)kernel_alloc(sizeof(start_info));
+  ret->head=NULL;ret->num_all=0;ret->lock=0;
 }
 
 static inline void init_mm(){
   kernel_max=HEAP_START;
   DEBUG(memset(HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START));
-  init_work();
-  head_64=kernel_alloc(sizeof(info_start));head_64->header=NULL;head_64->num=0;head_64->lock=0;
-  head_128=kernel_alloc(sizeof(info_start));head_128->header=NULL;head_128->num=0;head_128->lock=0;
-  head_4096=kernel_alloc(sizeof(info_start));head_4096->header=NULL;head_4096->num=0;head_4096->lock=0;
+
+  head_64=init_start_info();head_256=init_start_info();head_4096=init_start_info();
+  self=buddy_init(HEAP_END-HEAP_OFFSET_START);self_lock=0;
+  return;
 }
 
 #ifndef TEST
@@ -135,20 +44,102 @@ static void pmm_init() {
   printf("free_list size=%ld,mem_tag size=%d\n",sizeof(free_list),sizeof(mem_tag));
   fprintf(fd,"Got %d Byte heap: [%p, %p)\n", HEAP_SIZE , heap.start, heap.end);
   init_mm();
-  printf("num:%lx\n",total_num);
 //  printf("Initialize memory Completed!\n");
   return;
 }
 #endif
 
+//alloc:
+static inline free_list * init_pages(block_info * block,size_t size,free_list * head){
+  if(size==4096){
+    free_list * head=(free_list *) block;
+    head->nxt=head;
+    return head;
+  }
+  block->size=size;
+  uintptr_t start=(uintptr_t)block;uintptr_t end=((uintptr_t)block)+Unit_size;
+  for(uintptr_t ptr=ROUNDUP(start+sizeof(block_info),size);ptr<end;ptr+=size){
+    free_list * now=(free_list *)ptr;
+    now->nxt=head;head=now;
+  }
+  return head;
+}
+
+static inline void * kalloc_small(start_info * head,size_t size){
+  free_list * ret=NULL;
+  spin_lock(&head->lock);
+
+  if(!head->head){
+    spin_lock(&self_lock);
+    int alloc_pages=head->num_all;
+    if(alloc_pages==0) alloc_pages=1;
+    for(int i=0;i<alloc_pages;++i){
+      block_info * block=(block_info *)buddy_alloc(self,1);
+      if(block) {
+        head->head=init_pages(block,size,head->head);
+        ++head->num_all;
+      }
+    }
+    spin_unlock(&self_lock);
+  }
+  ret=head->head;
+  if(ret) head=ret->nxt;
+
+  spin_unlock(&head->lock);
+  #ifdef TEST
+    if(ret){
+      unsigned char * i=((unsigned char *)ret)+sizeof(free_list);
+      for(uintptr_t j=0;j<size;i++,j++) Assert(*i==MAGIC_BIG,"Unexpeted Magic %p=%x",i,*i);
+      memset(ret,MAGIC_SMALL,size);
+    }
+  #endif
+  return (void *)ret;
+}
 
 static void * kalloc(size_t size){
-    if(size>MAX_alloc) return NULL;
-    return NULL;
+  if(size>MAX_alloc) return NULL;
+  if(size>Unit_size){
+    spin_lock(&self_lock);
+    void * ret=buddy_alloc(self,ROUNDUP(size,Unit_size)/Unit_size);
+    spin_unlock(&self_lock);
+    return ret;
+  } 
+  size_t len=4096;
+  start_info * head_size=head_4096;
+  if(size<=256) len=256,head_size=head_256;
+  if(size<=64) len=64,head_size=head_64;
+  return kalloc_small(head_size,len);
+}
+
+//free
+void free_small(void * ptr,size_t len){
+  free_list * now=(free_list *)ptr;
+  DEBUG(memset((void *)(now+1),MAGIC_BIG,len);)
+  start_info * head;
+  switch (len){
+    case 64:head=head_64;break;
+    case 256:head=head_256;break;
+    default:head=head_4096;break;
+  }
+  spin_lock(&head->lock);
+  now->nxt=head->head;
+  head->head=now;
+  spin_unlock(&head->lock);
 }
 
 static void kfree(void * ptr){
-
+  if(LOWBIT((uintptr_t)ptr)>Unit_size&&!is_block(self,(((uintptr_t)ptr)-HEAP_OFFSET_START)/Unit_size)){
+    spin_lock(&self_lock);
+    buddy_free(self,ptr);
+    spin_unlock(&self_lock);
+    return;
+  }
+  int len=Unit_size;
+  if(LOWBIT((uintptr_t)ptr)<Unit_size){
+    block_info * start=(block_info *)ptr;
+    len=start->size;
+  }
+  free_small(ptr,len);
 }
 
 MODULE_DEF(pmm) = {

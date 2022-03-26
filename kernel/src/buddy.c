@@ -48,8 +48,11 @@ void * buddy_alloc(buddy * self,size_t size){
     self->longest[index]=Max(self->longest[lch(index)],self->longest[rch(index)]);
 
     void * ret=(void *)(HEAP_OFFSET_START+offset*Unit_size);
-    printf("%p-%lx\n",ret,size);
-    DEBUG(memset(ret,MAGIC_BIG,size);)
+    #ifdef TEST
+        int i=0;
+        for(unsigned char * ptr=(unsigned char *)ret;i<size*Unit_size;i++,ptr++) Assert(*ptr==MAGIC_UNUSED,"%p=%x\n",ptr,*ptr);
+        memset(ret,MAGIC_BIG,size*Unit_size);
+    #endif
     return ret;
 }
 

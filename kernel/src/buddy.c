@@ -17,7 +17,10 @@ buddy * buddy_init(size_t size){
 
     uintptr_t heap_real_start=ROUNDUP(HEAP_START+kernel_max,Unit_size),heap_real_end=ROUNDDOWN(HEAP_END,Unit_size);
     for(size_t i=size,j=HEAP_OFFSET_START;i<2*size;i++,j+=Unit_size){
-        if(j>=heap_real_start&&j<heap_real_end) self->longest[i]=1;
+        if(j>=heap_real_start&&j<heap_real_end){
+            self->longest[i]=1;
+            printf("%lx-%p",i,(void *)j);
+        }
         else self->longest[i]=0;
     }
 

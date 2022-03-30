@@ -72,7 +72,7 @@ static inline void get_pages(start_info_all * head,size_t size){
   int adder=(size==4096?1:(Unit_size/size-1));
   spin_lock(&self_lock);
     for(int i=0;i<32;++i){
-      block * myblock=(block_info *)buddy_alloc(self,1);
+      block * myblock=(block *)buddy_alloc(self,1);
       if(myblock) {
         myblock->nxt=head->start;
         head->start=myblock->nxt;

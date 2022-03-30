@@ -83,7 +83,7 @@ typedef struct {
 }start_info_all;
 typedef struct rubbish_block_t{
   free_list * start;
-  rubbish_block_t * nxt;
+  struct rubbish_block_t * nxt;
 }rubbish_block;
 typedef struct{
   int nr_num;spinlock_t lock;

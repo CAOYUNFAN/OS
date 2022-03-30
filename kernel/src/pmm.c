@@ -51,7 +51,7 @@ static inline void init_mm(){
 
   head_rubbish(32)
   head_rubbish(128)
-  head_rubbsih(512)
+  head_rubbish(512)
   head_rubbish(4096)
 
   self=buddy_init((HEAP_END-HEAP_OFFSET_START)/Unit_size);self_lock=0;

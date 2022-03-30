@@ -124,7 +124,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
         DEBUG(memset(temp,MAGIC_BIG,size);)
         free_list * pt=(free_list *) temp;
         pt->nxt=head->head;
-        head=pt;
+        head->head=pt;
         continue;
       }
       spin_unlock(&rubbish_all->lock);
@@ -190,7 +190,7 @@ static inline void kfree_small(void * ptr,size_t size){
   if(head->nr_num>=NR_NUM(size)*16){
     for(int i=0;i<8;++i){
       rubbish_block * now=(rubbish_block *)head->head;
-      head=head->head->nxt;
+      head->head=head->head->nxt;
       now->start=NULL;
       now->tail=(size==4096?NULL:head->head);
       for(int j=0;j<NR_NUM(size)-1;j++){

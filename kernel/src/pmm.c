@@ -98,7 +98,7 @@ static inline free_list * init_page(block_info * block,size_t size,free_list * h
 static inline void * kalloc_small(start_info * head,size_t size,start_info_all * head_all){
   free_list * ret=NULL;
   spin_lock(&head->lock);
-
+  printf("CPU%d:entering\n",cpu_current());
   if(!head->head){
     spin_lock(&head_all->lock);
     for(int i=0;i<4;i++){
@@ -113,6 +113,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
   }
   ret=head->head;
   if(ret) head->head=ret->nxt;
+  printf("CPU%d:exiting\n",cpu_current());
 //  printf("kalloc_small:%p %p\n",ret,head->head);
   spin_unlock(&head->lock);
   #ifdef TEST

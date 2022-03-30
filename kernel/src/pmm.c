@@ -106,7 +106,6 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
       if(now){
         head_all->start=now->nxt;
         head->head=init_page((block_info *)now,size,head->head);
-        printf("CPU%d:get_page%p\n",cpu_current(),now);
       }
     }
     spin_unlock(&head_all->lock);

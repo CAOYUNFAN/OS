@@ -74,7 +74,7 @@ static inline void get_pages(start_info_all * head,size_t size){
       block * myblock=(block *)buddy_alloc(self,1);
       if(myblock) {
         myblock->nxt=head->start;
-        head->start=myblock->nxt;
+        head->start=myblock;
       }
     }
   spin_unlock(&self_lock);

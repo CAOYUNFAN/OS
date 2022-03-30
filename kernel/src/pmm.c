@@ -45,8 +45,8 @@ static inline void init_mm(){
     init_start(4096)
   }
   #define head_rubbish(x) \
-  contact(head_,(contact(x,_all)))=init_start_info_all();\
-  contact(head_,(contact(x,_rubbish)))=init_start_info_rubbish();\
+  contact(head_,contact(x,_all))=init_start_info_all();\
+  contact(head_,contact(x,_rubbish))=init_start_info_rubbish();\
 
 
   head_rubbish(32)

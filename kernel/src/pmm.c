@@ -16,13 +16,13 @@ int self_lock;
 //init:
 static inline start_info * init_start_info(){
   start_info * ret=(start_info *)kernel_alloc(sizeof(start_info));
-  ret->head=NULL;ret->num_all=0;ret->lock=0;
+  ret->head=NULL;ret->lock=0;
   return ret;
 }
 
 static inline start_info_all * init_start_info_all(){
   start_info_all * ret=(start_info_all *)kernel_alloc(sizeof(start_info_all));
-  ret->head=NULL;ret->num_all=cache_pages;ret->num_available=0;ret->lock=0;
+  ret->start=NULL;ret->lock=0;
   return ret;
 }
 
@@ -68,7 +68,20 @@ static void pmm_init() {
 #endif
 
 //alloc:
-static inline free_list * init_pages(block_info * block,size_t size,free_list * head){
+static inline void get_pages(start_info_all * head,size_t size){
+  int adder=(size==4096?1:(Unit_size/size-1));
+  spin_lock(&self_lock);
+    for(int i=0;i<32;++i){
+      block * myblock=(block_info *)buddy_alloc(self,1);
+      if(myblock) {
+        myblock->nxt=head->start;
+        head->start=myblock->nxt;
+      }
+    }
+  spin_unlock(&self_lock);
+}
+
+static inline free_list * init_page(block_info * block,size_t size,free_list * head){
   if(size==4096){
     free_list * now=(free_list *) block;
     now->nxt=head;
@@ -77,53 +90,42 @@ static inline free_list * init_pages(block_info * block,size_t size,free_list * 
   block->size=size;
   uintptr_t start=(uintptr_t)block;uintptr_t end=((uintptr_t)block)+Unit_size;
   for(uintptr_t ptr=ROUNDUP(start+sizeof(block_info),size);ptr<end;ptr+=size){
+    #ifdef TEST
+    unsigned char * j=(unsigned char *)ptr;
+    for(int i=0;i<size;i++,j++) Assert(*j==MAGIC_BIG,"Unexpected MAGIC %p=%lx",j,*j);
+    memset(now,MAGIC_SMALL,size);
+    #endif
     free_list * now=(free_list *)ptr;
     now->nxt=head;head=now;
   }
   return head;
 }
 
-static inline void get_pages(start_info_all * head,size_t size){
-  int adder=(size==4096?1:(Unit_size/size-1));
-  spin_lock(&self_lock);
-    int alloc_pages=head->num_all;
-    for(int i=0;i<alloc_pages;++i){
-      block_info * block=(block_info *)buddy_alloc(self,1);
-      if(block) {
-        head->head=init_pages(block,size,head->head);
-        ++head->num_all;head->num_available+=adder;
-      }
-    }
-  spin_unlock(&self_lock);
-}
-
 static inline void * kalloc_small(start_info * head,size_t size,start_info_all * head_all){
-  int nr_slub=(size==4096?cache_pages:cache_pages*(Unit_size/size-1));
   free_list * ret=NULL;
   spin_lock(&head->lock);
 
   if(!head->head){
     spin_lock(&head_all->lock);
-    if(head_all->num_available<nr_slub) get_pages(head_all,size);
-    for(int i=0;i<nr_slub&&head_all->head;++i){
-      free_list * now=head_all->head;
-      head_all->head=now->nxt;
-      now->nxt=head->head;
-      head->head=now;
-      head->num_all++;
-      head_all->num_available--;
+    for(int i=0;i<4;i++){
+      if(!head_all->start) get_pages(head_all,size);
+      block * now=head_all->start;
+      if(now){
+        head_all->start=now->nxt;
+        head->head=init_page((block_info *)now,size,head->head);
+      }
+      spin_unlock(&head_all->lock);
     }
-    spin_unlock(&head_all->lock);
   }
   ret=head->head;
-  if(ret) head->head=ret->nxt,head->num_all--;
+  if(ret) head->head=ret->nxt;
 //  printf("kalloc_small:%p %p\n",ret,head->head);
   spin_unlock(&head->lock);
   #ifdef TEST
     if(ret){
       unsigned char * i=((unsigned char *)ret)+sizeof(free_list);
-      for(uintptr_t j=sizeof(free_list);j<size;i++,j++) Assert(*i==MAGIC_BIG,"Unexpeted Magic %p=%x\n",i,*i);
-      memset(ret,MAGIC_SMALL,size);
+      for(uintptr_t j=sizeof(free_list);j<size;i++,j++) Assert(*i==MAGIC_SMALL,"Unexpeted Magic %p=%x\n",i,*i);
+      memset(ret,MAGIC_USED,size);
     }
   #endif
   return (void *)ret;
@@ -163,19 +165,7 @@ static inline void kfree_small(void * ptr,size_t size){
   int nr_slub=(size==4096?cache_pages:cache_pages*(Unit_size/size-1));
   spin_lock(&head->lock);
   now->nxt=head->head;
-  head->num_all++;
   head->head=now;
-  if(head->num_all>=nr_slub*2){
-    spin_lock(&head_all->lock);
-    while(head->num_all>nr_slub){
-      free_list * now=head->head;head->head=now->nxt;
-      now->nxt=head_all->head;
-      head_all->head=now;
-      head->num_all--;
-      head_all->num_available++;
-    }
-    spin_unlock(&head_all->lock);
-  }
   spin_unlock(&head->lock);
 }
 

@@ -61,19 +61,23 @@ void buddy_free(buddy * self,void * ptr);
 unsigned char is_block(buddy * self,size_t offset);
 
 //slub? related
-typedef struct __free_list{
-  struct __free_list *nxt;
+typedef struct free_list_t{
+  struct free_list_t *nxt;
 }free_list;
-typedef struct{
+typedef struct block_t{
+  struct block_t * nxt;
+}block;
+typedef struct {
   int size;
 }block_info;
 
+
 //top
 typedef struct {
-  int num_all,lock;
+  int lock;
   free_list * head;
 }start_info;
 typedef struct {
-  int num_all,num_available,lock;
-  free_list *head;
+  int lock;
+  block_info * start;
 }start_info_all;

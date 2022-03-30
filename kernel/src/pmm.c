@@ -90,11 +90,6 @@ static inline free_list * init_page(block_info * block,size_t size,free_list * h
   block->size=size;
   uintptr_t start=(uintptr_t)block;uintptr_t end=((uintptr_t)block)+Unit_size;
   for(uintptr_t ptr=ROUNDUP(start+sizeof(block_info),size);ptr<end;ptr+=size){
-    #ifdef TEST
-    unsigned char * j=(unsigned char *)ptr;
-    for(int i=0;i<size;i++,j++) Assert(*j==MAGIC_BIG,"Unexpected MAGIC %p=%lx",j,*j);
-    memset(now,MAGIC_SMALL,size);
-    #endif
     free_list * now=(free_list *)ptr;
     now->nxt=head;head=now;
   }
@@ -124,8 +119,8 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
   #ifdef TEST
     if(ret){
       unsigned char * i=((unsigned char *)ret)+sizeof(free_list);
-      for(uintptr_t j=sizeof(free_list);j<size;i++,j++) Assert(*i==MAGIC_SMALL,"Unexpeted Magic %p=%x\n",i,*i);
-      memset(ret,MAGIC_USED,size);
+      for(uintptr_t j=sizeof(free_list);j<size;i++,j++) Assert(*i==MAGIC_BIG,"Unexpeted Magic %p=%x\n",i,*i);
+      memset(ret,MAGIC_SMALL,size);
     }
   #endif
   return (void *)ret;

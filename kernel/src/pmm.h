@@ -32,7 +32,7 @@ void * kernel_alloc(size_t size);
 #define HEAP_START ((uintptr_t)heap.start)
 #define HEAP_END ((uintptr_t)heap.end)
 #define HEAP_OFFSET_START ROUNDDOWN(HEAP_START,MAX_alloc)
-#define cache_pages 8
+#define NR_NUM(size) (size==4096?1:(Unit_size-sizeof(free_list))/size)
 
 //lock_realated
 #define MAGIC_UNLOCKED (0)
@@ -76,6 +76,7 @@ typedef struct {
 typedef struct {
   spinlock_t lock;
   free_list * head;
+  int nr_num;
 }start_info;
 typedef struct {
   spinlock_t lock;
@@ -83,9 +84,10 @@ typedef struct {
 }start_info_all;
 typedef struct rubbish_block_t{
   free_list * start;
+  free_list * tail;
   struct rubbish_block_t * nxt;
 }rubbish_block;
 typedef struct{
-  int nr_num;spinlock_t lock;
+  spinlock_t lock;
   rubbish_block * first;
 }start_info_rubbish;

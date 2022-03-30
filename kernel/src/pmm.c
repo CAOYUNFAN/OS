@@ -11,13 +11,14 @@ void * kernel_alloc(size_t size){
 start_info * head_32[8],* head_128[8], * head_512[8],* head_4096[8];
 start_info_all * head_32_all, *head_128_all, *head_512_all, *head_4096_all;
 start_info_rubbish *head_32_rubbish, *head_128_rubbish, *head_512_rubbish, *head_4096_rubbish;
+rubbish_block * unused=NULL;
 buddy * self;
 int self_lock;
 
 //init:
 static inline start_info * init_start_info(){
   start_info * ret=(start_info *)kernel_alloc(sizeof(start_info));
-  ret->head=NULL;ret->lock=0;
+  ret->head=NULL;ret->lock=0;ret->nr_num=0;
   return ret;
 }
 
@@ -28,8 +29,8 @@ static inline start_info_all * init_start_info_all(){
 }
 
 static inline start_info_rubbish * init_start_info_rubbish(){
-  start_info_rubbish * ret=(start_info_all *)kernel_alloc(sizeof(start_info_all));
-  ret->first=NULL;ret->nr_num=0;ret->lock=0;
+  start_info_rubbish * ret=(start_info_rubbish *)kernel_alloc(sizeof(start_info_rubbish));
+  ret->first=NULL;ret->lock=0;
   return ret;
 }
 
@@ -47,7 +48,6 @@ static inline void init_mm(){
   #define head_rubbish(x) \
   contact(head_,contact(x,_all))=init_start_info_all();\
   contact(head_,contact(x,_rubbish))=init_start_info_rubbish();\
-
 
   head_rubbish(32)
   head_rubbish(128)
@@ -108,24 +108,39 @@ static inline free_list * init_page(block_info * block,size_t size,free_list * h
   return head;
 }
 
-static inline void * kalloc_small(start_info * head,size_t size,start_info_all * head_all){
+static inline void * kalloc_small(start_info * head,size_t size,start_info_all * head_all,start_info_rubbish * rubbish_all){
   free_list * ret=NULL;
   spin_lock(&head->lock);
   if(!head->head){
     for(int i=0;i<4;i++){
-      spin_lock(&)
+      spin_lock(&rubbish_all->lock);
+      if(rubbish_all->first){
+        rubbish_block * temp=rubbish_all->first;
+        rubbish_all->first=temp->nxt;
+        if(temp->tail) temp->tail->nxt=head->head;
+        spin_unlock(&rubbish_all->lock);
+        if(temp->start) head->head=temp->start;
+        head->nr_num+=NR_NUM(size);
+        DEBUG(memset(temp,MAGIC_BIG,size);)
+        free_list * pt=(free_list *) temp;
+        pt->nxt=head->head;
+        head=pt;
+        continue;
+      }
+      spin_unlock(&rubbish_all->lock);
       spin_lock(&head_all->lock);
       if(!head_all->start) get_pages(head_all,size);
       block * now=head_all->start;
       if(now){
         head_all->start=now->nxt;
         head->head=init_page((block_info *)now,size,head->head);
+        head->nr_num+=NR_NUM(size);
       }
       spin_unlock(&head_all->lock);
     }
   }
   ret=head->head;
-  if(ret) head->head=ret->nxt;
+  if(ret) head->head=ret->nxt,head->nr_num--;
 //  printf("kalloc_small:%p %p\n",ret,head->head);
   spin_unlock(&head->lock);
   #ifdef TEST
@@ -146,7 +161,7 @@ static void * kalloc(size_t size){
     spin_unlock(&self_lock);
     return ret;
   }
-  #define CONDITION(X) if(size<=X) return kalloc_small(contact(head_,X)[cpu_current()],X,contact(head_,contact(X,_all)));
+  #define CONDITION(X) if(size<=X) return kalloc_small(contact(head_,X)[cpu_current()],X,contact(head_,contact(X,_all)),contact(head_,contact(X,_rubbish)));
   CONDITION(32)
   CONDITION(128)
   CONDITION(512)
@@ -159,18 +174,36 @@ static inline void kfree_small(void * ptr,size_t size){
   free_list * now=(free_list *)ptr;
   DEBUG(memset((void *)now,MAGIC_BIG,size);)
   Assert(LOWBIT((uintptr_t)ptr)>=size,"NOT aligned! %p,size=%d\n",ptr,size);
-  start_info * head;
-  #define CASE(X) case X: head=contact(head_,X)[cpu_current()];break;
+  start_info * head; start_info_rubbish * head_rubbish;
+  #define CASE(X) case X: head=contact(head_,X)[cpu_current()];head_rubbish=contact(head_,contact(X,_rubbish));break;
   switch (size){
     CASE(32)
     CASE(128)
     CASE(512)
     CASE(4096)
-    default: head=head_4096[cpu_current()];break;
+    default: head=head_4096[cpu_current()];head_rubbish=head_4096_rubbish;break;
   }
   spin_lock(&head->lock);
   now->nxt=head->head;
   head->head=now;
+  head->nr_num++;
+  if(head->nr_num>=NR_NUM(size)*16){
+    for(int i=0;i<8;++i){
+      rubbish_block * now=(rubbish_block *)head->head;
+      head=head->head->nxt;
+      now->start=NULL;
+      now->tail=(size==4096?NULL:head->head);
+      for(int j=0;j<NR_NUM(size)-1;j++){
+        free_list * temp=head->head;head->head=temp->nxt;
+        DEBUG(memset(temp,MAGIC_BIG,size);)
+        temp->nxt=now->start;now->start=temp;
+      }
+      head->nr_num-=NR_NUM(size);
+      spin_lock(&head_rubbish->lock);  
+      now->nxt=head_rubbish->first;head_rubbish->first=now;
+      spin_unlock(&head_rubbish->lock);
+    }
+  }
   spin_unlock(&head->lock);
 }
 

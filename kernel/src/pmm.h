@@ -79,5 +79,5 @@ typedef struct {
 }start_info;
 typedef struct {
   int lock;
-  block_info * start;
+  block * start;
 }start_info_all;

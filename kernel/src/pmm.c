@@ -69,7 +69,6 @@ static void pmm_init() {
 
 //alloc:
 static inline void get_pages(start_info_all * head,size_t size){
-  int adder=(size==4096?1:(Unit_size/size-1));
   spin_lock(&self_lock);
     for(int i=0;i<32;++i){
       block * myblock=(block *)buddy_alloc(self,1);
@@ -148,16 +147,14 @@ static inline void kfree_small(void * ptr,size_t size){
   DEBUG(memset((void *)now,MAGIC_BIG,size);)
   Assert(LOWBIT((uintptr_t)ptr)>=size,"NOT aligned! %p,size=%d\n",ptr,size);
   start_info * head;
-  start_info_all * head_all;
-  #define CASE(X) case X: head=contact(head_,X)[cpu_current()];head_all=contact(head_,contact(X,_all));break;
+  #define CASE(X) case X: head=contact(head_,X)[cpu_current()];break;
   switch (size){
     CASE(32)
     CASE(128)
     CASE(512)
     CASE(4096)
-    default: head=head_4096[cpu_current()];head_all=head_4096_all;break;
+    default: head=head_4096[cpu_current()];break;
   }
-  int nr_slub=(size==4096?cache_pages:cache_pages*(Unit_size/size-1));
   spin_lock(&head->lock);
   now->nxt=head->head;
   head->head=now;

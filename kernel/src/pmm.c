@@ -100,6 +100,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
   spin_lock(&head->lock);
   if(!head->head){
     spin_lock(&head_all->lock);
+    printf("CPU%d entering!\n",cpu_current());
     for(int i=0;i<4;i++){
       if(!head_all->start) get_pages(head_all,size);
       block * now=head_all->start;
@@ -108,6 +109,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
         head->head=init_page((block_info *)now,size,head->head);
         printf("CPU%d:get_page%p\n",cpu_current(),now);
       }
+      printf("CPU%d leaving!\n",cpu_current());
       spin_unlock(&head_all->lock);
     }
   }

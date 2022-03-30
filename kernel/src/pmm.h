@@ -74,10 +74,18 @@ typedef struct {
 
 //top
 typedef struct {
-  int lock;
+  spinlock_t lock;
   free_list * head;
 }start_info;
 typedef struct {
-  int lock;
+  spinlock_t lock;
   block * start;
 }start_info_all;
+typedef struct rubbish_block_t{
+  free_list * start;
+  rubbish_block_t * nxt;
+}rubbish_block;
+typedef struct{
+  int nr_num;spinlock_t lock;
+  rubbish_block * first;
+}start_info_rubbish;

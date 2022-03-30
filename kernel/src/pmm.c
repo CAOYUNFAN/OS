@@ -10,6 +10,7 @@ void * kernel_alloc(size_t size){
 
 start_info * head_32[8],* head_128[8], * head_512[8],* head_4096[8];
 start_info_all * head_32_all, *head_128_all, *head_512_all, *head_4096_all;
+start_info_rubbish *head_32_rubbish, *head_128_rubbish, *head_512_rubbish, *head_4096_rubbish;
 buddy * self;
 int self_lock;
 
@@ -26,6 +27,12 @@ static inline start_info_all * init_start_info_all(){
   return ret;
 }
 
+static inline start_info_rubbish * init_start_info_rubbish(){
+  start_info_rubbish * ret=(start_info_all *)kernel_alloc(sizeof(start_info_all));
+  ret->first=NULL;ret->nr_num=0;ret->lock=0;
+  return ret;
+}
+
 static inline void init_mm(){
   kernel_max=HEAP_START;
   DEBUG(memset((void *)HEAP_START,MAGIC_UNUSED,HEAP_END-HEAP_START));
@@ -37,10 +44,16 @@ static inline void init_mm(){
     init_start(512)
     init_start(4096)
   }
-  head_32_all=init_start_info_all();
-  head_128_all=init_start_info_all();
-  head_512_all=init_start_info_all();
-  head_4096_all=init_start_info_all();
+  #define head_rubbish(x) \
+  contact(head_,(contact(x,_all)))=init_start_info_all();\
+  contact(head_,(contact(x,_rubbish)))=init_start_info_rubbish();\
+
+
+  head_rubbish(32)
+  head_rubbish(128)
+  head_rubbsih(512)
+  head_rubbish(4096)
+
   self=buddy_init((HEAP_END-HEAP_OFFSET_START)/Unit_size);self_lock=0;
   return;
 }
@@ -99,16 +112,17 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
   free_list * ret=NULL;
   spin_lock(&head->lock);
   if(!head->head){
-    spin_lock(&head_all->lock);
     for(int i=0;i<4;i++){
+      spin_lock(&)
+      spin_lock(&head_all->lock);
       if(!head_all->start) get_pages(head_all,size);
       block * now=head_all->start;
       if(now){
         head_all->start=now->nxt;
         head->head=init_page((block_info *)now,size,head->head);
       }
+      spin_unlock(&head_all->lock);
     }
-    spin_unlock(&head_all->lock);
   }
   ret=head->head;
   if(ret) head->head=ret->nxt;

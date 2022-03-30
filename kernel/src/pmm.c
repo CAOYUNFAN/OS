@@ -116,6 +116,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
   spin_unlock(&head->lock);
   #ifdef TEST
     if(ret){
+      printf("%p\n",ret);
       unsigned char * i=((unsigned char *)ret)+sizeof(free_list);
       for(uintptr_t j=sizeof(free_list);j<size;i++,j++) Assert(*i==MAGIC_BIG,"Unexpeted Magic %p=%x\n",i,*i);
       memset(ret,MAGIC_SMALL,size);

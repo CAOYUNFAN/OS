@@ -4,25 +4,25 @@
 #include <assert.h>
 #include <string.h>
 
-const char * my_getenv(const char * envp[]){
+char * my_getenv(char * envp[]){
   const char * ch="PATH";
   int len=strlen(ch);
-  for(const char ** temp=envp;*temp;temp++){
-    const char * now=*temp;
+  for(char ** temp=envp;*temp;temp++){
+    char * now=*temp;
     if(!strncmp(now,ch,len))
       if(*(now+len)=='=') return now+len+1;
   }
   return NULL;
 }
 
-void copy(char * dest,const char * src){
+void copy(char * dest,char * src){
   for(;*src&&*src!=':';++src,++dest) *dest=*src;
   *dest=0;
   return;
 }
 
-void my_execvp(const char * filename,const char * argv[],const char * envp[]){
-  const char * path=my_getenv(envp);printf("%s\n",path);
+void my_execvp(char * filename,char * argv[],char * envp[]){
+  char * path=my_getenv(envp);printf("%s\n",path);
   if(!path||strchr(filename,'/')) {
     execve(filename,argv,envp);
     assert(0);

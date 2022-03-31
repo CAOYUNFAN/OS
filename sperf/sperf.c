@@ -1,15 +1,54 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <assert.h>
+#include <string.h>
+
+const char * my_getenv(const char * envp[]){
+  const char * ch="PATH";
+  int len=strlen(ch);
+  for(const char ** temp=envp;*temp;temp++){
+    const char * now=*temp;
+    if(!strncmp(now,ch,len))
+      if(*(now+len)=='=') return now+len+1;
+  }
+  return NULL;
+}
+
+void copy(char * dest,const char * src){
+  for(;*src&&*src!=':';++src,++dest) *dest=*src;
+  *dest=0;
+  return;
+}
+
+void my_execvp(const char * filename,const char * argv[],const char * envp[]){
+  const char * path=my_getenv(envp);printf("%s\n",path);
+  if(!path||strchr(filename,'/')) {
+    execve(filename,argv,envp);
+    assert(0);
+  }
+  char buf[128];
+  while (*path){
+    copy(buf,path);
+    if(buf[strlen(buf)-1]!='/') strcat(buf,"/");
+    strcat(buf,filename);
+    if(execve(buf,argv,envp)==-1){
+      while(*path&&*path!=':') ++path;
+      if(*path==':') ++path;
+    }else assert(0);
+  }
+  assert(0);
+}
 
 int main(int argc, char *argv[],char * envp[]) {
   for(char ** temp=argv;*temp;temp++) puts(*temp);
   puts("END OF ARGC!");
   for(char ** temp=envp;*temp;temp++) puts(*temp);
   puts("END OF ENVP!");
-/*  char *exec_argv[] = { "strace", "ls", NULL, };
+  char *exec_argv[] = { "strace", "ls", NULL, };
   char *exec_envp[] = { "PATH=/bin", NULL, };
-  execve("strace",          exec_argv, exec_envp);
+  my_execvp("strace",exec_argv,envp);
+/*  execve("strace",          exec_argv, exec_envp);
   execve("/bin/strace",     exec_argv, exec_envp);
   execve("/usr/bin/strace", exec_argv, exec_envp);
   perror(argv[0]);

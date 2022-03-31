@@ -6,7 +6,7 @@ int main(int argc, char *argv[],char * envp[]) {
   for(char ** temp=argv;*temp;temp++) puts(*temp);
   puts("END OF ARGC!");
   for(char ** temp=envp;*temp;temp++) puts(*temp);
-  puts("END OF ARGC!");
+  puts("END OF ENVP!");
 /*  char *exec_argv[] = { "strace", "ls", NULL, };
   char *exec_envp[] = { "PATH=/bin", NULL, };
   execve("strace",          exec_argv, exec_envp);

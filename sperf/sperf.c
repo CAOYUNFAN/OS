@@ -41,10 +41,10 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
 }
 
 int main(int argc, char *argv[],char * envp[]) {
-  for(char ** temp=argv;*temp;temp++) puts(*temp);
-  puts("END OF ARGC!");
-  for(char ** temp=envp;*temp;temp++) puts(*temp);
-  puts("END OF ENVP!");
+//  for(char ** temp=argv;*temp;temp++) puts(*temp);
+//  puts("END OF ARGC!");
+//  for(char ** temp=envp;*temp;temp++) puts(*temp);
+//  puts("END OF ENVP!");
   char *exec_argv[] = { "strace", "ls", NULL, };
   char *exec_envp[] = { "PATH=/bin", NULL, };
   my_execvp("strace",exec_argv,envp);

@@ -22,7 +22,7 @@ void copy(char * dest,char * src){
 }
 
 void my_execvp(char * filename,char * argv[],char * envp[]){
-  char * path=my_getenv(envp);printf("%s\n",path);
+  char * path=my_getenv(envp);
   if(!path||strchr(filename,'/')) {
     execve(filename,argv,envp);
     assert(0);
@@ -32,6 +32,7 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
     copy(buf,path);
     if(buf[strlen(buf)-1]!='/') strcat(buf,"/");
     strcat(buf,filename);
+    printf("%s\n",buf);
     if(execve(buf,argv,envp)==-1){
       while(*path&&*path!=':') ++path;
       if(*path==':') ++path;

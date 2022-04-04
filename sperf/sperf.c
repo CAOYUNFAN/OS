@@ -25,7 +25,7 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
   char * path=my_getenv(envp);
   if(!path||strchr(filename,'/')) {
     execve(filename,argv,envp);
-    assert(0);
+    exit(EXIT_FAILURE);
   }
   char buf[128];
   while (*path){
@@ -35,9 +35,9 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
     if(execve(buf,argv,envp)==-1){
       while(*path&&*path!=':') ++path;
       if(*path==':') ++path;
-    }else assert(0);
+    }else exit(EXIT_FAILURE);
   }
-  assert(0);
+  exit(EXIT_FAILURE);
 }
 
 char ** parse_args(char * argv[]){
@@ -51,7 +51,33 @@ char ** parse_args(char * argv[]){
   return work_argv;
 }
 
+char s[10000];
+
 int main(int argc, char *argv[],char * envp[]) {
   char ** work_argv=parse_args(argv);
-  my_execvp("strace",work_argv,envp);
+  int pipe_fd[2];
+  
+  if(pipe(pipe_fd)==-1){
+    perror("pipe");
+    exit(EXIT_FAILURE);
+  }
+  
+  pid_t cpid=fork();
+  if(cpid==-1){
+    perror("fork");
+    exit(EXIT_FAILURE);
+  }
+
+  if(cpid==0){
+    close(pipe_fd[0]);
+    dup2(pipe_fd[1],STDERR_FILENO);
+    my_execvp("strace",work_argv,envp);
+    exit(EXIT_FAILURE);
+  }
+  close(pipe_fd[1]);
+  dup2(pipe_fd[0],STDIN_FILENO);
+  while (scanf("%s",s)){
+    printf("%s\n",s);
+  }
+  return 0;
 }

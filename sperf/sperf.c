@@ -81,9 +81,8 @@ int main(int argc, char *argv[],char * envp[]) {
   }
   close(pipe_fd[1]);
   dup2(pipe_fd[0],STDIN_FILENO);
-  while (scanf("%s",s)){
+  while (scanf("%s\n",s)){
     if(*s=='+') return 0;
-    while(!check(s)) scanf("%s",s+strlen(s));
     printf("%s\n",s);
   }
   exit(EXIT_FAILURE);

@@ -41,12 +41,12 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
 }
 
 char ** parse_args(char * argv[]){
-  char * STRACE="strace"; char * T="-T";
   int num=0;
   for(char ** temp=argv;*temp;temp++) num++;
-  printf("%d\n",num);
   char ** work_argv=malloc((num+2)*sizeof(char *));
-  work_argv[0]=STRACE;work_argv[1]=T;for(int i=1;i<num;i++) work_argv[i+1]=argv[i];work_argv[num+1]=NULL;
+  work_argv[0]="strace";
+  work_argv[1]="-T";
+  for(int i=1;i<num;i++) work_argv[i+1]=argv[i];work_argv[num+1]=NULL;
   return work_argv;
 }
 

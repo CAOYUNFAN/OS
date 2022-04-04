@@ -83,7 +83,7 @@ int main(int argc, char *argv[],char * envp[]) {
   dup2(pipe_fd[0],STDIN_FILENO);
   while (fgets(s,10000,stdin)){
     if(*s=='+') return 0;
-    printf("%s\n",s);
+    printf("%s",s);
   }
   exit(EXIT_FAILURE);
 }

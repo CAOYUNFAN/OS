@@ -46,7 +46,8 @@ char ** parse_args(char * argv[]){
   char ** work_argv=malloc((num+2)*sizeof(char *));
   work_argv[0]="strace";
   work_argv[1]="-T";
-  for(int i=1;i<num;i++) work_argv[i+1]=argv[i];work_argv[num+1]=NULL;
+  for(int i=1;i<num;i++) work_argv[i+1]=argv[i];
+  work_argv[num+1]=NULL;
   return work_argv;
 }
 

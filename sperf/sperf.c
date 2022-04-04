@@ -32,7 +32,6 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
     copy(buf,path);
     if(buf[strlen(buf)-1]!='/') strcat(buf,"/");
     strcat(buf,filename);
-    printf("%s\n",buf);
     if(execve(buf,argv,envp)==-1){
       while(*path&&*path!=':') ++path;
       if(*path==':') ++path;
@@ -46,9 +45,9 @@ int main(int argc, char *argv[],char * envp[]) {
 //  puts("END OF ARGC!");
 //  for(char ** temp=envp;*temp;temp++) puts(*temp);
 //  puts("END OF ENVP!");
-  char *exec_argv[] = { "strace", "ls", NULL, };
-  char *exec_envp[] = { "PATH=/bin", NULL, };
-  my_execvp("strace",exec_argv,envp);
+  char * STRACE="strace";
+  argv[0]=STRACE;
+  my_execvp("strace",argv,envp);
 /*  execve("strace",          exec_argv, exec_envp);
   execve("/bin/strace",     exec_argv, exec_envp);
   execve("/usr/bin/strace", exec_argv, exec_envp);

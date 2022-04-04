@@ -53,6 +53,11 @@ char ** parse_args(char * argv[]){
 
 char s[10000];
 
+int check(char * s){
+  for(;*s;s++)if(*s=='\n') return 1;
+  return 0;
+}
+
 int main(int argc, char *argv[],char * envp[]) {
   char ** work_argv=parse_args(argv);
   int pipe_fd[2];
@@ -78,7 +83,8 @@ int main(int argc, char *argv[],char * envp[]) {
   dup2(pipe_fd[0],STDIN_FILENO);
   while (scanf("%s",s)){
     if(*s=='+') return 0;
-    printf("%s\n",s);
+    while(check(s)) scanf("%s",s+strlen(s));
+    printf("%s",s);
   }
   exit(EXIT_FAILURE);
 }

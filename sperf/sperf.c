@@ -45,8 +45,11 @@ int main(int argc, char *argv[],char * envp[]) {
 //  puts("END OF ARGC!");
 //  for(char ** temp=envp;*temp;temp++) puts(*temp);
 //  puts("END OF ENVP!");
-  char * STRACE="strace";
-  argv[0]=STRACE;
+  char * STRACE="strace"; char * T="-T";
+  int num=0;
+  for(char ** temp=argv;*temp;temp++) num++;
+  printf("%d\n",num);
+  char ** work_argv=malloc((num+1)*sizeof(char *));
   my_execvp("strace",argv,envp);
 /*  execve("strace",          exec_argv, exec_envp);
   execve("/bin/strace",     exec_argv, exec_envp);

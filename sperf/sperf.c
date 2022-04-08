@@ -120,9 +120,9 @@ void output(){
   unit * all[5];
   for(int i=0;i<5;++i) all[i]=NULL;
   for(unit * now=head;now;now=now->nxt) if(!now->printed) 
-  for(int j=0;j<5;++j) if(!all[j]||all[j]->time<now->time){
-    for(int k=4;k>j;--k) all[k]=all[k-1];
-    all[j]=now;
+  for(int i=0;i<5;++i) if(!all[i]||all[i]->time<now->time){
+    for(int j=4;j>i;--j) all[j]=all[j-1];
+    all[i]=now;
   }
   for(int i=0;i<5&&all[i];i++){
     int percent=(int)(all[i]->time*100.0/time_all);

@@ -65,8 +65,15 @@ char * get_name(char * s){
   while(is_w(*s)) ++s,++num;
   char * ret=malloc((num+1)*sizeof(char));
   strncpy(ret,temp,num);
-  printf("name:%s\n",ret);
   return ret;
+}
+
+int get_time(double *x,char * s){
+  char * temp=s+strlen(s)-1;
+  while(*temp!='<'&&temp>=s) --temp;
+  if(*temp!='<') return 0;
+  sscanf(s,"%lf",x);
+  return 1;
 }
 
 int main(int argc, char *argv[],char * envp[]) {
@@ -96,6 +103,10 @@ int main(int argc, char *argv[],char * envp[]) {
   while (fgets(s,10000,stdin)){
     printf("%s",s);
     char * name=get_name(s);
+    if(name==NULL) continue;
+    double time_used;
+    if(!get_time(&time_used,s)) continue;
+    printf("%s %lf\n",name,time_used);
     if(*s=='+') {
       printf("HERE!\n");
       return 0;

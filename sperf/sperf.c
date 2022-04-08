@@ -132,7 +132,7 @@ void output(){
   }
 
   if(all[0])for(int i=0;i<80;++i) putchar('\0');
-  DEBUG("%s","==========");
+  DEBUG("%s\n","==========");
   fflush(stdout);
 }
 

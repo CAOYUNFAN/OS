@@ -5,6 +5,12 @@
 #include <time.h>
 #include <fcntl.h>
 
+#ifdef TEST
+#define DEBUG(fmt,...) printf(fmt,__VA_ARGS__)
+#else
+#define DEBUG(fmt,...) ((void)0)
+#endif
+
 char * my_getenv(char * envp[]){
   const char * ch="PATH";
   int len=strlen(ch);
@@ -128,12 +134,12 @@ int main(int argc, char *argv[],char * envp[]) {
   dup2(pipe_fd[0],STDIN_FILENO);
   time_t now=time(NULL);
   while (fgets(s,10000,stdin)){
-    printf("%s",s);
+    DEBUG("%s",s);
     char * name=get_name(s);
     if(name==NULL) continue;
     double time_used;
     if(!get_time(&time_used,s)) continue;
-    printf("%s %lf\n",name,time_used);
+    DEBUG("%s %lf\n",name,time_used);
     work(name,time_used);
     if(*s=='+') {
       printf("HERE!\n");

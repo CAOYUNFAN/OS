@@ -116,7 +116,7 @@ time_t get_time2(){
 }
 
 void output(){
-  DEBUG("%d\n",get_time2());
+  DEBUG("%ld\n",get_time2());
   unit * all[5];
   for(int i=0;i<5;++i) all[i]=NULL;
   for(unit * now=head;now;now=now->nxt) if(!now->printed) 

@@ -123,6 +123,7 @@ void output(){
   for(int i=0;i<5;++i) if(!all[i]||all[i]->time<now->time){
     for(int j=4;j>i;--j) all[j]=all[j-1];
     all[i]=now;
+    break;
   }
   for(int i=0;i<5&&all[i];i++){
     int percent=(int)(all[i]->time*100.0/time_all);

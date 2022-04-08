@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <regex.h>
+#include <time.h>
 
 char * my_getenv(char * envp[]){
   const char * ch="PATH";
@@ -53,12 +53,21 @@ char ** parse_args(char * argv[]){
 
 char s[10000];
 
-int check(char * s){
-  for(;*s;s++)if(*s=='\n') return 1;
-  return 0;
+inline int is_w(char x){
+  return (x>='a'&&x<='z')||(x>='A'&&x<='Z')||(x>='A'&&x<='Z')||x=='_';
 }
 
-const char * temp="^([A-Za-z]\\w*)\\(\\.*\\)=\\w*<(\\d+\\.\\d*)>$";
+char * get_name(char * s){
+  while (*s&&!is_w(*s)) s++;
+  if(!*s) return NULL;
+  char * temp=s;
+  int num=0;
+  while(is_w(*s)) ++s,++num;
+  char * ret=malloc((num+1)*sizeof(char));
+  strncpy(ret,temp,num);
+  printf("name:%s\n",ret);
+  return ret;
+}
 
 int main(int argc, char *argv[],char * envp[]) {
   char ** work_argv=parse_args(argv);
@@ -83,9 +92,14 @@ int main(int argc, char *argv[],char * envp[]) {
   }
   close(pipe_fd[1]);
   dup2(pipe_fd[0],STDIN_FILENO);
+  time_t now=time(NULL);
   while (fgets(s,10000,stdin)){
-    if(*s=='+') return 0;
     printf("%s",s);
+    char * name=get_name(s);
+    if(*s=='+') {
+      printf("HERE!\n");
+      return 0;
+    }
   }
   exit(EXIT_FAILURE);
 }

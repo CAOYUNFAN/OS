@@ -73,7 +73,7 @@ int get_time(double *x,char * s){
   while(temp>=s&&*temp!='<') --temp;
   if(*temp!='<') return 0;
   printf("%s ",temp);
-  sscanf(temp,"%lf",x);
+  sscanf(temp+1,"%lf",x);
   return 1;
 }
 

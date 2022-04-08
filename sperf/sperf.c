@@ -5,10 +5,16 @@
 #include <sys/time.h>
 #include <fcntl.h>
 
-#ifdef TEST
+#ifdef LOCAL
 #define DEBUG(fmt,...) printf(fmt,__VA_ARGS__)
 #else
 #define DEBUG(fmt,...) ((void)0)
+#endif
+
+#ifdef TEST
+#define DEBUG2(fmt,...) DEBUG(fmt,__VA_ARGS__)
+#else
+#define DEBUG2(fmt,...) ((void)0)
 #endif
 
 char * my_getenv(char * envp[]){
@@ -100,12 +106,12 @@ void work(char * name,double time){
   if(strcmp(name,now->name)==0){
     now->time+=time;
     free(name);
-    DEBUG("add %s ,time=%lf,time_all=%lf\n",now->name,now->time,time_all);
+    DEBUG2("add %s ,time=%lf,time_all=%lf\n",now->name,now->time,time_all);
     return;
   }
   unit * temp=(unit *)malloc(sizeof(unit));
   temp->name=name;temp->time=time;temp->printed=0;temp->nxt=head;head=temp;
-  DEBUG("new %s ,time=%lf,time_all=%lf\n",temp->name,temp->time,time_all);
+  DEBUG2("new %s ,time=%lf,time_all=%lf\n",temp->name,temp->time,time_all);
   return;
 }
 
@@ -132,7 +138,7 @@ void output(){
   }
 
   if(all[0])for(int i=0;i<80;++i) putchar('\0');
-  DEBUG("%s\n","==========");
+  DEBUG("%s\n","=================");
   fflush(stdout);
 }
 
@@ -164,12 +170,12 @@ int main(int argc, char *argv[],char * envp[]) {
   dup2(pipe_fd[0],STDIN_FILENO);
   time_t now=get_time2();
   while (fgets(s,10000,stdin)){
-    DEBUG("%s",s);
+    DEBUG2("%s",s);
     char * name=get_name(s);
     if(name==NULL) continue;
     double time_used;
     if(!get_time(&time_used,s)) continue;
-    DEBUG("%s %lf\n",name,time_used);
+    DEBUG2("%s %lf\n",name,time_used);
     work(name,time_used);
     time_t later=get_time2();
     if(later-now>1){

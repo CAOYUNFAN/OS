@@ -70,7 +70,7 @@ char * get_name(char * s){
 
 int get_time(double *x,char * s){
   char * temp=s+strlen(s)-1;
-  while(*temp!='<'&&temp>=s) --temp;
+  while(temp>=s&&*temp!='<') --temp;
   if(*temp!='<') return 0;
   printf("%s ",s);
   sscanf(s,"%lf",x);

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
 #include <fcntl.h>
 
 #ifdef TEST
@@ -92,8 +92,10 @@ typedef struct unit_t{
 }unit;
 
 unit * head=NULL;
+double time_all=0;
 
 void work(char * name,double time){
+  time_all+=time;
   for(unit * now=head;now;now=now->nxt)
   if(strcmp(name,now->name)==0){
     now->time+=time;
@@ -105,6 +107,31 @@ void work(char * name,double time){
   temp->name=name;temp->time=time;temp->printed=0;temp->nxt=head;head=temp;
   DEBUG("new %s ,time_all=%lf\n",temp->name,temp->time);
   return;
+}
+
+time_t get_time2(){
+  struct timeval time;
+  gettimeofday(&time,NULL);
+  return time.tv_sec;
+}
+
+void output(){
+  DEBUG("%d\n",get_time2());
+  unit * all[5];
+  for(int i=0;i<5;++i) all[i]=NULL;
+  for(unit * now=head;now;now=now->nxt) if(!now->printed) 
+  for(int j=0;j<5;++j) if(!all[j]||all[j]->time<now->time){
+    for(int k=4;k>j;--k) all[k]=all[k-1];
+    all[j]=now;
+  }
+  for(int i=0;i<5&&all[i];i++){
+    int percent=(int)(all[i]->time*100.0/time_all);
+    printf("%s (%d%%)\n",all[i]->name,percent);
+    all[i]->printed=1;
+  }
+
+  if(all[0])for(int i=0;i<80;++i) putchar('\0');
+  fflush(stdout);
 }
 
 int main(int argc, char *argv[],char * envp[]) {
@@ -130,9 +157,10 @@ int main(int argc, char *argv[],char * envp[]) {
     my_execvp("strace",work_argv,envp);
     exit(EXIT_FAILURE);
   }
+  
   close(pipe_fd[1]);
   dup2(pipe_fd[0],STDIN_FILENO);
-  time_t now=time(NULL);
+  time_t now=get_time2();
   while (fgets(s,10000,stdin)){
     DEBUG("%s",s);
     char * name=get_name(s);
@@ -141,10 +169,12 @@ int main(int argc, char *argv[],char * envp[]) {
     if(!get_time(&time_used,s)) continue;
     DEBUG("%s %lf\n",name,time_used);
     work(name,time_used);
-    if(*s=='+') {
-      printf("HERE!\n");
-      return 0;
+    time_t later=get_time2();
+    if(later-now>1){
+      output();
+      now=later;
     }
   }
-  exit(EXIT_FAILURE);
+  output();
+  return 0;
 }

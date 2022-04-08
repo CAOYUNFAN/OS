@@ -58,6 +58,8 @@ int check(char * s){
   return 0;
 }
 
+const char * temp="^([A-Za-z]\\w*)\\(\\.*\\)=\\w*<(\\d+\\.\\d*)>$";
+
 int main(int argc, char *argv[],char * envp[]) {
   char ** work_argv=parse_args(argv);
   int pipe_fd[2];

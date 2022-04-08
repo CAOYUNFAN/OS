@@ -128,7 +128,7 @@ int main(int argc, char *argv[],char * envp[]) {
   dup2(pipe_fd[0],STDIN_FILENO);
   time_t now=time(NULL);
   while (fgets(s,10000,stdin)){
-    printf("%s\n",s);
+    printf("%s",s);
     char * name=get_name(s);
     if(name==NULL) continue;
     double time_used;

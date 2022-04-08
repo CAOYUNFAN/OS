@@ -76,6 +76,29 @@ int get_time(double *x,char * s){
   return 1;
 }
 
+typedef struct unit_t{
+  char * name;
+  double time;
+  int printed;
+  struct unit_t * nxt;
+}unit;
+
+unit * head=NULL;
+
+void work(char * name,double time){
+  for(unit * now=head;now;now=now->nxt)
+  if(strcmp(name,now->name)==0){
+    now->time+=time;
+    free(name);
+    printf("add %s ,time_all=%d\n",now->name,now->time);
+    return;
+  }
+  unit * temp=(unit *)malloc(sizeof(unit));
+  temp->name=name;temp->time=time;temp->printed=0;temp->nxt=head;head=temp;
+  printf("new %s ,time_all=%d\n",temp->name,temp->time);
+  return;
+}
+
 int main(int argc, char *argv[],char * envp[]) {
   char ** work_argv=parse_args(argv);
   int pipe_fd[2];
@@ -107,6 +130,7 @@ int main(int argc, char *argv[],char * envp[]) {
     double time_used;
     if(!get_time(&time_used,s)) continue;
     printf("%s %lf\n",name,time_used);
+    work(name,time_used);
     if(*s=='+') {
       printf("HERE!\n");
       return 0;

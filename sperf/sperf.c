@@ -65,6 +65,7 @@ char * get_name(char * s){
   while(is_w(*s)) ++s,++num;
   char * ret=malloc((num+1)*sizeof(char));
   strncpy(ret,temp,num);
+  ret[num]=0;
   return ret;
 }
 

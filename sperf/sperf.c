@@ -100,12 +100,12 @@ void work(char * name,double time){
   if(strcmp(name,now->name)==0){
     now->time+=time;
     free(name);
-    DEBUG("add %s ,time_all=%lf\n",now->name,now->time);
+    DEBUG("add %s ,time=%lf,time_all=%lf\n",now->name,now->time,time_all);
     return;
   }
   unit * temp=(unit *)malloc(sizeof(unit));
   temp->name=name;temp->time=time;temp->printed=0;temp->nxt=head;head=temp;
-  DEBUG("new %s ,time_all=%lf\n",temp->name,temp->time);
+  DEBUG("new %s ,time=%lf,time_all=%lf\n",temp->name,temp->time,time_all);
   return;
 }
 

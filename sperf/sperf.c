@@ -112,7 +112,7 @@ void work(char * name,double time){
 
 time_t get_time2(){
   time_t time=clock();
-  printf("%d %d\n",time,time/CLOCKS_PER_SEC);
+  printf("%ld %ld\n",time,time/CLOCKS_PER_SEC);
   return time/CLOCKS_PER_SEC;
 }
 

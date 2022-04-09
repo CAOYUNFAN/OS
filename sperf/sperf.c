@@ -177,7 +177,7 @@ int main(int argc, char *argv[],char * envp[]) {
     DEBUG2("%s %lf\n",name,time_used);
     work(name,time_used);
     time_t later=get_time2();
-    if(later>now){
+    if(later>now+1){
       output();
       now=later;
     }

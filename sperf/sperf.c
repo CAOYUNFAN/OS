@@ -142,8 +142,6 @@ void output(){
 int main(int argc, char *argv[],char * envp[]) {
   char ** work_argv=parse_args(argc,argv);
   int pipe_fd[2];
-  
-  for(char ** temp=work_argv;*temp;++temp) printf("%s\n",*temp);
 
   if(pipe(pipe_fd)==-1){
     perror("pipe");
@@ -175,9 +173,9 @@ int main(int argc, char *argv[],char * envp[]) {
     assert(strlen(s)>0);
     if(is_fail(s)) break;
     char * name=get_name(s);
-    if(name==NULL) continue;
+    if(name==NULL) assert(0);
     double time_used;
-    if(!get_time(&time_used,s)) continue;
+    if(!get_time(&time_used,s)) assert(0);
     DEBUG2("%s %lf\n",name,time_used);
     work(name,time_used);
     time_t later=get_time2();

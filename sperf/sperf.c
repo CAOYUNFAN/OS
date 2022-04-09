@@ -45,7 +45,7 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
     copy(buf,path);
     if(buf[strlen(buf)-1]!='/') strcat(buf,"/");
     strcat(buf,filename);
-    if(access(buf,F_OK)==0){
+    if(access(buf,F_OK)!=0){
       printf("%s\n",buf);
       while(*path&&*path!=':') ++path;
       if(*path==':') ++path;

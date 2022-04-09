@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <fcntl.h>
+#include <assert.h>
 
 #ifdef LOCAL
 #define DEBUG(fmt,...) printf(fmt,__VA_ARGS__)
@@ -37,11 +38,10 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
     if(strcmp(buf,"/usr/bin/")==0) continue;
     #endif
     strcat(buf,filename);
-    if(access(buf,F_OK)!=0){
+    if(execve(buf,argv,envp)==-1){
       while(*path&&*path!=':') ++path;
       if(*path==':') ++path;
     }else {
-      execve(buf,argv,envp);
       exit(EXIT_FAILURE);
     }
   }
@@ -59,7 +59,8 @@ char ** parse_args(char * argv[]){
   return work_argv;
 }
 
-char s[10000];
+#define N 16382
+char s[N];
 
 inline int is_w(char x){
   return (x>='a'&&x<='z')||(x>='A'&&x<='Z')||(x>='A'&&x<='Z')||x=='_';
@@ -168,8 +169,9 @@ int main(int argc, char *argv[],char * envp[]) {
   close(pipe_fd[1]);
   dup2(pipe_fd[0],STDIN_FILENO);
   time_t now=get_time2();
-  while (fgets(s,10000,stdin)){
+  while (fgets(s,N,stdin)){
     DEBUG2("%s",s);
+    assert(strlen(s)>0);
     if(is_fail(s)) break;
     char * name=get_name(s);
     if(name==NULL) continue;

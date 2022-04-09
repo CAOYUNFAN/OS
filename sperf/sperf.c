@@ -153,7 +153,6 @@ int main(int argc, char *argv[],char * envp[]) {
     perror("fork");
     exit(EXIT_FAILURE);
   }
-    printf("SB!\n");
 
   if(cpid==0){
     close(pipe_fd[0]);
@@ -172,7 +171,6 @@ int main(int argc, char *argv[],char * envp[]) {
   while (fgets(s,N,stdin)){
     DEBUG2("%s",s);
     assert(strlen(s)>0);
-    printf("SB!\n");
     if(is_fail(s)) break;
     char * name=get_name(s);
     if(name==NULL) assert(0);

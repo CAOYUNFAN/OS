@@ -111,12 +111,12 @@ void work(char * name,double time){
 }
 
 time_t get_time2(){
-  time_t time=clock();
-  return time;
+  time_t ti=time(NULL);
+  return ti;
 }
 
 void output(){
-  DEBUG("TIME:%ld\n",get_time2()/CLOCKS_PER_SEC);
+  DEBUG("TIME:%ld\n",get_time2());
   unit * all[5];
   for(int i=0;i<5;++i) all[i]=NULL;
   for(unit * now=head;now;now=now->nxt) if(!now->printed) 
@@ -171,7 +171,7 @@ int main(int argc, char *argv[],char * envp[]) {
     DEBUG2("%s %lf\n",name,time_used);
     work(name,time_used);
     time_t later=get_time2();
-    if(later-now>=CLOCKS_PER_SEC){
+    if(later-now>=1){
       output();
       now=later;
     }

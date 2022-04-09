@@ -38,6 +38,7 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
     #endif
     strcat(buf,filename);
     if(access(buf,F_OK)!=0){
+      printf("%s\n",path);
       while(*path&&*path!=':') ++path;
       if(*path==':') ++path;
     }else {

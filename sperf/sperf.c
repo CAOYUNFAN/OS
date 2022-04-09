@@ -175,7 +175,7 @@ int main(int argc, char *argv[],char * envp[]) {
     char * name=get_name(s);
     if(name==NULL) assert(0);
     double time_used;
-    if(!get_time(&time_used,s)) assert(0);
+    if(!get_time(&time_used,s)) break;
     DEBUG2("%s %lf\n",name,time_used);
     work(name,time_used);
     time_t later=get_time2();

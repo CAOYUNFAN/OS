@@ -54,7 +54,6 @@ char ** parse_args(int argc,char * argv[]){
   work_argv[0]="strace";
   work_argv[1]="-T";
   for(int i=1;i<num;i++) work_argv[i+1]=argv[i];
-  work_argv[num]=NULL;
   return work_argv;
 }
 

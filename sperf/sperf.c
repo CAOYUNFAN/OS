@@ -133,9 +133,11 @@ void output(){
     printf("%s (%d%%)\n",all[i]->name,percent);
   }
 
-  if(all[0])for(int i=0;i<80;++i) putchar('\0');
-  DEBUG("%s\n","=================");
-  fflush(stdout);
+  if(all[0]){
+    for(int i=0;i<80;++i) putchar('\0');
+    DEBUG("%s\n","=================");
+    fflush(stdout);
+  }
 }
 
 int main(int argc, char *argv[],char * envp[]) {

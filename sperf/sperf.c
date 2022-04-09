@@ -17,17 +17,6 @@
 #define DEBUG2(fmt,...) ((void)0)
 #endif
 
-char * my_getenv(char * envp[]){
-  const char * ch="PATH";
-  int len=strlen(ch);
-  for(char ** temp=envp;*temp;temp++){
-    char * now=*temp;
-    if(!strncmp(now,ch,len))
-      if(*(now+len)=='=') return now+len+1;
-  }
-  return NULL;
-}
-
 void copy(char * dest,char * src){
   for(;*src&&*src!=':';++src,++dest) *dest=*src;
   *dest=0;
@@ -35,7 +24,7 @@ void copy(char * dest,char * src){
 }
 
 void my_execvp(char * filename,char * argv[],char * envp[]){
-  char * path=my_getenv(envp);
+  char * path=getenv("PATH");
   if(!path||strchr(filename,'/')) {
     execve(filename,argv,envp);
     exit(EXIT_FAILURE);
@@ -44,6 +33,9 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
   while (*path){
     copy(buf,path);
     if(buf[strlen(buf)-1]!='/') strcat(buf,"/");
+    #ifndef LOCAL
+    if(strcmp(buf,"/usr/bin/")==0) continue;
+    #endif
     strcat(buf,filename);
     if(access(buf,F_OK)!=0){
       while(*path&&*path!=':') ++path;

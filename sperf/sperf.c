@@ -120,7 +120,7 @@ time_t get_time2(){
 }
 
 void output(){
-//  DEBUG("TIME:%ld\n",get_time2());
+  DEBUG("TIME:%ld\n",get_time2());
   unit * all[5];
   for(int i=0;i<5;++i) all[i]=NULL;
   for(unit * now=head;now;now=now->nxt) 
@@ -135,7 +135,7 @@ void output(){
   }
 
   if(all[0])for(int i=0;i<80;++i) putchar('\0');
-//  DEBUG("%s\n","=================");
+  DEBUG("%s\n","=================");
   fflush(stdout);
 }
 

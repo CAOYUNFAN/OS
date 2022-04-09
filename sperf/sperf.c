@@ -110,13 +110,13 @@ int is_fail(char * s){
   return *s=='+';
 }
 
-time_t get_time2(){
-  time_t ti=time(NULL);
+clock_t get_time2(){
+  clock_t ti=clock();
   return ti;
 }
 
 void output(){
-  DEBUG("TIME:%ld\n",get_time2());
+  DEBUG("TIME:%ld\n",get_time2()/CLOCKS_PER_SEC);
   unit * all[5];
   for(int i=0;i<5;++i) all[i]=NULL;
   for(unit * now=head;now;now=now->nxt) 
@@ -165,7 +165,7 @@ int main(int argc, char *argv[],char * envp[]) {
   
   close(pipe_fd[1]);
   dup2(pipe_fd[0],STDIN_FILENO);
-  time_t now=get_time2();
+  clock_t now=get_time2();
   while (fgets(s,N,stdin)){
     DEBUG2("%s",s);
     assert(strlen(s)>0);
@@ -176,8 +176,8 @@ int main(int argc, char *argv[],char * envp[]) {
     if(!get_time(&time_used,s)) break;
     DEBUG2("%s %lf\n",name,time_used);
     work(name,time_used);
-    time_t later=get_time2();
-    if(later>now+1){
+    clock_t later=get_time2();
+    if(later>now+CLOCKS_PER_SEC){
       output();
       now=later;
     }

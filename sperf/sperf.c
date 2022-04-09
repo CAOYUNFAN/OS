@@ -111,7 +111,7 @@ int is_fail(char * s){
 }
 
 clock_t get_time2(){
-  clock_t ti=clock(); printf("%ld\n",ti);
+  clock_t ti=clock(); //printf("%ld\n",ti);
   return ti;
 }
 

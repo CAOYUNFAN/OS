@@ -48,10 +48,9 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
   exit(EXIT_FAILURE);
 }
 
-char ** parse_args(char * argv[]){
-  int num=0;
-  for(char ** temp=argv;*temp;temp++) num++;
-  char ** work_argv=malloc((num+2)*sizeof(char *));
+char ** parse_args(int argc,char * argv[]){
+  int num=argc+1;
+  char ** work_argv=malloc((num+1)*sizeof(char *));
   work_argv[0]="strace";
   work_argv[1]="-T";
   for(int i=1;i<num;i++) work_argv[i+1]=argv[i];
@@ -63,7 +62,7 @@ char ** parse_args(char * argv[]){
 char s[N];
 
 inline int is_w(char x){
-  return (x>='a'&&x<='z')||(x>='A'&&x<='Z')||(x>='A'&&x<='Z')||x=='_';
+  return (x>='a'&&x<='z')||(x>='A'&&x<='Z')||(x>='0'&&x<='9')||x=='_';
 }
 
 char * get_name(char * s){
@@ -141,7 +140,7 @@ void output(){
 }
 
 int main(int argc, char *argv[],char * envp[]) {
-  char ** work_argv=parse_args(argv);
+  char ** work_argv=parse_args(argc,argv);
   int pipe_fd[2];
   
   if(pipe(pipe_fd)==-1){

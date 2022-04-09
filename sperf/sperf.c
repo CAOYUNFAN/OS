@@ -34,9 +34,6 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
   while (*path){
     copy(buf,path);
     if(buf[strlen(buf)-1]!='/') strcat(buf,"/");
-  //  #ifndef LOCAL
-    if(strcmp(buf,"/usr/bin/")==0) continue;
-  //  #endif
     strcat(buf,filename);
     if(execve(buf,argv,envp)==-1){
       while(*path&&*path!=':') ++path;

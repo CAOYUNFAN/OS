@@ -88,7 +88,6 @@ int get_time(double *x,char * s){
 typedef struct unit_t{
   char * name;
   double time;
-  int printed;
   struct unit_t * nxt;
 }unit;
 
@@ -105,7 +104,7 @@ void work(char * name,double time){
     return;
   }
   unit * temp=(unit *)malloc(sizeof(unit));
-  temp->name=name;temp->time=time;temp->printed=0;temp->nxt=head;head=temp;
+  temp->name=name;temp->time=time;temp->nxt=head;head=temp;
   DEBUG2("new %s ,time=%lf,time_all=%lf\n",temp->name,temp->time,time_all);
   return;
 }
@@ -124,7 +123,7 @@ void output(){
 //  DEBUG("TIME:%ld\n",get_time2());
   unit * all[5];
   for(int i=0;i<5;++i) all[i]=NULL;
-  for(unit * now=head;now;now=now->nxt) if(!now->printed) 
+  for(unit * now=head;now;now=now->nxt) 
   for(int i=0;i<5;++i) if(!all[i]||all[i]->time<now->time){
     for(int j=4;j>i;--j) all[j]=all[j-1];
     all[i]=now;
@@ -133,7 +132,6 @@ void output(){
   for(int i=0;i<5&&all[i];i++){
     int percent=(int)(all[i]->time*100.0/time_all);
     printf("%s (%d%%)\n",all[i]->name,percent);
-    all[i]->printed=1;
   }
 
   if(all[0])for(int i=0;i<80;++i) putchar('\0');

@@ -110,6 +110,11 @@ void work(char * name,double time){
   return;
 }
 
+int is_fail(char * s){
+  while(*s&&(is_w(*s)||*s=='+')) ++s;
+  return *s=='+';
+}
+
 time_t get_time2(){
   time_t ti=time(NULL);
   return ti;
@@ -163,7 +168,7 @@ int main(int argc, char *argv[],char * envp[]) {
   time_t now=get_time2();
   while (fgets(s,10000,stdin)){
     DEBUG2("%s",s);
-    if(*s=='+') break;
+    if(is_fail(s)) break;
     char * name=get_name(s);
     if(name==NULL) continue;
     double time_used;

@@ -111,7 +111,7 @@ void work(char * name,double time){
 }
 
 int is_fail(char * s){
-  while(*s&&(!is_w(*s)&&!*s=='+')) ++s;
+  while(*s&&!(is_w(*s)||*s=='+')) ++s;
   return *s=='+';
 }
 

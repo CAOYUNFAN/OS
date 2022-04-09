@@ -143,7 +143,7 @@ int main(int argc, char *argv[],char * envp[]) {
   char ** work_argv=parse_args(argc,argv);
   int pipe_fd[2];
   
-  for(char ** temp=*work_argv;*temp;++temp) printf("%s\n",*temp);
+  for(char ** temp=work_argv;*temp;++temp) printf("%s\n",*temp);
 
   if(pipe(pipe_fd)==-1){
     perror("pipe");

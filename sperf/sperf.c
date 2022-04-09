@@ -163,7 +163,9 @@ int main(int argc, char *argv[],char * envp[]) {
   time_t now=get_time2();
   while (fgets(s,10000,stdin)){
     DEBUG2("%s",s);
-    printf("%s",s);
+    if(*s=='+'){
+      printf("END!\n");
+    }
     char * name=get_name(s);
     if(name==NULL) continue;
     double time_used;

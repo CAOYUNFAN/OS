@@ -153,6 +153,7 @@ int main(int argc, char *argv[],char * envp[]) {
     perror("fork");
     exit(EXIT_FAILURE);
   }
+    printf("SB!\n");
 
   if(cpid==0){
     close(pipe_fd[0]);

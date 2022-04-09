@@ -46,9 +46,11 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
     if(buf[strlen(buf)-1]!='/') strcat(buf,"/");
     strcat(buf,filename);
     if(access(buf,F_OK)==0){
+      printf("%s\n",buf);
       while(*path&&*path!=':') ++path;
       if(*path==':') ++path;
     }else {
+      printf("SB!\n");
       execve(buf,argv,envp);
       exit(EXIT_FAILURE);
     }

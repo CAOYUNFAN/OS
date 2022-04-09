@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/time.h>
+#include <time.h>
 #include <fcntl.h>
 
 #ifdef LOCAL
@@ -111,9 +111,9 @@ void work(char * name,double time){
 }
 
 time_t get_time2(){
-  struct timeval time;
-  gettimeofday(&time,NULL);
-  return time.tv_sec;
+  time_t time=clock();
+  printf("%d %d\n",time,time/CLOCKS_PER_SEC);
+  return time/CLOCKS_PER_SEC;
 }
 
 void output(){

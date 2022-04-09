@@ -45,10 +45,13 @@ void my_execvp(char * filename,char * argv[],char * envp[]){
     copy(buf,path);
     if(buf[strlen(buf)-1]!='/') strcat(buf,"/");
     strcat(buf,filename);
-    if(execve(buf,argv,envp)==-1){
+    if(access(buf,F_OK)==0){
       while(*path&&*path!=':') ++path;
       if(*path==':') ++path;
-    }else exit(EXIT_FAILURE);
+    }else {
+      execve(buf,argv,envp);
+      exit(EXIT_FAILURE);
+    }
   }
   exit(EXIT_FAILURE);
 }

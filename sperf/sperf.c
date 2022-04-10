@@ -155,10 +155,8 @@ int main(int argc, char *argv[],char * envp[]) {
   if(cpid==0){
     close(pipe_fd[0]);
     dup2(pipe_fd[1],STDERR_FILENO);
-    #ifdef LOCAL
     int fdd=open("/dev/null",O_WRONLY);
     dup2(fdd,STDOUT_FILENO);
-    #endif
     my_execvp("strace",work_argv,envp);
     exit(EXIT_FAILURE);
   }

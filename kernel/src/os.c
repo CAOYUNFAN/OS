@@ -13,7 +13,18 @@ static void os_run() {
   while (1) ;
 }
 
+static Context * os_trap(Event ev, Context * context){
+  assert(0);
+  return NULL;
+}
+
+static void os_on_irq(int seq,int event,handler_t handler){
+  assert(0);
+}
+
 MODULE_DEF(os) = {
   .init = os_init,
   .run  = os_run,
+  .trap = os_trap,
+  .on_irq = os_on_irq
 };

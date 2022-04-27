@@ -37,8 +37,8 @@ void * kernel_alloc(size_t size);
 //lock_realated
 #define MAGIC_UNLOCKED (0)
 #define MAGIC_LOCKED (1)
-typedef int spinlock_t;
-static inline void spin_lock(spinlock_t *lk) {
+typedef int my_spinlock;
+static inline void spin_lock(my_spinlock *lk) {
   while (1) {
     intptr_t value = atomic_xchg(lk, MAGIC_LOCKED);
     if (value == MAGIC_UNLOCKED) {
@@ -46,7 +46,7 @@ static inline void spin_lock(spinlock_t *lk) {
     }
   }
 }
-static inline void spin_unlock(spinlock_t *lk) {
+static inline void spin_unlock(my_spinlock *lk) {
   atomic_xchg(lk, MAGIC_UNLOCKED);
 }
 
@@ -74,12 +74,12 @@ typedef struct {
 
 //top
 typedef struct {
-  spinlock_t lock;
+  my_spinlock lock;
   free_list * head;
   int nr_num;
 }start_info;
 typedef struct {
-  spinlock_t lock;
+  my_spinlock lock;
   block * start;
 }start_info_all;
 typedef struct rubbish_block_t{
@@ -88,6 +88,6 @@ typedef struct rubbish_block_t{
   struct rubbish_block_t * nxt;
 }rubbish_block;
 typedef struct{
-  spinlock_t lock;
+  my_spinlock lock;
   rubbish_block * first;
 }start_info_rubbish;

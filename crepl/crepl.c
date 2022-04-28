@@ -21,7 +21,7 @@ void make_tmp_file(char * name,char * name_so){
 }
 
 void * make_link(char * data){
-  char name[]="filename-XXXXXX.c";
+  char name[]="./filename-XXXXXX.c";
   char name_so[25];
   make_tmp_file(name,name_so);
   FILE * fd=fopen(name,"w");assert(fd);
@@ -33,18 +33,17 @@ void * make_link(char * data){
   pid_t pid=fork();
   if(!pid){
     gcc_arg[4]=name_so;gcc_arg[5]=name;
+    #ifndef LOCAL
     int fdd=open("/dev/null",O_WRONLY);
     dup2(fdd,STDOUT_FILENO);
     dup2(fdd,STDERR_FILENO);
+    #endif
     execvp("gcc",gcc_arg);
     assert(0);
   }
   int wstauts;
   waitpid(pid,&wstauts,0);
-  if(!WIFEXITED(wstauts)){
-    printf("Compile Error!\n");
-    return NULL;
-  }
+  if(!WIFEXITED(wstauts)) return NULL;
   #ifdef LOCAL
   printf("Compile Completed!\n");
   #endif
@@ -70,10 +69,14 @@ int main(int argc, char *argv[]) {
     #endif
     if(strncmp(line,"int ",4)==0){
       if(make_link(line)) puts("OK.");
+      else puts("Systax Error!\n");
     }else{
       sprintf(func_main,file_templelate,x,line);
       void * handle=make_link(func_main);
-      if(!handle) continue;
+      if(!handle) {
+        printf("Syntax Error!\n");
+        continue;
+      }
       sprintf(func_name,func_templelate,x);
       ans_func=dlsym(handle,func_name);
       printf("%d\n",ans_func());

@@ -17,12 +17,12 @@ void make_tmp_file(char * name,char * name_so){
 }
 
 void make_link(char * data){
-  char name[]="/tmp/filename-XXXXXX.c";
+  char name[]="filename-XXXXXX.c";
   char name_so[25];
   make_tmp_file(name,name_so);
   FILE * fd=fopen(name,"w");assert(fd);
   #ifdef LOCAL
-  printf("NAME=\n%s\n",name);
+  printf("NAME=%s,NAME2=%s\n",name,name2);
   #endif
   fputs(data,fd);
   fclose(fd);

@@ -7,7 +7,7 @@
 char * file_templelate ="int __expr_wrapper_%d () { return %s ;}\n";
 
 void make_link(char * data){
-  char name[]="filename-XXXXXX";
+  char name[]="/tmp/filename-XXXXXX";
   int tt=mkstemp(name);
   assert(tt>=0);
   FILE * fd=fopen(name,"w");assert(fd);

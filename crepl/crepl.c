@@ -27,7 +27,7 @@ void make_tmp_file(char * name,char * name_so){
 }
 
 void * make_link(char * data){
-  char name[]="./filename-XXXXXX.c";
+  char name[]="/tmp/filename-XXXXXX.c";
   char name_so[25];
   make_tmp_file(name,name_so);
   FILE * fd=fopen(name,"w");assert(fd);

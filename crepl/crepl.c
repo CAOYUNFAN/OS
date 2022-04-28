@@ -9,7 +9,7 @@
 
 char * file_templelate = "int __expr_wrapper_%d () { return %s ;}\n";
 char * func_templelate = "__expr_wrapper_%d";
-char * gcc_arg[]={"gcc","-fPIC","-shared","-o",NULL,NULL,NULL};
+char * gcc_arg[]={"gcc","-fPIC","-shared","-o",NULL,NULL,"-w",NULL};
 
 void make_tmp_file(char * name,char * name_so){
   int tt=mkstemps(name,2);

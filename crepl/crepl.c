@@ -18,7 +18,7 @@ void make_link(char * data){
   fclose(fd);
   pid_t pid=fork();
   if(!pid){
-    char name2[20];
+    char name2[25];
     sprintf(name2,"%s.so",name);  
     execlp("gcc","-fPIC","-shared","-o",name2,name,NULL);
   }

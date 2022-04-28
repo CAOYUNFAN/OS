@@ -22,7 +22,7 @@ void make_link(char * data){
   make_tmp_file(name,name_so);
   FILE * fd=fopen(name,"w");assert(fd);
   #ifdef LOCAL
-  printf("NAME=%s,NAME2=%s\n",name,name2);
+  printf("NAME=%s,NAME2=%s\n",name,name_so);
   #endif
   fputs(data,fd);
   fclose(fd);

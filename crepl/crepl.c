@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
       if(!handle) continue;
       sprintf(func_name,func_templelate,x);
       ans_func=dlsym(handle,func_name);
-      printf("%d\n"ans_func());
+      printf("%d\n",ans_func());
     }
     x++;
   }

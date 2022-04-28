@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <dlfcn.h>
 
-char * file_templelate = "int __expr_wrapper_%d () { return %s ;}\n";
+static char * file_templelate = "int __expr_wrapper_%d () { return %s ;}\n";
 char * func_templelate = "__expr_wrapper_%d";
 char * gcc_arg[]={"gcc","-fPIC","-shared","-o",NULL,NULL,"-w",NULL};
 
@@ -47,10 +47,10 @@ void * make_link(char * data){
   #ifdef LOCAL
   printf("Compile Completed!\n");
   #endif
-  return dlopen(name_so,RTLD_NOW|RTLD_DEEPBIND);
+  return dlopen(name_so,RTLD_NOW|RTLD_DEEPBIND|RTLD_GLOBAL);
 }
 
-char func_main[4096],func_name[4096];
+char func_main[8192],func_name[4096];
 
 int (*ans_func)()=NULL;
 
@@ -68,9 +68,11 @@ int main(int argc, char *argv[]) {
     printf("%s\nGot %zu chars.\n", line,strlen(line)); // ??
     #endif
     if(strncmp(line,"int ",4)==0){
-      if(make_link(line)) puts("OK.");
-      else puts("Systax Error!\n");
+      void * handle=make_link(line);
+      if(handle) puts("OK.");
+      else puts("Systax Error!");
     }else{
+      if(line[strlen(line)-1]=='\n') line[strlen(line)-1]=0;
       sprintf(func_main,file_templelate,x,line);
       void * handle=make_link(func_main);
       if(!handle) {

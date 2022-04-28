@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 char * file_templelate ="int __expr_wrapper_%d () { return %s ;}\n";
 char * gcc_arg[]={"gcc","-fPIC","-shared","-o",NULL,NULL,NULL};
@@ -30,8 +31,10 @@ void make_link(char * data){
   if(!pid){
     gcc_arg[4]=name_so;gcc_arg[5]=name;
     execvp("gcc",gcc_arg);
+    assert(0);
   }
-  
+  int wstauts;
+  waitpid(pid,&wstauts,0);
 }
 
 int main(int argc, char *argv[]) {

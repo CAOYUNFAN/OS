@@ -15,7 +15,7 @@ const char * version="-m64";
 const char * version="-m32";
 #endif
 
-char * gcc_arg[]={"gcc","-fPIC","-shared","-o",NULL,NULL,"-w",version,NULL};
+char * gcc_arg[]={"gcc","-fPIC","-shared","-w","-o",NULL,NULL,NULL,NULL};
 
 void make_tmp_file(char * name,char * name_so){
   int tt=mkstemps(name,2);
@@ -38,7 +38,7 @@ void * make_link(char * data){
   fclose(fd);
   pid_t pid=fork();
   if(!pid){
-    gcc_arg[4]=name_so;gcc_arg[5]=name;
+    gcc_arg[5]=name_so;gcc_arg[7]=name;
     #ifndef LOCAL
     int fdd=open("/dev/null",O_WRONLY);
     dup2(fdd,STDOUT_FILENO);
@@ -63,6 +63,7 @@ int (*ans_func)()=NULL;
 int main(int argc, char *argv[]) {
   static char line[4096];
   int x=0;
+  gcc_arg[6]=version;
   while (1) {
     
     printf("crepl> ");

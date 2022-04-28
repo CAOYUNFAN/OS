@@ -8,8 +8,8 @@ include ../Makefile
 .PHONY:run-32 run-64
 run-32: $(NAME)-32
 	./$(NAME)-32 < input.txt
-	rm filename-*
+	
 
 run-64: $(NAME)-64
 	./$(NAME)-64 < input.txt
-	rm filename-*
+	

@@ -53,7 +53,7 @@ void * make_link(char * data){
 
 char func_main[4096],func_name[4096];
 
-typedef int (*)() my_func;
+int (*ans_func)()=NULL;
 
 int main(int argc, char *argv[]) {
   static char line[4096];
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
       void * handle=make_link(func_main);
       if(!handle) continue;
       sprintf(func_name,func_templelate,x);
-      my_func ans_func=dlsym(handle,func_name);
+      ans_func=dlsym(handle,func_name);
       printf("%d\n"ans_func());
     }
     x++;

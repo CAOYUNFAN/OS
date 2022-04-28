@@ -10,7 +10,7 @@ void make_link(char * data){
   char name[]="filename-XXXXXX";
   int tt=mkstemp(name);
   assert(tt>=0);
-  FILE * fd=fopen(name,"r");assert(fd);
+  FILE * fd=fopen(name,"w");assert(fd);
   #ifdef LOCAL
   printf("NAME=\n%s\n",name);
   #endif

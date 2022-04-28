@@ -10,9 +10,9 @@
 static char * file_templelate = "int __expr_wrapper_%d () { return %s ;}\n";
 char * func_templelate = "__expr_wrapper_%d";
 #if __x86_64__
-const char * version="-m64";
+char * version="-m64";
 #else
-const char * version="-m32";
+char * version="-m32";
 #endif
 
 char * gcc_arg[]={"gcc","-fPIC","-shared","-w","-o",NULL,NULL,NULL,NULL};

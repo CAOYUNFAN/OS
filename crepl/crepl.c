@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 char * file_templelate ="int __expr_wrapper_%d () { return %s ;}\n";
+char * gcc_arg[]={"gcc","-fPIC","-shared","-o",NULL,NULL,NULL};
 
 void make_link(char * data){
   char name[]="/tmp/filename-XXXXXX";
@@ -17,10 +18,11 @@ void make_link(char * data){
   fputs(data,fd);
   fclose(fd);
   pid_t pid=fork();
+  char name2[25];
+  sprintf(name2,"%s.so",name);  
   if(!pid){
-    char name2[25];
-    sprintf(name2,"%s.so",name);  
-    execlp("gcc","-fPIC","-shared","-o",name2,name,NULL);
+    gcc_arg[4]=name2;gcc_arg[5]=name;
+    execvp("gcc",gcc_arg);
   }
   
 }

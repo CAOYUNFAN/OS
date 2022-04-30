@@ -15,8 +15,8 @@
   #define MAGIC_SMALL (0x3b)
 #else
   #define DEBUG(...) 
-  #define Assert(...) ((void)0)
-#endif
+//  #define Assert(...) ((void)0)
+#endif 
 
 //macros that may be used
 #define LOWBIT(x) ((x)&((x)^((x)-1)))

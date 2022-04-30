@@ -28,24 +28,25 @@ do{\
 
 enum task_status{
   TASK_RUNNING,TASK_RUNABLE,TASK_WAITING,TASK_DEAD
-}
-
-typedef struct{
-    task_t * head;
-    int lock;
-}list_head;
+};
 
 struct task {
   int status;
-  task * nxt;
-  Context ctx;
+  struct task * nxt, * pre;
+  Context * ctx;
 };
 
+typedef struct{
+  struct task * head;
+  int lock;
+}list_head;
+
 struct spinlock {
-  int used;
+  int lock,used;
   list_head head;
 };
 
 struct semaphore {
-  // TODO
+  int lock,num;
+  list_head head;
 };

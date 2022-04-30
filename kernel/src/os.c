@@ -19,7 +19,7 @@ typedef struct event_local{
   int seq;
   int event;
   handler_t handler;
-  event_local * pre, * nxt;
+  struct event_local * pre, * nxt;
 }event_local_t;
 
 event_local_t * start=NULL;
@@ -28,7 +28,7 @@ static Context * os_trap(Event ev, Context * context){
   Context *next = NULL;
   for (event_local_t *h=start;h;h=h->nxt) {
     if (h->event == EVENT_NULL || h->event == ev.event) {
-      Context *r = h->handler(ev, ctx);
+      Context *r = h->handler(ev, context);
       panic_on(r && next, "returning multiple contexts");
       if (r) next = r;
     }

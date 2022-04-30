@@ -65,6 +65,7 @@ static Context * kmt_context_save(Event ev,Context * ctx){
     task_t * current=current_all[cpu_current()];
     Assert(current==NULL||current->status!=TASK_RUNABLE,"the status of %p SHOULD NOT be RUNNABLE!",current);
     if(current) current->ctx=ctx;
+    Log("%p %p",current,ctx);
     return NULL;
 }
 

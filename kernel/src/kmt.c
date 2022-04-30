@@ -97,7 +97,6 @@ static void kmt_init(){
     os->on_irq(INT_MIN,EVENT_NULL,kmt_context_save);
     os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
     init_list(&runnable);
-    assert(0);
 }
 
 static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg),void * arg){
@@ -108,7 +107,7 @@ static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg
 }
 
 static void kmt_teardown(task_t * task){
-    Assert(task->status==TASK_RUNABLE||task_status==TASK_RUNNING,"task %p is blocked!\n",task);
+    Assert(task->status==TASK_RUNABLE||task->status==TASK_RUNNING,"task %p is blocked!\n",task);
     if(task->status==TASK_RUNABLE) del_list(&runnable,task);
     task->status=TASK_DEAD;
 }

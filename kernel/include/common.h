@@ -6,12 +6,11 @@
 #define _Log(...) \
   do { \
     printf(__VA_ARGS__); \
-    log_write(__VA_ARGS__); \
   } while (0)
 
 #define Log(fmt,...) \
 do{\
-    _Log("[%s:%s,%d]" fmt "\n",__FILE__, __LINE__, __func__, ## __VA_ARGS__);
+    _Log("[%s:%s,%d]" fmt "\n",__FILE__, __LINE__, __func__, ## __VA_ARGS__);\
 }while (0)
 
 #define Assert(cond,fmt,...)\

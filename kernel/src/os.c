@@ -1,8 +1,29 @@
 #include <common.h>
 
+#ifdef LOCAL
+sem_t empty, fill;
+#define P kmt->sem_wait
+#define V kmt->sem_signal
+void producer(void *arg) { while (1) { P(&empty); putch('('); V(&fill);  } }
+void consumer(void *arg) { while (1) { P(&fill);  putch(')'); V(&empty); } }
+static inline task_t *task_alloc() {
+  return pmm->alloc(sizeof(task_t));
+}
+#endif
+
+
 static void os_init() {
   pmm->init();
   kmt->init();
+
+  #ifdef LOCAL
+  kmt->sem_init(&empty, "empty", 5);  // 缓冲区大小为 5
+  kmt->sem_init(&fill,  "fill",  0);
+  for (int i = 0; i < 4; i++) // 4 个生产者
+    kmt->create(task_alloc(), "producer", producer, NULL);
+  for (int i = 0; i < 5; i++) // 5 个消费者
+    kmt->create(task_alloc(), "consumer", consumer, NULL);
+  #endif
 }
 
 static void os_run() {

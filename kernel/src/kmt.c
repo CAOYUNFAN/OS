@@ -1,5 +1,7 @@
 #include <os.h>
 
+#include "kmt-test.h"
+
 static inline void lock_inside(int * addr,int * status){
     *status=ienabled();
     while (1) {
@@ -97,6 +99,11 @@ static void kmt_init(){
     os->on_irq(INT_MIN,EVENT_NULL,kmt_context_save);
     os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
     init_list(&runnable);
+
+    #ifdef LOCAL
+    kmt->create(task_alloc(), "tty_reader", tty_reader, "tty1");
+    kmt->create(task_alloc(), "tty_reader", tty_reader, "tty2");
+    #endif
 }
 
 static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg),void * arg){

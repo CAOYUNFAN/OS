@@ -33,7 +33,8 @@ static void os_run() {
   }
   #endif
   iset(true);
-  while (1) ;
+  yield();
+  panic_on(1,"should not reach here!\n");
 }
 
 typedef struct event_local{

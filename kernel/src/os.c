@@ -50,6 +50,7 @@ static Context * os_trap(Event ev, Context * context){
   for (event_local_t *h=start;h;h=h->nxt) {
     if (h->event == EVENT_NULL || h->event == ev.event) {
       Context *r = h->handler(ev, context);
+      Log("In function %p",h->handler);
       panic_on(r && next, "returning multiple contexts");
       if (r) next = r;
     }
@@ -60,6 +61,7 @@ static Context * os_trap(Event ev, Context * context){
 }
 
 static void os_on_irq(int seq,int event,handler_t handler){
+  Log("Insert function %p",handler);
   event_local_t ** now=&start;
   while(*now&&(*now)->seq<seq) now=&((*now)->nxt);
   event_local_t * temp=pmm->alloc(sizeof(event_local_t));

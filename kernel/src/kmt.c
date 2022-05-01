@@ -187,7 +187,7 @@ static void kmt_sem_wait(sem_t * sem){
         current->status=TASK_WAITING;
         Log("cpu%d,semlock-%s:task-%s is waiting!",cpu_current(),sem->name,current->name);
         Log("here!");
-        add_list(&sem->head,current);assert(sem->lock==0);
+        add_list(&sem->head,current);assert(sem->head.lock==0);
         yield();
         Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
     }
@@ -198,7 +198,7 @@ static void kmt_sem_signal(sem_t * sem){
     Log("here!");
     int i=0;
     lock_inside(&sem->lock,&i);
-    task_t * next=del_list2(&sem->head);
+    task_t * next=del_list2(&sem->head);assert(sem->head.lock==0);
     sem->num++;Log("name=%s,left=%d",sem->name,sem->num);
     if(next){
         Assert(next->status==TASK_WAITING,"Unexpected status %p,%d",next,next->status);

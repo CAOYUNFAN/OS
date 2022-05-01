@@ -93,7 +93,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current->status=TASK_RUNNING;
 
     current_all[cpu_current()]=current;
-//    Log("%p %p",current,current->ctx);
+    Log("CPU%d:switch to task %p",cpu_current(),current);
     return current->ctx;
 }
 
@@ -113,11 +113,12 @@ static void kmt_init(){
 static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg),void * arg){
     assert(task);
     task->status=TASK_RUNABLE;
-    add_list(&runnable,task);
     task->stack=pmm->alloc(16*4096);
     Area temp;
     temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);
     task->ctx=kcontext(temp,entry,arg);
+    Log("Task %s is added to %p",name,task);
+    add_list(&runnable,task);
     return 0;
 }
 

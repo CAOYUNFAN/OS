@@ -75,7 +75,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
         Assert(current,"%p shou not be NULL!\n",current);
         return current->ctx;
     }
-    Log("Schedule!");
+//    Log("Schedule!");
 
     if(current&&current->status==TASK_RUNNING){
         current->status=TASK_RUNABLE;
@@ -93,7 +93,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current->status=TASK_RUNNING;
 
     current_all[cpu_current()]=current;
-    Log("%p %p",current,current->ctx);
+//    Log("%p %p",current,current->ctx);
     return current->ctx;
 }
 

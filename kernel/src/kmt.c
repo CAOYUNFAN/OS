@@ -196,7 +196,7 @@ static void kmt_sem_signal(sem_t * sem){
     int i=0;
     lock_inside(&sem->lock,&i);
     task_t * next=del_list2(&sem->head);
-    sem->num++;
+    sem->num++;Log("name=%s,left=%d",sem->name,sem->num);
     if(next){
         Assert(next->status==TASK_WAITING,"Unexpected status %p,%d",next,next->status);
         next->status=TASK_RUNABLE;

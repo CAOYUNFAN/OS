@@ -37,7 +37,7 @@ static void os_run() {
     putch(*s == '*' ? '0' + cpu_current() : *s);
   }
   #endif
-  iset(true);
+//  iset(true);
   yield();
   panic_on(1,"should not reach here!\n");
 }

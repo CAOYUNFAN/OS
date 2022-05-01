@@ -81,7 +81,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
         add_list(&runnable,current);
     }
 
-    current=del_list2(&runnable);
+    current=del_list2(&runnable);assert(runnable.lock==0);
     while (!current){
         Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
         current=del_list2(&runnable);

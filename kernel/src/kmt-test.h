@@ -1,6 +1,6 @@
 #ifdef LOCAL
 #include <devices.h>
-static void tty_reader(void *arg) {
+void tty_reader(void *arg) {
   device_t *tty = dev->lookup(arg);
   char cmd[128], resp[128], ps[16];
   snprintf(ps, 16, "(%s) $ ", arg);
@@ -12,7 +12,7 @@ static void tty_reader(void *arg) {
     tty->ops->write(tty, 0, resp, strlen(resp));
   }
 }
-static inline task_t *task_alloc() {
+inline task_t *task_alloc() {
   return pmm->alloc(sizeof(task_t));
 }
 #endif

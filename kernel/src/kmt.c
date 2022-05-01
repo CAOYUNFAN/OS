@@ -104,8 +104,8 @@ static void kmt_init(){
     init_list(&runnable);
 
     #ifdef LOCAL
-    kmt->create(task_alloc(), "tty_reader", tty_reader, "tty1");
-    kmt->create(task_alloc(), "tty_reader", tty_reader, "tty2");
+//    kmt->create(task_alloc(), "tty_reader", tty_reader, "tty1");
+//    kmt->create(task_alloc(), "tty_reader", tty_reader, "tty2");
     #endif
 }
 

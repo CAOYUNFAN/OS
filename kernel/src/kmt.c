@@ -119,7 +119,7 @@ static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg
     #ifdef LOCAL
     task->name=name;
     #endif
-//    Log("Task %s is added to %p",name,task);
+    Log("Task %s is added to %p",name,task);
     add_list(&runnable,task);
     return 0;
 }

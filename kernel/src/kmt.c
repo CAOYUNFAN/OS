@@ -148,10 +148,10 @@ static void kmt_spin_lock(spinlock_t *lk){
         Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
         current->status=TASK_WAITING;
         add_list(&lk->head,current);
+        unlock_inside(&lk->lock,i);
         yield();
         Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
-    }else lk->used=1;
-    unlock_inside(&lk->lock,i);
+    }else lk->used=1,unlock_inside(&lk->lock,i);
     return;
 }
 
@@ -188,10 +188,10 @@ static void kmt_sem_wait(sem_t * sem){
         current->status=TASK_WAITING;
         Log("cpu%d,semlock-%s:task-%s is waiting!",cpu_current(),sem->name,current->name);
         add_list(&sem->head,current);
+        unlock_inside(&sem->lock,i);
         yield();
         Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
-    }
-    unlock_inside(&sem->lock,i);
+    }else unlock_inside(&sem->lock,i);
 }
 
 static void kmt_sem_signal(sem_t * sem){

@@ -1,5 +1,4 @@
 #include <os.h>
-
 #include "kmt-test.h"
 
 static inline void lock_inside(int * addr,int * status){
@@ -93,7 +92,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current->status=TASK_RUNNING;
 
     current_all[cpu_current()]=current;
-    Log("CPU%d:switch to task %p",cpu_current(),current);
+    Log("CPU%d:switch to task %s,%p",cpu_current(),current->name,current);
     return current->ctx;
 }
 
@@ -117,7 +116,10 @@ static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg
     Area temp;
     temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);
     task->ctx=kcontext(temp,entry,arg);
-    Log("Task %s is added to %p",name,task);
+    #ifdef LOCAL
+    task->name=name;
+    #endif
+//    Log("Task %s is added to %p",name,task);
     add_list(&runnable,task);
     return 0;
 }
@@ -132,6 +134,9 @@ static void kmt_teardown(task_t * task){
 
 static void kmt_spin_init(spinlock_t *lk, const char * name){
     init_list(&lk->head);lk->used=lk->lock=0;
+    #ifdef LOCAL
+    lk->name=name;
+    #endif
     return;
 }
 
@@ -167,6 +172,9 @@ static void kmt_spin_unlock(spinlock_t * lk){
 
 static void kmt_sem_init(sem_t * sem,const char * name, int value){
     sem->num=value;sem->lock=0;init_list(&sem->head);
+    #ifdef LOCAL
+    sem->name=name;
+    #endif
 }
 
 static void kmt_sem_wait(sem_t * sem){

@@ -18,12 +18,12 @@ do{\
     if(!(cond)) Log(fmt,__VA_ARGS__);\
     assert(cond);\
 } while (0)
-
+#define NAME const char * name;
 #else
 #define Log(fmt,...) ((void)(0))
 #define Assert(cond,fmt,...) ((void)(0))
+#define NAME
 #endif
-    
 
 enum task_status{
   TASK_RUNNING,TASK_RUNABLE,TASK_WAITING,TASK_DEAD
@@ -34,6 +34,7 @@ struct task {
   struct task * nxt, * pre;
   Context * ctx;
   void * stack;
+  NAME
 };
 
 typedef struct{
@@ -44,9 +45,11 @@ typedef struct{
 struct spinlock {
   int lock,used;
   list_head head;
+  NAME
 };
 
 struct semaphore {
   int lock,num;
   list_head head;
+  NAME
 };

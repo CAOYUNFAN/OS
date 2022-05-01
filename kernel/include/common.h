@@ -10,7 +10,7 @@
 
 #define Log(fmt,...) \
 do{\
-    _Log("[%s:%d,%s]" fmt "\n",__FILE__, __LINE__, __func__, ## __VA_ARGS__);\
+    _Log("[%s:%d,%s]CPU%d:" fmt "\n",__FILE__, __LINE__, __func__, cpu_current(),## __VA_ARGS__);\
 }while (0)
 
 #define Assert(cond,fmt,...)\

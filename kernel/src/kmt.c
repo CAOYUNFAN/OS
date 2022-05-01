@@ -62,7 +62,7 @@ static inline task_t * del_list2(list_head * list){
 static Context * kmt_context_save(Event ev,Context * ctx){
 //    Log("save_context!");
     task_t * current=current_all[cpu_current()];
-    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %p SHOULD NOT be RUNNABLE!",current->status,current);
+    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %s SHOULD NOT be RUNNABLE!",current->status,current->name);
     if(current) current->ctx=ctx;
 //    Log("%p %p",current,ctx);
     return NULL;
@@ -186,7 +186,7 @@ static void kmt_sem_wait(sem_t * sem){
         task_t * current=current_all[cpu_current()];
         Assert(current->status==TASK_RUNNING,"Unexpected task %s status %d\n",current->name,current->status);
         current->status=TASK_WAITING;
-//        Log("cpu%d,semlock-%s:task-%s is waiting!",cpu_current(),sem->name,current->name);
+        Log("semlock-%s:task-%s is waiting!",sem->name,current->name);
         add_list(&sem->head,current);
         unlock_inside(&sem->lock,i);
         yield();
@@ -202,6 +202,7 @@ static void kmt_sem_signal(sem_t * sem){
     sem->num++;//Log("name=%s,left=%d",sem->name,sem->num);
     if(next){
         Assert(next->status==TASK_WAITING,"Unexpected task %s status %d",next->status,next->status);
+        Log("semlock-%s:task-%s is freed!",sem->name,next->name);
         next->status=TASK_RUNABLE;
         add_list(&runnable,next);
     }

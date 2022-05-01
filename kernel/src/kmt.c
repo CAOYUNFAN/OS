@@ -114,13 +114,19 @@ static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg
     assert(task);
     task->status=TASK_RUNABLE;
     add_list(&runnable,task);
+    task->stack=pmm->alloc(16*4096);
+    Area temp;
+    temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);
+    task->ctx=kcontext(temp,entry,arg);
     return 0;
 }
 
 static void kmt_teardown(task_t * task){
+    pmm->free(task->stack);
     Assert(task->status==TASK_RUNABLE||task->status==TASK_RUNNING,"task %p is blocked!\n",task);
     if(task->status==TASK_RUNABLE) del_list(&runnable,task);
     task->status=TASK_DEAD;
+    free(task->stack);
 }
 
 static void kmt_spin_init(spinlock_t *lk, const char * name){

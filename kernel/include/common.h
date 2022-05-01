@@ -33,6 +33,7 @@ struct task {
   int status;
   struct task * nxt, * pre;
   Context * ctx;
+  void * stack;
 };
 
 typedef struct{

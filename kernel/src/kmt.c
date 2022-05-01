@@ -92,7 +92,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current->status=TASK_RUNNING;
 
     current_all[cpu_current()]=current;
-//    Log("CPU%d:switch to task %s,%p",cpu_current(),current->name,current);
+    Log("CPU%d:switch to task %s,%p",cpu_current(),current->name,current);
     return current->ctx;
 }
 
@@ -119,7 +119,7 @@ static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg
     #ifdef LOCAL
     task->name=name;
     #endif
-    Log("Task %s is added to %p",name,task);
+//    Log("Task %s is added to %p",name,task);
     add_list(&runnable,task);
     return 0;
 }

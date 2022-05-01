@@ -81,7 +81,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
         add_list(&runnable,current);
     }
 
-    current=del_list2(&runnable);assert(runnable.lock==0);
+    current=del_list2(&runnable);
     while (!current){
         Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
         current=del_list2(&runnable);
@@ -187,7 +187,7 @@ static void kmt_sem_wait(sem_t * sem){
         current->status=TASK_WAITING;
         Log("cpu%d,semlock-%s:task-%s is waiting!",cpu_current(),sem->name,current->name);
         Log("here!");
-        add_list(&sem->head,current);
+        add_list(&sem->head,current);assert(sem->lock==0);
         yield();
         Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
     }

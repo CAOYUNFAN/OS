@@ -184,13 +184,13 @@ static void kmt_sem_wait(sem_t * sem){
     sem->num--;
     if(sem->num<0){
         task_t * current=current_all[cpu_current()];
-        Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
+        Assert(current->status==TASK_RUNNING,"Unexpected task %s status %d\n",current->name,current->status);
         current->status=TASK_WAITING;
 //        Log("cpu%d,semlock-%s:task-%s is waiting!",cpu_current(),sem->name,current->name);
         add_list(&sem->head,current);
         unlock_inside(&sem->lock,i);
         yield();
-        Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
+        Assert(current->status==TASK_RUNNING,"Unexpected task %s status %d",current->name,current->status);
     }else unlock_inside(&sem->lock,i);
 }
 
@@ -201,7 +201,7 @@ static void kmt_sem_signal(sem_t * sem){
     task_t * next=del_list2(&sem->head);
     sem->num++;//Log("name=%s,left=%d",sem->name,sem->num);
     if(next){
-        Assert(next->status==TASK_WAITING,"Unexpected status %p,%d",next,next->status);
+        Assert(next->status==TASK_WAITING,"Unexpected task %s status %d",next->status,next->status);
         next->status=TASK_RUNABLE;
         add_list(&runnable,next);
     }

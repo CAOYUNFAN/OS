@@ -92,7 +92,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current->status=TASK_RUNNING;
 
     current_all[cpu_current()]=current;
-    Log("CPU%d:switch to task %s,%p",cpu_current(),current->name,current);
+//    Log("CPU%d:switch to task %s,%p",cpu_current(),current->name,current);
     return current->ctx;
 }
 
@@ -178,7 +178,7 @@ static void kmt_sem_init(sem_t * sem,const char * name, int value){
 }
 
 static void kmt_sem_wait(sem_t * sem){
-    Log("here,name=%s",sem->name);
+//    Log("here,name=%s",sem->name);
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num--;
@@ -186,7 +186,7 @@ static void kmt_sem_wait(sem_t * sem){
         task_t * current=current_all[cpu_current()];
         Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
         current->status=TASK_WAITING;
-        Log("cpu%d,semlock-%s:task-%s is waiting!",cpu_current(),sem->name,current->name);
+//        Log("cpu%d,semlock-%s:task-%s is waiting!",cpu_current(),sem->name,current->name);
         add_list(&sem->head,current);
         unlock_inside(&sem->lock,i);
         yield();
@@ -195,7 +195,7 @@ static void kmt_sem_wait(sem_t * sem){
 }
 
 static void kmt_sem_signal(sem_t * sem){
-    Log("here,name=%s",sem->name);
+//    Log("here,name=%s",sem->name);
     int i=0;
     lock_inside(&sem->lock,&i);
     task_t * next=del_list2(&sem->head);

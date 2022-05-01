@@ -20,11 +20,11 @@ static void os_init() {
   static char ch1[5][20],ch2[5][20];
   kmt->sem_init(&empty, "empty", 5);  // 缓冲区大小为 5
   kmt->sem_init(&fill,  "fill",  0);
-  for (int i = 0; i < 1; i++){
+  for (int i = 0; i < 2; i++){
     sprintf(ch1[i],"producer-%d",i);
     kmt->create(task_alloc(), ch1[i], producer, NULL);
   } // 4 个生产者
-  for (int i = 0; i < 1; i++){
+  for (int i = 0; i < 2; i++){
     sprintf(ch2[i],"consumer-%d",i);
     kmt->create(task_alloc(), ch2[i], consumer, NULL);
   } // 5 个消费者

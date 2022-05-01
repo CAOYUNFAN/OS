@@ -4,8 +4,8 @@
 sem_t empty, fill;
 #define P kmt->sem_wait
 #define V kmt->sem_signal
-void producer(void *arg) { while (1) { P(&empty); putch('(');putch('\n'); V(&fill);  } }
-void consumer(void *arg) { while (1) { P(&fill);  putch(')');putch('\n'); V(&empty); } }
+void producer(void *arg) { while (1) { P(&empty); putch('('); V(&fill);  } }
+void consumer(void *arg) { while (1) { P(&fill);  putch(')'); V(&empty); } }
 static inline task_t *task_alloc() {
   return pmm->alloc(sizeof(task_t));
 }

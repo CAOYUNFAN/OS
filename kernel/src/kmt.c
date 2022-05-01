@@ -177,7 +177,7 @@ static void kmt_sem_init(sem_t * sem,const char * name, int value){
     #endif
 }
 
-static void kmt_sem_wait(sem_t * sem){
+static void kmt_sem_wait(sem_t * sem){Log("here!\n");
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num--;
@@ -194,6 +194,7 @@ static void kmt_sem_wait(sem_t * sem){
 }
 
 static void kmt_sem_signal(sem_t * sem){
+    Log("here!");
     int i=0;
     lock_inside(&sem->lock,&i);
     task_t * next=del_list2(&sem->head);

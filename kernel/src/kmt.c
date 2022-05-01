@@ -185,6 +185,7 @@ static void kmt_sem_wait(sem_t * sem){
         task_t * current=current_all[cpu_current()];
         Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
         current->status=TASK_WAITING;
+        Log("cpu%d,semlock%s:current%s is waiting!",cpu_current(),sem->name,current->name);
         add_list(&sem->head,current);
         yield();
         Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);

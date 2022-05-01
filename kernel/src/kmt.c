@@ -70,7 +70,7 @@ static Context * kmt_context_save(Event ev,Context * ctx){
 
 static Context * kmt_schedule(Event ev,Context * ctx){
     task_t * current=current_all[cpu_current()];
-    if(ev.event == EVENT_SYSCALL || ev.event == EVENT_PAGEFAULT || ev.event == EVENT_ERROR) {
+    if(ev.event == EVENT_SYSCALL || ev.event == EVENT_PAGEFAULT || ev.event == EVENT_ERROR || ev.event == EVENT_IRQ_TIMER) {
         Assert(current,"%p shou not be NULL!\n",current);
         return current->ctx;
     }

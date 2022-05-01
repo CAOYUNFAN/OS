@@ -181,7 +181,6 @@ static void kmt_sem_wait(sem_t * sem){
     Log("here,name=%s",sem->name);
     int i=0;
     lock_inside(&sem->lock,&i);
-    Log("here,name=%s",sem->name);
     sem->num--;
     if(sem->num<0){
         task_t * current=current_all[cpu_current()];
@@ -196,7 +195,7 @@ static void kmt_sem_wait(sem_t * sem){
 }
 
 static void kmt_sem_signal(sem_t * sem){
-    Log("here!");
+    Log("here,name=%s",sem->name);
     int i=0;
     lock_inside(&sem->lock,&i);
     task_t * next=del_list2(&sem->head);

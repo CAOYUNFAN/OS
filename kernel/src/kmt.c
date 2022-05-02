@@ -211,6 +211,7 @@ static void kmt_sem_wait(sem_t * sem){
         current->status=TASK_WAITING;
         Log("semlock-%s:task-%s is waiting!",sem->name,current->name);
         add_list(&sem->head,current);
+        unlock_inside(&sem->lock,i);
         yield();
         Assert(current->status==TASK_RUNNING,"Unexpected task %s status %d",current->name,current->status);
     }else unlock_inside(&sem->lock,i);

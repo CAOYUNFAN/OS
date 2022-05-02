@@ -30,7 +30,7 @@ enum task_status{
 };
 
 struct task {
-  int status;
+  int status,lock;
   struct task * nxt, * pre;
   Context * ctx;
   void * stack;
@@ -45,6 +45,7 @@ typedef struct{
 struct spinlock {
   int lock,used;
   list_head head;
+  int status;
   NAME
 };
 

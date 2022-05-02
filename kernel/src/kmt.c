@@ -84,13 +84,13 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 #ifdef LOCAL
     if(ev.event==EVENT_IRQ_TIMER) return ctx;
 #endif
-    if(current&&current->status==TASK_RUNNING){
-        current->status=TASK_RUNABLE;
-        add_list(&runnable,current);
-    }
     if(current) {
         Assert(current->lock==1,"Unexpected lock status %d with name %s!",current->lock,current->name);
         unlock_inside_ker(&current->lock);
+    }
+    if(current&&current->status==TASK_RUNNING){
+        current->status=TASK_RUNABLE;
+        add_list(&runnable,current);
     }
 
     current=del_list2(&runnable);

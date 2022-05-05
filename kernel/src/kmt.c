@@ -161,7 +161,7 @@ static int kmt_wakeup(task_queue * q){
     Log("here!");
     task_t * nxt=task_queue_pop(q);
     if(!nxt) return 1;
-    Assert(nxt->lock==1&&nxt->status==TASK_WAITING,"Unexpected task status %s with status %d",nxt->name,nxt->status);
+    Assert(nxt->lock==0&&nxt->status==TASK_WAITING,"Unexpected task status %s with status %d",nxt->name,nxt->status);
     nxt->status=TASK_RUNABLE;
     task_queue_push(q,nxt);
     return 0;

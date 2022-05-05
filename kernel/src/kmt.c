@@ -150,6 +150,7 @@ static void kmt_sleep(task_queue * q,int * lock_addr,int nxtstatus){
     Assert(*lock_addr==1,"%s is not keeping lock!",current->name);
     current->status=TASK_WAITING;
     task_queue_push(q,current);
+    Log("Lock task name=%s",current->name);
     unlock_inside(lock_addr,nxtstatus);
     yield();
     Assert(current->status==TASK_RUNNING,"Unexpected task status %s with status %d",current->name,current->status);
@@ -161,6 +162,7 @@ static int kmt_wakeup(task_queue * q){
     if(!nxt) return 1;
     Assert(nxt->lock==0&&nxt->status==TASK_WAITING,"Unexpected task status %s with status %d",nxt->name,nxt->status);
     nxt->status=TASK_RUNABLE;
+    Log("Free task name=%s",nxt->name);
     task_queue_push(q,nxt);
     return 0;
 }

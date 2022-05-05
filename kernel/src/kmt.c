@@ -23,7 +23,7 @@ static inline void unlock_inside(int * addr,int status){
 
 static task_t * current_all[8]={};
 
-
+/*
 #ifdef LOCAL
 static void show_queue(task_queue * q){
     Log("Show queue!");
@@ -34,7 +34,7 @@ static void show_queue(task_queue * q){
     }
 }
 #endif
-
+*/
 
 static inline void task_queue_init(task_queue * q){
     q->head=q->tail=NULL;
@@ -52,7 +52,7 @@ static inline void task_queue_push(task_queue * q,task_t * task){
         Assert(q->head==NULL,"SHOULD BE NULL %p",q->head);
         q->head=task;
     }
-    q->tail=task;show_queue(q);
+    q->tail=task;//show_queue(q);
     unlock_inside(&q->lock,x);
     return;
 }
@@ -65,7 +65,7 @@ static inline task_t * task_queue_pop(task_queue * q){
     if(!q->head){
         Assert(q->tail==ret,"Wrong queue %p",q);
         q->tail=NULL;
-    }show_queue(q);
+    }//show_queue(q);
     unlock_inside(&q->lock,x);
     return ret;
 }

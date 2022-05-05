@@ -158,6 +158,7 @@ static void kmt_sleep(task_queue * q,int * lock_addr,int nxtstatus){
 }
 
 static int kmt_wakeup(task_queue * q){
+    Log("here!");
     task_t * nxt=task_queue_pop(q);
     if(!nxt) return 1;
     Assert(nxt->lock==1&&nxt->status==TASK_WAITING,"Unexpected task status %s with status %d",nxt->name,nxt->status);
@@ -204,7 +205,7 @@ static void kmt_sem_init(sem_t * sem,const char * name, int value){
 }
 
 static void kmt_sem_wait(sem_t * sem){
-//    Log("here,name=%s",sem->name);
+    Log("here,name=%s",sem->name);
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num--;
@@ -213,7 +214,7 @@ static void kmt_sem_wait(sem_t * sem){
 }
 
 static void kmt_sem_signal(sem_t * sem){
-//    Log("here,name=%s",sem->name);
+    Log("here,name=%s",sem->name);
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num++;//Log("name=%s,left=%d",sem->name,sem->num);

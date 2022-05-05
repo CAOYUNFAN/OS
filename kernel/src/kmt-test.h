@@ -1,9 +1,9 @@
 #ifdef LOCAL
 #include <devices.h>
 void tty_reader(void *arg) {
+  putch('a');
   device_t *tty = dev->lookup(arg);
   char cmd[128], resp[128], ps[16];
-  putch('a');
   snprintf(ps, 16, "(%s) $ ", arg);
   while (1) {
     tty->ops->write(tty, 0, ps, strlen(ps));

@@ -246,7 +246,7 @@ static int tty_read(device_t *dev, int offset, void *buf, int count) {
 
 static int tty_write(device_t *dev, int offset, const void *buf, int count) {
   tty_t *tty = dev->ptr;Log("123");
-  kmt->sem_wait(&tty->lock);
+  kmt->sem_wait(&tty->lock);Log("1234");
   for (int i = 0; i < count; i++) {
     tty_putc(tty, ((const char *)buf)[i]);
   }

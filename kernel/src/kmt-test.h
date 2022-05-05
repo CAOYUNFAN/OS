@@ -12,7 +12,7 @@ void tty_reader(void *arg) {
     tty->ops->write(tty, 0, resp, strlen(resp));
   }
 }
-inline task_t *task_alloc() {
+static inline task_t *task_alloc() {
   return pmm->alloc(sizeof(task_t));
 }
 #endif

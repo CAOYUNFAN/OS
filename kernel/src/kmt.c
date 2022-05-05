@@ -97,7 +97,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current->status=TASK_RUNNING;
 
     current_all[cpu_current()]=current;
-    Log("switch to task %s,%p",current->name,current);
+//    Log("switch to task %s,%p",current->name,current);
     return current->ctx;
 }
 

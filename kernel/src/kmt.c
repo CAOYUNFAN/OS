@@ -33,7 +33,7 @@ static task_queue runnable;
 static inline void task_queue_push(task_queue * q,task_t * task){
     int x=0;
     lock_inside(&q->lock,&x);
-    task->nxt=q->tail;
+    task->nxt=NULL;
     if(q->tail) q->tail->nxt=task;
     else {
         Assert(q->head==NULL,"SHOULD BE NULL %p",q->head);

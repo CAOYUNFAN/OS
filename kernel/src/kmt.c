@@ -219,6 +219,7 @@ static void kmt_sem_signal(sem_t * sem){
     lock_inside(&sem->lock,&i);
     sem->num++;//Log("name=%s,left=%d",sem->name,sem->num);
     kmt_wakeup(&sem->head);
+    Log("here,name=%s",sem->name);
     unlock_inside(&sem->lock,i);
 } 
 

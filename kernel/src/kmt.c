@@ -186,6 +186,7 @@ static void kmt_spin_lock(spinlock_t *lk){
     lock_inside(&lk->lock,&i);
     
     if(lk->used){
+        Log("spinlock name %s:",lk->name);
         kmt_sleep(&lk->head,&lk->lock,0);
         int tt=0;
         lock_inside(&lk->lock,&tt);
@@ -205,7 +206,8 @@ static void kmt_spin_unlock(spinlock_t * lk){
     lock_inside(&lk->lock,&i);
     Assert(i==0,"TASK %s: Interrupt is not closed!",current_all[cpu_current()]->name);
     Assert(lk->used==1,"LOCK %p NOT LOCKED!",lk);
-    if(kmt_wakeup(&lk->head)) lk->used=0; 
+    if(kmt_wakeup(&lk->head)) lk->used=0;
+    else Log("spinlock name %s:",lk->name);
     i=lk->status;
     unlock_inside(&lk->lock,i);
     return;
@@ -222,7 +224,10 @@ static void kmt_sem_wait(sem_t * sem){
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num--;
-    if(sem->num<0) kmt_sleep(&sem->head,&sem->lock,i);
+    if(sem->num<0) {
+        Log("semlock name %s:",sem->name);
+        kmt_sleep(&sem->head,&sem->lock,i);
+    }
     else unlock_inside(&sem->lock,i);
 }
 
@@ -230,7 +235,7 @@ static void kmt_sem_signal(sem_t * sem){
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num++;//Log("name=%s,left=%d",sem->name,sem->num);
-    kmt_wakeup(&sem->head);
+    if(!kmt_wakeup(&sem->head)) Log("semlock name %s",sem->name);
     unlock_inside(&sem->lock,i);
 } 
 

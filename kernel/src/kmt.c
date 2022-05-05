@@ -97,7 +97,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current->status=TASK_RUNNING;
 
     current_all[cpu_current()]=current;
-    Log("switch to task %s,%p",current->name,current);
+//    Log("switch to task %s,%p",current->name,current);
     return current->ctx;
 }
 
@@ -151,7 +151,7 @@ static void kmt_sleep(task_queue * q,int * lock_addr,int nxtstatus){
     Assert(*lock_addr==1,"%s is not keeping lock!",current->name);
     current->status=TASK_WAITING;
     task_queue_push(q,current);
-    Log("Lock task name=%s",current->name);
+//    Log("Lock task name=%s",current->name);
     unlock_inside(lock_addr,nxtstatus);
     yield();
     Assert(current->status==TASK_RUNNING,"Unexpected task status %s with status %d",current->name,current->status);
@@ -163,7 +163,7 @@ static int kmt_wakeup(task_queue * q){
     if(!nxt) return 1;
     Assert(nxt->status==TASK_WAITING,"Unexpected task status %s with status %d",nxt->name,nxt->status);
     nxt->status=TASK_RUNABLE;
-    Log("Free task name=%s",nxt->name);
+//    Log("Free task name=%s",nxt->name);
     task_queue_push(&runnable,nxt);
     return 0;
 }

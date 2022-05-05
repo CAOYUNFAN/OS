@@ -197,7 +197,7 @@ static void welcome(device_t *dev) {
   dev->ops->write(dev, 0, welcome_text, sizeof(welcome_text) - 1);
 }
 
-static int tty_init(device_t *ttydev) {
+static int tty_init(device_t *ttydev) {assert(ttydev);
   tty_t *tty = ttydev->ptr;
   tty->fbdev = dev->lookup("fb");
   fb_t *fb = tty->fbdev->ptr;

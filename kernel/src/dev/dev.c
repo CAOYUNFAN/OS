@@ -36,7 +36,7 @@ void dev_tty_task();
 static void dev_init() {
 #define INIT(id, device_type, dev_name, dev_id, dev_ops) \
   devices[id] = dev_create(sizeof(device_type), dev_name, dev_id, dev_ops); \
-  devices[id]->ops->init(devices[id]);Log("%d",id);
+  devices[id]->ops->init(devices[id]);
 
   DEVICES(INIT);
 

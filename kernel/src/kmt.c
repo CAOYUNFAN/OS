@@ -150,7 +150,7 @@ static void kmt_teardown(task_t * task){
     free(task->stack);
 }
 
-static void kmt_spin_init(spinlock_t *lk, const char * name){Log("building %s",name);
+static void kmt_spin_init(spinlock_t *lk, const char * name){//Log("building %s",name);
     task_queue_init(&lk->head);lk->used=lk->lock=lk->status=0;
     #ifdef LOCAL
     lk->name=name;
@@ -213,7 +213,7 @@ static void kmt_spin_unlock(spinlock_t * lk){
     return;
 }
 
-static void kmt_sem_init(sem_t * sem,const char * name, int value){Log("building %s",name);
+static void kmt_sem_init(sem_t * sem,const char * name, int value){//Log("building %s",name);
     sem->num=value;sem->lock=0;task_queue_init(&sem->head);
     #ifdef LOCAL
     sem->name=name;
@@ -222,9 +222,9 @@ static void kmt_sem_init(sem_t * sem,const char * name, int value){Log("building
 
 static void kmt_sem_wait(sem_t * sem){
     int i=0;
-    Log("Wait name %s",sem->name);
     lock_inside(&sem->lock,&i);
     sem->num--;
+    Log("Wait name %s,num=%d",sem->name,sem->num);
     if(strcmp(sem->name,"tty cooked lines")==0) Log("WAIT %d",sem->num);
 
     if(sem->num<0) {
@@ -236,9 +236,9 @@ static void kmt_sem_wait(sem_t * sem){
 
 static void kmt_sem_signal(sem_t * sem){
     int i=0;
-    Log("Sign name %s",sem->name);
     lock_inside(&sem->lock,&i);
-    sem->num++;//Log("name=%s,left=%d",sem->name,sem->num);
+    sem->num++;
+    Log("Sign name %s,num=%d",sem->name,sem->num);
     if(strcmp(sem->name,"tty cooked lines")==0) Log("SIGN %d",sem->num);
     if(!kmt_wakeup(&sem->head)) Log("                                          SEM_FREE:semlock name %s",sem->name);
     unlock_inside(&sem->lock,i);

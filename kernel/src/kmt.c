@@ -150,7 +150,7 @@ static void kmt_teardown(task_t * task){
     free(task->stack);
 }
 
-static void kmt_spin_init(spinlock_t *lk, const char * name){
+static void kmt_spin_init(spinlock_t *lk, const char * name){Log("building%s",name);
     task_queue_init(&lk->head);lk->used=lk->lock=lk->status=0;
     #ifdef LOCAL
     lk->name=name;
@@ -213,7 +213,7 @@ static void kmt_spin_unlock(spinlock_t * lk){
     return;
 }
 
-static void kmt_sem_init(sem_t * sem,const char * name, int value){
+static void kmt_sem_init(sem_t * sem,const char * name, int value){Log("building%s",name);
     sem->num=value;sem->lock=0;task_queue_init(&sem->head);
     #ifdef LOCAL
     sem->name=name;

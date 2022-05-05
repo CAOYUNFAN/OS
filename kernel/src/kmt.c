@@ -101,7 +101,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 
     current=task_queue_pop(&runnable);
     while (!current||current->status!=TASK_RUNABLE){
-        //if(!current) Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
+        if(!current) Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
         current=task_queue_pop(&runnable);
     };
     lock_inside_ker(&current->lock);

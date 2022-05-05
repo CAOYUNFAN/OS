@@ -225,7 +225,6 @@ static void kmt_sem_wait(sem_t * sem){
     lock_inside(&sem->lock,&i);
     sem->num--;
     Log("Wait name %s,num=%d",sem->name,sem->num);
-    if(strcmp(sem->name,"tty cooked lines")==0) Log("WAIT %d",sem->num);
 
     if(sem->num<0) {
         Log("                                          SEM_LOCK:semlock name %s:",sem->name);
@@ -239,8 +238,10 @@ static void kmt_sem_signal(sem_t * sem){
     lock_inside(&sem->lock,&i);
     sem->num++;
     Log("Sign name %s,num=%d",sem->name,sem->num);
-    if(strcmp(sem->name,"tty cooked lines")==0) Log("SIGN %d",sem->num);
-    if(!kmt_wakeup(&sem->head)) Log("                                          SEM_FREE:semlock name %s",sem->name);
+    if(!kmt_wakeup(&sem->head)) {
+        Log("                                          SEM_FREE:semlock name %s",sem->name);
+        Assert(sem->num<=0,"%d SHOULD BELOW ZERO!",sem->num);
+    }else Assert(sem->num>0,"%d SHOULD ABOVE ZERO!",sem->num);
     unlock_inside(&sem->lock,i);
 } 
 

@@ -17,6 +17,7 @@ static void os_init() {
   kmt->init();
 
   #ifdef LOCAL
+  dev->init();
   static char ch1[5][20],ch2[5][20];
   kmt->sem_init(&empty, "empty", 5);  // 缓冲区大小为 5
   kmt->sem_init(&fill,  "fill",  0);

@@ -48,8 +48,8 @@ static inline task_t * task_queue_pop(task_queue * q){
     task_t * ret;
     lock_inside(&q->lock,&x);
     ret=q->head;
-    q->head=q->head->nxt;
-    if(!q->head->nxt){
+    if(q->head) q->head=q->head->nxt;
+    if(!q->head){
         Assert(q->tail==ret,"Wrong queue %p",q);
         q->tail=NULL;
     }

@@ -30,6 +30,13 @@ static inline void task_queue_init(task_queue * q){
 }
 static task_queue runnable;
 
+void show_queue(task_queue * q){
+    for(task_t * temp=q->head;temp;temp=temp->nxt){
+        if(temp==q->tail) Log("TAIL:%s",temp->name);
+        else Log("SIMPLE:%s",temp->name);
+    }
+}
+
 static inline void task_queue_push(task_queue * q,task_t * task){
     int x=0;
     lock_inside(&q->lock,&x);
@@ -39,7 +46,7 @@ static inline void task_queue_push(task_queue * q,task_t * task){
         Assert(q->head==NULL,"SHOULD BE NULL %p",q->head);
         q->head=task;
     }
-    q->tail=task;
+    q->tail=task;show_queue(q);
     unlock_inside(&q->lock,x);
     return;
 }
@@ -52,7 +59,7 @@ static inline task_t * task_queue_pop(task_queue * q){
     if(!q->head){
         Assert(q->tail==ret,"Wrong queue %p",q);
         q->tail=NULL;
-    }
+    }show_queue(q);
     unlock_inside(&q->lock,x);
     return ret;
 }

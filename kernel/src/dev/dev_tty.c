@@ -218,7 +218,7 @@ static int tty_init(device_t *ttydev) {
   q->front = q->rear = q->buf = pmm->alloc(TTY_COOK_BUF_SZ);
   q->end = q->buf + TTY_COOK_BUF_SZ;
   kmt->sem_init(&tty->lock, "tty lock", 1);
-  kmt->sem_init(&tty->cooked, "tty cooked lines", 0);
+  kmt->sem_init(&tty->cooked, "tty cooked lines", 0);Log("!!!");
   welcome(ttydev);
   return 0;
 }

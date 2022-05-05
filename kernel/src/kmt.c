@@ -145,6 +145,7 @@ static void kmt_spin_init(spinlock_t *lk, const char * name){
 }
 
 static void kmt_sleep(task_queue * q,int * lock_addr,int nxtstatus){
+    Log("here!");
     task_t * current=current_all[cpu_current()];
     Assert(current&&current->lock&&current->status==TASK_RUNNING,"current %s is not running correctly!",current->name);
     Assert(*lock_addr==1,"%s is not keeping lock!",current->name);

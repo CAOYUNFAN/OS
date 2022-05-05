@@ -56,7 +56,7 @@ static Context * os_trap(Event ev, Context * context){
 //  Log("CPU%d:%d",cpu_current(),ev.event);
   for (event_local_t *h=start;h;h=h->nxt) {
     if (h->event == EVENT_NULL || h->event == ev.event) {
-      Log("In function %p",h->handler);
+//      Log("In function %p",h->handler);
       Context *r = h->handler(ev, context);
       panic_on(r && next, "returning multiple contexts");
       if (r) next = r;

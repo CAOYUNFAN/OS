@@ -60,7 +60,7 @@ static inline task_t * task_queue_pop(task_queue * q){
 static Context * kmt_context_save(Event ev,Context * ctx){
 //    Log("save_context!");
     task_t * current=current_all[cpu_current()];
-    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %s SHOULD NOT be RUNNABLE!",current->status,current->name);
+//    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %s SHOULD NOT be RUNNABLE!",current->status,current->name);
     if(current) current->ctx=ctx;
 //    Log("%p %p",current,ctx);
     return NULL;

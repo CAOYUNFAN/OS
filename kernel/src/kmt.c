@@ -222,6 +222,7 @@ static void kmt_sem_init(sem_t * sem,const char * name, int value){
 
 static void kmt_sem_wait(sem_t * sem){
     int i=0;
+    Log("Wait name %s",sem->name);
     lock_inside(&sem->lock,&i);
     sem->num--;
     if(strcmp(sem->name,"tty cooked lines")==0) Log("WAIT %d",sem->num);
@@ -235,6 +236,7 @@ static void kmt_sem_wait(sem_t * sem){
 
 static void kmt_sem_signal(sem_t * sem){
     int i=0;
+    Log("Sign name %s",sem->name);
     lock_inside(&sem->lock,&i);
     sem->num++;//Log("name=%s,left=%d",sem->name,sem->num);
     if(strcmp(sem->name,"tty cooked lines")==0) Log("SIGN %d",sem->num);

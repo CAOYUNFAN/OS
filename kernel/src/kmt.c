@@ -23,46 +23,38 @@ static inline void unlock_inside(int * addr,int status){
 
 static task_t * current_all[8]={};
 
-static inline void init_list(list_head * list){
-    list->head=NULL;list->lock=0;
+static inline void task_queue_init(task_queue * q){
+    q->head=q->tail=NULL;
+    q->lock=0;
     return;
 }
-static list_head runnable;
+static task_queue runnable;
 
-static inline void add_list(list_head * list,task_t * task){
+static inline void task_queue_push(task_queue * q,task_t * task){
     int x=0;
-    lock_inside(&list->lock,&x);
-    if(!list->head){
-        list->head=task;task->pre=task->nxt=task;
-    }else{
-        task->pre=list->head->pre;task->pre->nxt=task;
-        task->nxt=list->head;list->head->pre=task;
+    lock_inside(&q->lock,&x);
+    task->nxt=q->tail;
+    if(q->tail) q->tail->nxt=task;
+    else {
+        Assert(q->head==NULL,"SHOULD BE NULL %p",q->head);
+        q->head=task;
     }
-    unlock_inside(&list->lock,x);
+    q->tail=task;
+    unlock_inside(&q->lock,x);
     return;
 }
-static inline void del_core(list_head * list,task_t * task){
-    Assert(list->head&&task,"SHOULD NOT BE NULL! head=%p,task=%p",list->head,task);
-    if(list->head==task) {
-        if(list->head==task->nxt) list->head=NULL;
-        else list->head=task->nxt;
+static inline task_t * task_queue_pop(task_queue * q){
+    int x=0;
+    task_t * ret;
+    lock_inside(&q->lock,&x);
+    ret=q->head;
+    q->head=q->head->nxt;
+    if(!q->head->nxt){
+        Assert(q->tail==ret,"Wrong queue %p",q);
+        q->tail=NULL;
     }
-    task->nxt->pre=task->pre;task->pre->nxt=task->nxt;
-}
-static inline void del_list(list_head * list,task_t * task){
-    int x=0;
-    lock_inside(&list->lock,&x);
-    del_core(list,task);
-    unlock_inside(&list->lock,x);
-    return;
-}
-static inline task_t * del_list2(list_head * list){
-    int x=0;
-    lock_inside(&list->lock,&x);
-    task_t * task=list->head;
-    if(task) del_core(list,task);
-    unlock_inside(&list->lock,x);
-    return task;
+    unlock_inside(&q->lock,x);
+    return ret;
 }
 
 static Context * kmt_context_save(Event ev,Context * ctx){
@@ -84,19 +76,19 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 #ifdef LOCAL
     if(ev.event==EVENT_IRQ_TIMER) return ctx;
 #endif
+    if(current&&current->status==TASK_RUNNING){
+        current->status=TASK_RUNABLE;
+        task_queue_push(&runnable,current);
+    }
     if(current) {
         Assert(current->lock==1,"Unexpected lock status %d with name %s!",current->lock,current->name);
         unlock_inside_ker(&current->lock);
     }
-    if(current&&current->status==TASK_RUNNING){
-        current->status=TASK_RUNABLE;
-        add_list(&runnable,current);
-    }
 
-    current=del_list2(&runnable);
-    while (!current){
-        Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
-        current=del_list2(&runnable);
+    current=task_queue_pop(&runnable);
+    while (!current||current->status!=TASK_RUNABLE){
+        if(!current) Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
+        current=task_queue_pop(&runnable);
     };
     lock_inside_ker(&current->lock);
     Assert(current,"CPU%d:Current is NULL!",cpu_current());
@@ -113,7 +105,7 @@ static void kmt_init(){
     #  define INT_MAX	2147483647
     os->on_irq(INT_MIN,EVENT_NULL,kmt_context_save);
     os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
-    init_list(&runnable);
+    task_queue_init(&runnable);
 
     #ifdef LOCAL
 //    kmt->create(task_alloc(), "tty_reader", tty_reader, "tty1");
@@ -133,24 +125,44 @@ static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg
     task->name=name;
     #endif
 //    Log("Task %s is added to %p",name,task);
-    add_list(&runnable,task);
+    task_queue_push(&runnable,task);
     return 0;
 }
 
 static void kmt_teardown(task_t * task){
     pmm->free(task->stack);
     Assert(task->status==TASK_RUNABLE||task->status==TASK_RUNNING,"task %p is blocked!\n",task);
-    if(task->status==TASK_RUNABLE) del_list(&runnable,task);
     task->status=TASK_DEAD;
     free(task->stack);
 }
 
 static void kmt_spin_init(spinlock_t *lk, const char * name){
-    init_list(&lk->head);lk->used=lk->lock=lk->status=0;
+    task_queue_init(&lk->head);lk->used=lk->lock=lk->status=0;
     #ifdef LOCAL
     lk->name=name;
     #endif
     return;
+}
+
+static void kmt_sleep(task_queue * q,int * lock_addr,int nxtstatus){
+    task_t * current=current_all[cpu_current()];
+    Assert(current&&current->lock&&current->status==TASK_RUNNING,"current %s is not running correctly!",current->name);
+    Assert(*lock_addr==1,"%s is not keeping lock!",current->name);
+    current->status=TASK_WAITING;
+    task_queue_push(q,current);
+    unlock_inside(lock_addr,nxtstatus);
+    yield();
+    Assert(current->status==TASK_RUNNING,"Unexpected task status %s with status %d",current->name,current->status);
+    return;
+}
+
+static int kmt_wakeup(task_queue * q){
+    task_t * nxt=task_queue_pop(q);
+    if(!nxt) return 1;
+    Assert(nxt->lock==1&&nxt->status==TASK_WAITING,"Unexpected task status %s with status %d",nxt->name,nxt->status);
+    nxt->status=TASK_RUNABLE;
+    task_queue_push(q,nxt);
+    return 0;
 }
 
 static void kmt_spin_lock(spinlock_t *lk){
@@ -158,14 +170,12 @@ static void kmt_spin_lock(spinlock_t *lk){
     lock_inside(&lk->lock,&i);
     
     if(lk->used){
-        task_t * current=current_all[cpu_current()];
-        Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
-        current->status=TASK_WAITING;
-        add_list(&lk->head,current);
-        unlock_inside(&lk->lock,0);
-        yield();
-        Assert(current->status==TASK_RUNNING,"Unexpected task status %d\n",current->status);
+        kmt_sleep(&lk->head,&lk->lock,0);
+        int tt=0;
+        lock_inside(&lk->lock,&tt);
+        Assert(tt==0,"%d should be zero!",tt);
         lk->status=i;
+        unlock_inside(&lk->lock,0);
     }else{
         lk->used=1;
         unlock_inside(&lk->lock,0);
@@ -179,22 +189,14 @@ static void kmt_spin_unlock(spinlock_t * lk){
     lock_inside(&lk->lock,&i);
     Assert(i==0,"TASK %s: Interrupt is not closed!",current_all[cpu_current()]->name);
     Assert(lk->used==1,"LOCK %p NOT LOCKED!",lk);
-    task_t * next=del_list2(&lk->head);
-    if(next==NULL) lk->used=0;
-    else{
-        Assert(next->status==TASK_WAITING,"Unexpected status %p,%d",next,next->status);
-        lock_inside_ker(&next->lock);
-        next->status=TASK_RUNABLE;
-        add_list(&runnable,next);
-        unlock_inside_ker(&next->lock);
-    }
+    if(kmt_wakeup(&lk->head)) lk->used=0; 
     i=lk->status;
     unlock_inside(&lk->lock,i);
     return;
 }
 
 static void kmt_sem_init(sem_t * sem,const char * name, int value){
-    sem->num=value;sem->lock=0;init_list(&sem->head);
+    sem->num=value;sem->lock=0;task_queue_init(&sem->head);
     #ifdef LOCAL
     sem->name=name;
     #endif
@@ -205,32 +207,16 @@ static void kmt_sem_wait(sem_t * sem){
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num--;
-    if(sem->num<0){
-        task_t * current=current_all[cpu_current()];
-        Assert(current->status==TASK_RUNNING,"Unexpected task %s status %d\n",current->name,current->status);
-        current->status=TASK_WAITING;
-        Log("semlock-%s:task-%s is waiting!",sem->name,current->name);
-        add_list(&sem->head,current);
-        unlock_inside(&sem->lock,i);
-        yield();
-        Assert(current->status==TASK_RUNNING,"Unexpected task %s status %d",current->name,current->status);
-    }else unlock_inside(&sem->lock,i);
+    if(sem->num<0) kmt_sleep(&sem->head,&sem->lock,i);
+    else unlock_inside(&sem->lock,i);
 }
 
 static void kmt_sem_signal(sem_t * sem){
 //    Log("here,name=%s",sem->name);
     int i=0;
     lock_inside(&sem->lock,&i);
-    task_t * next=del_list2(&sem->head);
     sem->num++;//Log("name=%s,left=%d",sem->name,sem->num);
-    if(next){
-        Assert(next->status==TASK_WAITING,"Unexpected task %s status %d",next->status,next->status);
-        lock_inside_ker(&next->lock);
-        Log("semlock-%s:task-%s is freed!",sem->name,next->name);
-        next->status=TASK_RUNABLE;
-        add_list(&runnable,next);
-        unlock_inside_ker(&next->lock);
-    }
+    kmt_wakeup(&sem->head);
     unlock_inside(&sem->lock,i);
 } 
 

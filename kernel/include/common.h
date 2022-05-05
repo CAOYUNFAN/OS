@@ -31,7 +31,7 @@ enum task_status{
 
 struct task {
   int status,lock;
-  struct task * nxt, * pre;
+  struct task * nxt;
   Context * ctx;
   void * stack;
   NAME
@@ -39,18 +39,19 @@ struct task {
 
 typedef struct{
   struct task * head;
+  struct task * tail;
   int lock;
-}list_head;
+}task_queue;
 
 struct spinlock {
   int lock,used;
-  list_head head;
+  task_queue head;
   int status;
   NAME
 };
 
 struct semaphore {
   int lock,num;
-  list_head head;
+  task_queue head;
   NAME
 };

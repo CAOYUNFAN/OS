@@ -22,11 +22,11 @@ static void os_init() {
   kmt->sem_init(&fill,  "fill",  0);
   for (int i = 0; i < 2; i++){
     sprintf(ch1[i],"producer-%d",i);
-    kmt->create(task_alloc(), ch1[i], producer, NULL);
+//    kmt->create(task_alloc(), ch1[i], producer, NULL);
   } // 4 个生产者
   for (int i = 0; i < 2; i++){
     sprintf(ch2[i],"consumer-%d",i);
-    kmt->create(task_alloc(), ch2[i], consumer, NULL);
+//    kmt->create(task_alloc(), ch2[i], consumer, NULL);
   } // 5 个消费者
   #endif
 }

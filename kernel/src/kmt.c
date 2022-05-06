@@ -176,7 +176,7 @@ static void kmt_sleep(task_queue * q,int * lock_addr,int nxtstatus){
     Assert(*lock_addr==1,"%s is not keeping lock!",current->name);
     current->status=TASK_WAITING;
     task_queue_push(q,current);
-    Log("                                          Lock task name=%s",current->name);
+//    Log("                                          Lock task name=%s",current->name);
     unlock_inside(lock_addr,nxtstatus);
     yield();
     Assert(current->status==TASK_RUNNING,"Unexpected task status %s with status %d",current->name,current->status);
@@ -188,7 +188,7 @@ static int kmt_wakeup(task_queue * q){
     if(!nxt) return 1;
     Assert(nxt->status==TASK_WAITING,"Unexpected task status %s with status %d",nxt->name,nxt->status);
     nxt->status=TASK_RUNABLE;
-    Log("                                          Free task name=%s",nxt->name);
+//    Log("                                          Free task name=%s",nxt->name);
     task_queue_push(&runnable,nxt);
     return 0;
 }
@@ -198,7 +198,7 @@ static void kmt_spin_lock(spinlock_t *lk){
     lock_inside(&lk->lock,&i);
     
     if(lk->used){
-        Log("                                          LK_LOCK:spinlock name %s:",lk->name);
+//        Log("                                          LK_LOCK:spinlock name %s:",lk->name);
         kmt_sleep(&lk->head,&lk->lock,0);
         int tt=0;
         lock_inside(&lk->lock,&tt);
@@ -216,10 +216,12 @@ static void kmt_spin_lock(spinlock_t *lk){
 static void kmt_spin_unlock(spinlock_t * lk){
     int i=0;
     lock_inside(&lk->lock,&i);
-    Assert(i==0,"                                          TASK %s: Interrupt is not closed!",current_all[cpu_current()]->name);
+    Assert(i==0,"TASK %s: Interrupt is not closed!",current_all[cpu_current()]->name);
     Assert(lk->used==1,"LOCK %p NOT LOCKED!",lk);
     if(kmt_wakeup(&lk->head)) lk->used=0;
-    else Log("                                          LK_FREE:spinlock name %s:",lk->name);
+    else{
+//        Log("                                          LK_FREE:spinlock name %s:",lk->name);
+    } 
     i=lk->status;
     unlock_inside(&lk->lock,i);
     return;
@@ -236,10 +238,10 @@ static void kmt_sem_wait(sem_t * sem){
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num--;
-    Log("Wait name %s,num=%d",sem->name,sem->num);
+//    Log("Wait name %s,num=%d",sem->name,sem->num);
 
     if(sem->num<0) {
-        Log("                                          SEM_LOCK:semlock name %s:",sem->name);
+//        Log("                                          SEM_LOCK:semlock name %s:",sem->name);
         kmt_sleep(&sem->head,&sem->lock,i);
     }
     else unlock_inside(&sem->lock,i);
@@ -249,9 +251,9 @@ static void kmt_sem_signal(sem_t * sem){
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num++;
-    Log("Sign name %s,num=%d",sem->name,sem->num);
+//    Log("Sign name %s,num=%d",sem->name,sem->num);
     if(!kmt_wakeup(&sem->head)) {
-        Log("                                          SEM_FREE:semlock name %s",sem->name);
+//        Log("                                          SEM_FREE:semlock name %s",sem->name);
         Assert(sem->num<=0,"%d SHOULD BELOW ZERO!",sem->num);
     }else Assert(sem->num>0,"%d SHOULD ABOVE ZERO!",sem->num);
     unlock_inside(&sem->lock,i);

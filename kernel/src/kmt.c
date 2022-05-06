@@ -22,6 +22,7 @@ static inline void unlock_inside(int * addr,int status){
 }
 
 static task_t * current_all[8]={};
+static task_t * previous_all[8]={};
 
 /*
 #ifdef LOCAL
@@ -76,6 +77,13 @@ static Context * kmt_context_save(Event ev,Context * ctx){
 //    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %s SHOULD NOT be RUNNABLE!",current->status,current->name);
     if(current) current->ctx=ctx;
 //    Log("%p %p",current,ctx);
+    task_t * previous=previous_all[cpu_current()];
+    if(previous){
+        Assert(previous->lock==1,"previos %s should be locked!",previous->name);
+        Assert(previous!=current,"previous %s is the same as current!",previous->name);
+        unlock_inside_ker(&previous->lock);
+        previous_all[cpu_current()]=NULL;
+    } 
     return NULL;
 }
 
@@ -95,18 +103,22 @@ static Context * kmt_schedule(Event ev,Context * ctx){
         task_queue_push(&runnable,current);
     }
     if(current) {
+        Assert(previous_all[cpu_current()]==NULL,"previous %s has not been emptied!",previous_all[cpu_current()]->name);
         Assert(current->lock==1,"Unexpected lock status %d with name %s!",current->lock,current->name);
-        unlock_inside_ker(&current->lock);
+        previous_all[cpu_current()]=current;
     }
 
+    task_t * pre=current;
     current=task_queue_pop(&runnable);
-    while (!current||current->status!=TASK_RUNABLE){
+    while (!current||current->status!=TASK_RUNABLE||(pre!=current&&atomic_xchg(&current->lock,1))){
         //if(!current) Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
+        Assert(current==NULL||current->status==TASK_RUNABLE||current->status==TASK_DEAD,"%s unexpected status %d",current->name,current->status);
+        if(current&&current->status==TASK_RUNABLE&&pre!=current) task_queue_push(&runnable,current);
         current=task_queue_pop(&runnable);
     };
-    lock_inside_ker(&current->lock);
     Assert(current,"CPU%d:Current is NULL!",cpu_current());
     Assert(current->status==TASK_RUNABLE,"CPU%d: Unexpected status %d",current->status);
+    if(current==pre) previous_all[cpu_current()]=NULL;
     current->status=TASK_RUNNING;
 
     current_all[cpu_current()]=current;
@@ -122,8 +134,8 @@ static void kmt_init(){
     task_queue_init(&runnable);
 
     #ifdef LOCAL
-    kmt->create(task_alloc(), "tty_reader1", tty_reader, "tty1");
-    kmt->create(task_alloc(), "tty_reader2", tty_reader, "tty2");
+//    kmt->create(task_alloc(), "tty_reader1", tty_reader, "tty1");
+//    kmt->create(task_alloc(), "tty_reader2", tty_reader, "tty2");
     #endif
 }
 

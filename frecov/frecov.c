@@ -44,6 +44,9 @@ struct fat32hdr {
   u16 Signature_word;
 } __attribute__((packed));
 
+void * start_of_file=NULL;
+#define OFFSET( byte , type ) ( ( type * ) ( ( ( u8 * ) start_of_file )+( byte ) ) )
+#define OFFSET2( byte ) OFFSET( byte , void )
 
 void *map_disk(const char *fname);
 
@@ -58,8 +61,9 @@ int main(int argc, char *argv[]) {
   assert(sizeof(struct fat32hdr) == 512); // defensive
 
   // map disk image to memory
-  struct fat32hdr *hdr = map_disk(argv[1]);
-
+  start_of_file = map_disk(argv[1]);
+  struct fat32hdr *hdr = OFFSET(0, struct fat32hdr);
+  printf("%u %u\n",hdr->BPB_BytsPerSec,hdr->BPB_RsvdSecCnt);
   // TODO: frecov
 
   // file system traversal

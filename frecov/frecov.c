@@ -68,7 +68,7 @@ struct _lnameStrct{
   u8 LDIR_Chksum;
   u8 LDIR_Name2[12];
   u16 LDIR_FstClusLO;
-  u8 LDIR_FstClusLO[4]; 
+  u8 LDIR_Name3[4]; 
 }__attribute__((packed));
 typedef struct _lnameStrct lnameStrct;
 

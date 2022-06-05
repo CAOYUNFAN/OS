@@ -89,6 +89,12 @@ void * start_of_file=NULL, * start_of_FAT=NULL,* start_of_data=NULL;
 #define OFFSET_DATA_NUM(num,bytepernum) OFFSET_BASIC_NUM(num,bytepernum,start_of_data)
 #define OFFSET_DATA_NUM_TYPE(num,bytepernum,type) OFFSET_BASIC_NUM_TYPE(num,bytepernum,start_of_data,type)
 
+#ifdef LOCAL
+  #define DEBUG(...) __VA_ARGS__
+#else
+  #define DEBUG(...) ((void)0);
+#endif
+
 struct fat32hdr * hdr;
 int bytsperclus,bytspersec;
 
@@ -145,7 +151,7 @@ inline static void parse_args(int argc,char * argv[]){
 
   start_of_FAT = OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt,bytspersec);
   start_of_data =OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt+hdr->BPB_FATSz32*hdr->BPB_NumFATs,bytspersec);
-//  printf("%u %u\n",hdr->BPB_BytsPerSec,hdr->BPB_RsvdSecCnt);
+  DEBUG(printf("%p %p\n",start_of_file,start_of_data);)
 }
 
 int main(int argc, char *argv[]) {

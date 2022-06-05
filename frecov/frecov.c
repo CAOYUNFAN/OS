@@ -151,7 +151,8 @@ inline static void parse_args(int argc,char * argv[]){
 
   start_of_FAT = OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt,bytspersec);
   start_of_data =OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt+hdr->BPB_FATSz32*hdr->BPB_NumFATs,bytspersec);
-  DEBUG(printf("%p %p\n",start_of_file,start_of_data);)
+  DEBUG(printf("file:%p data:%p\n",start_of_file,start_of_data);)
+  DEBUG(printf("BytesPerSec:%d,BytesPerCluster:%d\n",bytspersec,bytsperclus);)
 }
 
 int main(int argc, char *argv[]) {

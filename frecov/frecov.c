@@ -138,7 +138,7 @@ inline static void parse_args(int argc,char * argv[]){
   assert(sizeof(lnameStrct)==32);
 
   start_of_file = map_disk(argv[1]);
-  struct fat32hdr *hdr = OFFSET_FILE_TYPE(0, struct fat32hdr *);
+  hdr = OFFSET_FILE_TYPE(0, struct fat32hdr *);
 
   bytspersec=hdr->BPB_BytsPerSec;
   bytsperclus=hdr->BPB_SecPerClus*bytspersec;

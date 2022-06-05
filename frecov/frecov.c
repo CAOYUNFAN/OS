@@ -44,9 +44,21 @@ struct fat32hdr {
   u16 Signature_word;
 } __attribute__((packed));
 
-void * start_of_file=NULL;
-#define OFFSET( byte , type ) ( ( type * ) ( ( ( u8 * ) start_of_file )+( byte ) ) )
-#define OFFSET2( byte ) OFFSET( byte , void )
+void * start_of_file=NULL, * start_of_FAT=NULL,* start_of_data=NULL;
+#define OFFSET_BASIC(byte,start) ((void *)(((u8 *)start)+byte))
+#define OFFSET_BASIC_TYPE(byte,start,type) ((type)OFFSET_BASIC(byte,start))
+#define OFFSET_BASIC_NUM(num,bytepernum,start) OFFSET_BASIC((num)*(bytepernum),start)
+#define OFFSET_BASIC_NUM_TYPE(num,bytepernum,start,type) OFFSET_BASIC_TYPE((num)*(bytepernum),start,type)
+
+#define OFFSET_FILE(byte) OFFSET_BASIC(byte,start_of_file)
+#define OFFSET_FILE_TYPE(byte,type) OFFSET_BASIC_TYPE(byte,start_of_file,type)
+#define OFFSET_FILE_NUM(num,bytepernum) OFFSET_BASIC_NUM(num,bytepernum,start_of_file)
+#define OFFSET_FILE_NUM_TYPE(num,bytepernum,type) OFFSET_BASIC_NUM_TYPE(num,bytepernum,start_of_file,type)
+
+#define OFFSET_DATA(byte) OFFSET_BASIC(byte,start_of_data)
+#define OFFSET_DATA_TYPE(byte,type) OFFSET_BASIC_TYPE(byte,start_of_data,type)
+#define OFFSET_DATA_NUM(num,bytepernum) OFFSET_BASIC_NUM(num,bytepernum,start_of_data)
+#define OFFSET_DATA_NUM_TYPE(num,bytepernum,type) OFFSET_BASIC_NUM_TYPE(num,bytepernum,start_of_data,type)
 
 void *map_disk(const char *fname);
 
@@ -62,12 +74,14 @@ int main(int argc, char *argv[]) {
 
   // map disk image to memory
   start_of_file = map_disk(argv[1]);
-  struct fat32hdr *hdr = OFFSET(0, struct fat32hdr);
+  struct fat32hdr *hdr = OFFSET_FILE_TYPE(0, struct fat32hdr *);
+  start_of_FAT = OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt,hdr->BPB_BytsPerSec);
+  start_of_data =OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt+hdr->BPB_FATSz32*hdr->BPB_NumFATs,hdr->BPB_BytsPerSec);
   printf("%u %u\n",hdr->BPB_BytsPerSec,hdr->BPB_RsvdSecCnt);
   // TODO: frecov
 
   // file system traversal
-  munmap(hdr, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);
+  munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);
 }
 
 void *map_disk(const char *fname) {

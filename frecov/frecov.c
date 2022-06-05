@@ -44,6 +44,35 @@ struct fat32hdr {
   u16 Signature_word;
 } __attribute__((packed));
 
+struct _dirStrct{
+  u8 DIR_name[11];
+  u8 DIR_Attr;
+  u8 DIR_NTRes;
+  u8 DIR_CrtTimeTenth;
+  u16 DIR_CrtTime;
+  u16 DIR_CrtDate;
+  u16 DIR_LstAccDate;
+  u16 DIR_FstClusHI;
+  u16 DIR_WrtTime;
+  u16 DIR_WrtDate;
+  u16 DIR_FstClusLO;
+  u32 DIR_FileSize;
+}__attribute__((packed));
+typedef struct _dirStrct dirStrct;
+
+struct _lnameStrct{
+  u8 LDIR_Ord;
+  u8 LDIR_Name1[10];
+  u8 LDIR_Attr;
+  u8 LDIR_Type;
+  u8 LDIR_Chksum;
+  u8 LDIR_Name2[12];
+  u16 LDIR_FstClusLO;
+  u8 LDIR_FstClusLO[4]; 
+}__attribute__((packed));
+typedef struct _lnameStrct lnameStrct;
+
+
 void * start_of_file=NULL, * start_of_FAT=NULL,* start_of_data=NULL;
 #define OFFSET_BASIC(byte,start) ((void *)(((u8 *)start)+byte))
 #define OFFSET_BASIC_TYPE(byte,start,type) ((type)OFFSET_BASIC(byte,start))
@@ -60,29 +89,8 @@ void * start_of_file=NULL, * start_of_FAT=NULL,* start_of_data=NULL;
 #define OFFSET_DATA_NUM(num,bytepernum) OFFSET_BASIC_NUM(num,bytepernum,start_of_data)
 #define OFFSET_DATA_NUM_TYPE(num,bytepernum,type) OFFSET_BASIC_NUM_TYPE(num,bytepernum,start_of_data,type)
 
-void *map_disk(const char *fname);
-
-int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    fprintf(stderr, "Usage: %s fs-image\n", argv[0]);
-    exit(1);
-  }
-
-  setbuf(stdout, NULL);
-
-  assert(sizeof(struct fat32hdr) == 512); // defensive
-
-  // map disk image to memory
-  start_of_file = map_disk(argv[1]);
-  struct fat32hdr *hdr = OFFSET_FILE_TYPE(0, struct fat32hdr *);
-  start_of_FAT = OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt,hdr->BPB_BytsPerSec);
-  start_of_data =OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt+hdr->BPB_FATSz32*hdr->BPB_NumFATs,hdr->BPB_BytsPerSec);
-  printf("%u %u\n",hdr->BPB_BytsPerSec,hdr->BPB_RsvdSecCnt);
-  // TODO: frecov
-
-  // file system traversal
-  munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);
-}
+struct fat32hdr * hdr;
+int bytsperclus,bytspersec;
 
 void *map_disk(const char *fname) {
   int fd = open(fname, O_RDWR);
@@ -117,4 +125,33 @@ release:
     close(fd);
   }
   exit(1);
+}
+
+inline static void parse_args(int argc,char * argv[]){
+  if (argc < 2) {
+    fprintf(stderr, "Usage: %s fs-image\n", argv[0]);
+    exit(1);
+  }
+  setbuf(stdout, NULL);
+  assert(sizeof(struct fat32hdr) == 512);
+  assert(sizeof(dirStrct)==32);
+  assert(sizeof(lnameStrct)==32);
+
+  start_of_file = map_disk(argv[1]);
+  struct fat32hdr *hdr = OFFSET_FILE_TYPE(0, struct fat32hdr *);
+
+  bytspersec=hdr->BPB_BytsPerSec;
+  bytsperclus=hdr->BPB_SecPerClus*bytspersec;
+
+  start_of_FAT = OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt,bytspersec);
+  start_of_data =OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt+hdr->BPB_FATSz32*hdr->BPB_NumFATs,bytspersec);
+//  printf("%u %u\n",hdr->BPB_BytsPerSec,hdr->BPB_RsvdSecCnt);
+}
+
+int main(int argc, char *argv[]) {
+  parse_args(argc,argv);
+  // TODO: frecov
+
+  // file system traversal
+  munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);
 }

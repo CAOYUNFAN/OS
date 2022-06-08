@@ -216,7 +216,7 @@ int check_dir(dirStrct * dir){
   if(dir->DIR_CrtTimeTenth>199) return 0;
   if(dir->DIR_Attr>=0x40) return 0;
   u32 addr=(u32)dir->DIR_FstClusHI<<2|dir->DIR_FstClusLO;
-  if((dir->DIR_Attr|0x08)&&addr!=0) return 0;
+  if((dir->DIR_Attr&0x08)&&addr!=0) return 0;
   else if(addr<=2||OFFSET_DATA_NUM(addr-2,bytsperclus)>=end_of_file) return 0;
 
   if(dir->DIR_Attr&0x10){

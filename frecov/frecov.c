@@ -73,7 +73,7 @@ struct _lnameStrct{
 typedef struct _lnameStrct lnameStrct;
 
 
-void * start_of_file=NULL, * start_of_FAT=NULL,* start_of_data=NULL;
+void * start_of_file=NULL, * start_of_FAT=NULL,* start_of_data=NULL, *end_of_file =NULL;
 #define OFFSET_BASIC(byte,start) ((void *)(((u8 *)start)+byte))
 #define OFFSET_BASIC_TYPE(byte,start,type) ((type)OFFSET_BASIC(byte,start))
 #define OFFSET_BASIC_NUM(num,bytepernum,start) OFFSET_BASIC((num)*(bytepernum),start)
@@ -151,14 +151,104 @@ inline static void parse_args(int argc,char * argv[]){
 
   start_of_FAT = OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt,bytspersec);
   start_of_data =OFFSET_FILE_NUM(hdr->BPB_RsvdSecCnt+hdr->BPB_FATSz32*hdr->BPB_NumFATs,bytspersec);
+  end_of_file = OFFSET_FILE_NUM(hdr->BPB_TotSec32,bytspersec);
   DEBUG(printf("file:%p data:%p\n",start_of_file,start_of_data);)
   DEBUG(printf("BytesPerSec:%d,BytesPerCluster:%d\n",bytspersec,bytsperclus);)
+}
+
+int is_unused(void * ptr){
+  u8 * begin=ptr;
+  for(int num=0;num<bytsperclus;++num,++begin) if(*begin) return 1;
+  return 0;
+}
+
+inline static int check_char(u8 ch){
+  return 
+    (ch>='0'&&ch<='9')||
+    (ch>='A'&&ch<='Z')||
+    (ch>='a'&&ch<='z')||
+    (ch=='-')||(ch=='_')||(ch=='.')||
+    (ch=='~')||(ch==' ')||(ch==0)||(ch==0xff);
+}
+inline static int check_char2(u8 ch){
+  if(ch<0x20) return 0;
+  if(ch>='a'&&ch<='z') return 0;
+  if(ch==0x22||(ch>=0x2a&&ch<=0x2f)||(ch>=0x3a&&ch<=0x3f)||(ch>=0x5b&&ch<=0x5d)||ch==0x7c||ch==0xff) return 0;
+  return check_char(ch);
+}
+
+int check_lname(lnameStrct * lname){
+  if(lname->LDIR_Type!=0) return 0;
+  if(lname->LDIR_FstClusLO!=0) return 0;
+  u8 ch[26];
+  for(int i=0;i<10;i++) ch[i]=lname->LDIR_Name1[i];
+  for(int i=0;i<12;i++) ch[i+10]=lname->LDIR_Name2[i];
+  for(int i=0;i<4;++i) ch[i+22]=lname->LDIR_Name3[i];
+  int i=0;
+  for(;i<26;i+=2){
+    if(ch[i+1]!=0||check_char(ch[i])) return 0;
+    if(ch[i]==0) break;
+  }
+
+  if(i<26){
+    if(!(lname->LDIR_Ord&0x40)) return 0;
+    for(int j=i+2;j<26;++j) if(ch[j]!=0xff) return 0;
+    int flag=(ch[i]=='p'?'a'-'A':0);
+
+    for(int k=3;i>=0&&k>=0;i-=2,k--){
+      switch(k){
+        case 3:if(ch[i]!='P'+flag) return 0; break;
+        case 2:if(ch[i]!='M'+flag) return 0; break;
+        case 1:if(ch[i]!='B'+flag) return 0; break;
+        case 0:if(ch[i]!='.') return 0; break;
+        default: break;
+      }
+    }
+  }
+  return 1;
+}
+
+int check_dir(dirStrct * dir){
+  if(dir->DIR_Attr==((u8)0xf)) return check_lname((lnameStrct *)dir);
+  if(dir->DIR_NTRes!=0) return 0;
+  if(dir->DIR_CrtTimeTenth>199) return 0;
+  if(dir->DIR_Attr>=0x40) return 0;
+  u32 addr=(u32)dir->DIR_FstClusHI<<2|dir->DIR_FstClusLO;
+  if(addr<=2||OFFSET_DATA_NUM(addr-2,bytsperclus)>=end_of_file) return 0;
+  if(dir->DIR_name[0]==0x00||dir->DIR_name[0]==0xe5) return 1;
+
+  if(dir->DIR_Attr&0x04){
+    if(dir->DIR_name[0]=='.'){
+      for(int i=1;i<11;++i) if(dir->DIR_name[i]!=' '&& !(i==2||dir->DIR_name[i]=='.') ) return 0;
+      return 1;
+    }
+    if(dir->DIR_name[0]=='D'&&dir->DIR_name[1]=='C'&&dir->DIR_name[2]=='I'&&dir->DIR_name[3]=='M'){
+      for(int i=4;i<11;++i) if(dir->DIR_name[i]!=' ') return 0;
+      return 1;
+    }
+  }else{
+    if(dir->DIR_name[0]==0x20) return 0;
+    for(int i=0;i<11;++i) if(!check_char2(dir->DIR_name[i])) return 0;
+    if(dir->DIR_name[8]=='B'&&dir->DIR_name[9]=='M'&&dir->DIR_name[10]=='P') return 1;
+  }
+  return 0;
+}
+
+
+int is_dir(void * ptr){
+  dirStrct * now=ptr;
+  for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++)
+  if(!check_dir(now)) return 0;
+  return 1;
 }
 
 int main(int argc, char *argv[]) {
   parse_args(argc,argv);
   // TODO: frecov
-
+  for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
+    void * page=OFFSET_DATA_NUM(i,bytsperclus);
+    if(is_dir(page)) printf("%p\n",page);
+  }
   // file system traversal
   munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);
 }

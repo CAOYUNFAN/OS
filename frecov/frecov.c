@@ -239,7 +239,7 @@ int check_dir(dirStrct * dir){
 int is_dir(void * ptr){
   dirStrct * now=ptr;
   for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++){
-    int res=check_dir(now)
+    int res=check_dir(now);
     if(!res) return 0;
   }
   

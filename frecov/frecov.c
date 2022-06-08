@@ -193,6 +193,7 @@ int check_lname(lnameStrct * lname){
   if(i<26){
     if(!(lname->LDIR_Ord&0x40)) return 0;
     for(int j=i+2;j<26;++j) if(ch[j]!=0xff) return 0;
+    i-=2;
     int flag=(ch[i]=='p'?'a'-'A':0);
 
     for(int k=3;i>=0&&k>=0;i-=2,k--){

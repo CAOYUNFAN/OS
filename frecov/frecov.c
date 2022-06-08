@@ -219,7 +219,7 @@ int check_dir(dirStrct * dir){
   if(dir->DIR_Attr&0x08){
     if(addr!=0) return 0;
   }
-  else if(addr<=2||OFFSET_DATA_NUM(addr-2,bytsperclus)>=end_of_file) return 0;
+  else if(addr>=2&&OFFSET_DATA_NUM(addr-2,bytsperclus)>=end_of_file) return 0;
 
   if(dir->DIR_Attr&0x10){
     if(dir->DIR_FileSize!=0) return 0;

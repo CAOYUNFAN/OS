@@ -217,7 +217,7 @@ int check_dir(dirStrct * dir){
   if(addr<=2||OFFSET_DATA_NUM(addr-2,bytsperclus)>=end_of_file) return 0;
   if(dir->DIR_name[0]==0x00||dir->DIR_name[0]==0xe5) return 1;
 
-  if(dir->DIR_Attr&0x04){
+  if(dir->DIR_Attr&0x10){
     if(dir->DIR_name[0]=='.'){
       for(int i=1;i<11;++i) if(dir->DIR_name[i]!=' '&& !(i==2||dir->DIR_name[i]=='.') ) return 0;
       return 1;

@@ -211,11 +211,12 @@ int check_lname(lnameStrct * lname){
 int check_dir(dirStrct * dir){
   if(dir->DIR_Attr==((u8)0xf)) return check_lname((lnameStrct *)dir);
   if(dir->DIR_NTRes!=0) return 0;
+  if(dir->DIR_name[0]==0xe5) return 1;
+  if(dir->DIR_name[0]==0x00) return 2;
   if(dir->DIR_CrtTimeTenth>199) return 0;
   if(dir->DIR_Attr>=0x40) return 0;
   u32 addr=(u32)dir->DIR_FstClusHI<<2|dir->DIR_FstClusLO;
   if(addr<=2||OFFSET_DATA_NUM(addr-2,bytsperclus)>=end_of_file) return 0;
-  if(dir->DIR_name[0]==0x00||dir->DIR_name[0]==0xe5) return 1;
 
   if(dir->DIR_Attr&0x10){
     if(dir->DIR_name[0]=='.'){
@@ -237,8 +238,11 @@ int check_dir(dirStrct * dir){
 
 int is_dir(void * ptr){
   dirStrct * now=ptr;
-  for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++)
-  if(!check_dir(now)) return 0;
+  for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++){
+    int res=check_dir(now)
+    if(!res) return 0;
+  }
+  
   return 1;
 }
 

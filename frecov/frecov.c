@@ -186,7 +186,7 @@ int check_lname(lnameStrct * lname){
   for(int i=0;i<4;++i) ch[i+22]=lname->LDIR_Name3[i];
   int i=0;
   for(;i<26;i+=2){
-    if(ch[i+1]!=0||check_char(ch[i])) return 0;
+    if(ch[i+1]!=0||!check_char(ch[i])) return 0;
     if(ch[i]==0) break;
   }
 

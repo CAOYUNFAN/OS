@@ -269,7 +269,7 @@ int get_file(void * ptr,u32 filesize,char * filename){
   static char name[500],cmd[512];
   sprintf(name,filepath,filename);
   sprintf(cmd,"sha1sum %s",name);
-  FILE * fd=fopen(name,"w");
+  FILE * fd=fopen(name,"wb");
   int ret=file_recovery(ptr,filesize,fd);
   fclose(fd);
   if(ret){
@@ -346,6 +346,27 @@ struct _bmpInfo{
 }__attribute__((packed));
 typedef struct _bmpInfo bmpInfo;
 
+typedef unsigned long long uLL;
+int chk(u8 * x,u8 * y,int len){
+  uLL sum=0;
+  double sigma=15.0;
+  for(int i=0;i<len;i++) sum+=((uLL)x-(uLL)y)*((uLL)x-(uLL)y);
+  if(sum<sigma*sigma*n) return 1;
+  else return 0;
+}
+
+void * nextc_cluster(void * ptr,u32 rowsize){
+  void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
+  if(nxtptr<end_of_file&&chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
+  printf("FAIL for nxtptr!");
+  for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
+    void * page=OFFSET_DATA_NUM(i,bytsperclus);
+    if(chk((u8 *)nxtptr-rowsize,page,rowsize)) return page;
+  }
+  if(nxtptr<end_of_file) return nxtptr;
+  else return NULL;
+}
+
 int file_recovery(void * ptr,u32 filesize,FILE * file){
   assert(sizeof(bmpHdr)==14);assert(sizeof(bmpInfo)==40);
   bmpHdr * bmphdr=ptr;
@@ -353,6 +374,14 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   if(bmpinfo->bisize!=40||bmpinfo->biPlanes!=1||bmpinfo->biBitCount!=24||bmpinfo->biCompression!=0||bmpinfo->biSizeImages!=filesize-54) return 0;
   if(bmpinfo->biXPelsPerMeter!=0xec4||bmpinfo->biYPelsPerMeter!=0xec4||bmpinfo->biClrUsed!=0||bmpinfo->biClrImportant!=0) return 0;
+  u32 rowsize=4*((3*bmpinfo->biWidth+3)/4)
+  while(filesize) {
+    #define Min(x,y) ((x)<(y)?(x):(y))
+    filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);
+    printf("#%x ",((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);
+    if(filesize) ptr=next_cluster(ptr,rowsize);
+    if(!ptr) return 0;
+  }
   return 1;
 }
 /*void dummy(){

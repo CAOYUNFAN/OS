@@ -277,7 +277,7 @@ void work(void * ptr){
 
       #define fpp(ch) if((ch)!=0&&(ch)!=0xff) longname[len++]=ch
       
-      for(--pre;pre>=ptr&&!(pre->LDIR_Ord&0x40);--pre){
+      for(--pre;(u8 *)pre>=(u8 *)ptr&&!(pre->LDIR_Ord&0x40);--pre){
         for(int i=0;i<10;i+=2) fpp(pre->LDIR_Name1[i]);
         for(int i=0;i<12;i+=2) fpp(pre->LDIR_Name2[i]);
         for(int i=0;i<4;i+=2) fpp(pre->LDIR_Name3[i]);
@@ -287,7 +287,7 @@ void work(void * ptr){
     }
     printf("Name:%s\n",name);
   }
-  return 0;
+  return;
 }
 
 int main(int argc, char *argv[]) {

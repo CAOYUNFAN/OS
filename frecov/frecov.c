@@ -273,7 +273,7 @@ int get_file(void * ptr,u32 filesize,char * filename){
   file_recovery(ptr,filesize,fd);
   fclose(fd);
   FILE * fp=popen(cmd,"r");
-  assert(fp < 0, "popen");
+  assert(fp>=0);
   fscanf(fp, "%s", buf); // Get it!
   pclose(fp);
   return 1;

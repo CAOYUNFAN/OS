@@ -287,7 +287,7 @@ void work(void * ptr){
       if(!(pre->LDIR_Ord&0x40)) continue;
     }
     static int tot=0;
-    printf("Name %d:!%s!\n",tot++,name);
+    printf("Name %d:%s\n",tot++,name);
   }
   return;
 }

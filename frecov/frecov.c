@@ -297,8 +297,10 @@ int main(int argc, char *argv[]) {
   // TODO: frecov
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
-    if(!is_unused(page)&&is_dir(page)) printf("%x\n",i+2);
-    work(page);
+    if(!is_unused(page)&&is_dir(page)){
+      printf("%x\n",i+2);
+      work(page);
+    }
   }
   // file system traversal
   munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);

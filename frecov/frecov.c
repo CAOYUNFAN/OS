@@ -358,7 +358,7 @@ int chk(u8 * x,u8 * y,int len){
 void * next_cluster(void * ptr,u32 rowsize){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   if(nxtptr<end_of_file&&chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
-  printf("FAIL for nxtptr!");
+//  printf("FAIL for nxtptr!");
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     if(chk((u8 *)nxtptr-rowsize,page,rowsize)) return page;
@@ -378,11 +378,11 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);
-    printf("#%x ",(u32)((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);
+//    printf("#%x ",(u32)((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);
     if(filesize) ptr=next_cluster(ptr,rowsize);
     if(!ptr) return 0;
   }
-  printf("\n");
+//  printf("\n");
   return 1;
 }
 /*void dummy(){

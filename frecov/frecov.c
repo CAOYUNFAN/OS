@@ -212,11 +212,11 @@ int check_lname(lnameStrct * lname){
 int check_dir(dirStrct * dir){
   if(dir->DIR_Attr==((u8)0xf)) return check_lname((lnameStrct *)dir);
   if(dir->DIR_NTRes!=0) return 0;
-  if(dir->DIR_name[0]==0xe5) return 1;
+  if(dir->DIR_name[0]==0xe5) return 2;
   if(dir->DIR_name[0]==0x00) return 2;
   if(dir->DIR_CrtTimeTenth>199) return 0;
   if(dir->DIR_Attr>=0x40) return 0;
-  u32 addr=(u32)dir->DIR_FstClusHI<<2|dir->DIR_FstClusLO;
+  u32 addr=(u32)dir->DIR_FstClusHI<<16|dir->DIR_FstClusLO;
   if(dir->DIR_Attr&0x08){
     if(addr!=0) return 0;
   }
@@ -242,15 +242,17 @@ int check_dir(dirStrct * dir){
 
 int is_dir(void * ptr){
   dirStrct * now=ptr;
+  int temp=0;
   for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++){
     int res=check_dir(now);
     if(!res) return 0;
+    if(res==1) temp=1;
   }
-  return 1;
+  return temp;
 }
 
 static char buf[1024];
-int get_file(void * ptr,u32 filesize){
+int get_file(void * ptr,u32 filesize,char * filename){
   return 1;
 }
 
@@ -287,7 +289,8 @@ void work(void * ptr){
       if(!(pre->LDIR_Ord&0x40)) continue;
     }
     static int tot=0;
-    printf("Name %d:%s\n",tot++,name);
+    u32 addr=(u32)now->DIR_FstClusHI<<16|now->DIR_FstClusLO;
+    if(get_file(addr,now->DIR_FileSize,name)) printf("Name %d:%s %s\n",tot++,name);
   }
   return;
 }

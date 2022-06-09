@@ -158,8 +158,8 @@ inline static void parse_args(int argc,char * argv[]){
 
 int is_unused(void * ptr){
   u8 * begin=ptr;
-  for(int num=0;num<bytsperclus;++num,++begin) if(*begin) return 1;
-  return 0;
+  for(int num=0;num<bytsperclus;++num,++begin) if(*begin) return 0;
+  return 1;
 }
 
 inline static int check_char(u8 ch){

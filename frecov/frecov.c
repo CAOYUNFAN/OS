@@ -240,14 +240,52 @@ int check_dir(dirStrct * dir){
   return 0;
 }
 
-
 int is_dir(void * ptr){
   dirStrct * now=ptr;
   for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++){
     int res=check_dir(now);
     if(!res) return 0;
   }
-  
+  return 1;
+}
+
+static char buf[1024];
+int get_file(void * ptr,u32 filesize){
+  return 1;
+}
+
+char * get_short_name(dirStrct * ptr,int * chk){
+  static char temp[16];int len=0;*chk=0;
+  for(int i=0;i<11;i++) if(ptr->DIR_name[i]!=' '){
+    if(ptr->DIR_name[i]=='~') *chk=1;
+    if(i==8) temp[len++]='.';
+    temp[len++]=ptr->DIR_name[i];
+  }
+  temp[len]=0;
+  return temp;
+}
+
+void work(void * ptr){
+  dirStrct * now=ptr;
+  static char longname[256];
+  for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++){
+    if(now->DIR_name[0]==0x00||now->DIR_name[0]==0xe5||now->DIR_Attr&0x10||now->DIR_Attr==0xf) continue;
+    int chk=0; char * name=get_short_name(now,&chk);
+    if(chk){
+      name=longname;int len=0;
+      lnameStrct * pre=(lnameStrct *)now;
+
+      #define fpp(ch) if((ch)!=0&&(ch)!=0xff) longname[len++]=ch
+      
+      for(--pre;pre>=ptr&&!(pre->LDIR_Ord&0x40);--pre){
+        for(int i=0;i<10;i+=2) fpp(pre->LDIR_Name1[i]);
+        for(int i=0;i<12;i+=2) fpp(pre->LDIR_Name2[i]);
+        for(int i=0;i<4;i+=2) fpp(pre->LDIR_Name3[i]);
+      }
+      longname[len]=0;
+    }
+    printf("Name:%s\n",name);
+  }
   return 1;
 }
 

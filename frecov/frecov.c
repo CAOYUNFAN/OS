@@ -259,10 +259,25 @@ char * get_short_name(dirStrct * ptr,int * chk){
 }
 
 static char buf[1024];
+#ifdef LOCAL
+const char * filepath="%s"
+#else
+const char * filepath="/tmp/%s"
+#endif
+void file_recovery(void * ptr,u32 filesize,FILE * file);
 int get_file(void * ptr,u32 filesize,char * filename){
+  static char name[500],cmd[512];
+  sprintf(name,filepath,filename);
+  sprintf(cmd,"sha1sum %s",name);
+  FILE * fd=fopen(name,"w");
+  file_recovery(ptr,filesize,fd);
+  fclose(fd);
+  FILE * fp=popen(cmd,"r");
+  assert(fp < 0, "popen");
+  fscanf(fp, "%s", buf); // Get it!
+  pclose(fp);
   return 1;
 }
-
 
 void work(void * ptr){
   dirStrct * now=ptr;
@@ -306,6 +321,9 @@ int main(int argc, char *argv[]) {
   munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);
 }
 
+void file_recovery(void * ptr,u32 filesize,FILE * file){
+  
+}
 /*void dummy(){
   printf("DUMMY!\n");
   return;

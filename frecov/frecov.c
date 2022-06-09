@@ -374,7 +374,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   if(bmpinfo->bisize!=40||bmpinfo->biPlanes!=1||bmpinfo->biBitCount!=24||bmpinfo->biCompression!=0||bmpinfo->biSizeImages!=filesize-54) return 0;
   if(bmpinfo->biXPelsPerMeter!=0xec4||bmpinfo->biYPelsPerMeter!=0xec4||bmpinfo->biClrUsed!=0||bmpinfo->biClrImportant!=0) return 0;
-  u32 rowsize=4*((3*bmpinfo->biWidth+3)/4)
+  u32 rowsize=4*((3*bmpinfo->biWidth+3)/4);
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);

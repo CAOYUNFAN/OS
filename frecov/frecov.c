@@ -351,11 +351,11 @@ int chk(u8 * x,u8 * y,int len){
   uLL sum=0;
   double sigma=15.0;
   for(int i=0;i<len;i++) sum+=((uLL)x-(uLL)y)*((uLL)x-(uLL)y);
-  if(sum<sigma*sigma*n) return 1;
-  else return 0;
+  if(sum<sigma*sigma*len) return 1;
+  return 0;
 }
 
-void * nextc_cluster(void * ptr,u32 rowsize){
+void * next_cluster(void * ptr,u32 rowsize){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   if(nxtptr<end_of_file&&chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
   printf("FAIL for nxtptr!");
@@ -378,7 +378,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);
-    printf("#%x ",((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);
+    printf("#%lx ",((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);
     if(filesize) ptr=next_cluster(ptr,rowsize);
     if(!ptr) return 0;
   }

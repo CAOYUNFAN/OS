@@ -284,7 +284,7 @@ void work(void * ptr){
         if(pre->LDIR_Ord&0x40) break;
       }
       longname[len]=0;
-      if(pre->LDIR_Ord&0x40) continue;
+      if(!(pre->LDIR_Ord&0x40)) continue;
     }
     printf("Name:%s\n",name);
   }

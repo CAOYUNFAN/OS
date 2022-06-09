@@ -351,7 +351,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
   bmpHdr * bmphdr=ptr;
   if(bmphdr->bfType!=0x4d42||bmphdr->bfSize!=filesize||bmphdr->bfReserved!=0||bmphdr->bfSize!=54) return 0;
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
-  if(bmpinfo->bisize!=40||bmpinfo->biPlanes!=1||bmpinfo->biBitCount!=24||bmpinfo->biCompression!=0||bmpinfo->biSizeImages!=filesize-54||) return 0;
+  if(bmpinfo->bisize!=40||bmpinfo->biPlanes!=1||bmpinfo->biBitCount!=24||bmpinfo->biCompression!=0||bmpinfo->biSizeImages!=filesize-54) return 0;
   return 1;
 }
 /*void dummy(){

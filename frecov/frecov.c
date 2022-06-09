@@ -304,7 +304,7 @@ void work(void * ptr){
     }
     static int tot=0;
     u32 addr=(u32)now->DIR_FstClusHI<<16|now->DIR_FstClusLO;
-    if(get_file(OFFSET_DATA_NUM(addr,bytsperclus),now->DIR_FileSize,name)) printf("Name %d:\n%s %s\nstart at %x\n",tot++,buf,name,addr);
+    if(get_file(OFFSET_DATA_NUM(addr-2,bytsperclus),now->DIR_FileSize,name)) printf("Name %d:\n%s %s\nstart at %x\n",tot++,buf,name,addr);
   }
   return;
 }

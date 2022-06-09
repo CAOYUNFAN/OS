@@ -98,7 +98,6 @@ void * start_of_file=NULL, * start_of_FAT=NULL,* start_of_data=NULL, *end_of_fil
 struct fat32hdr * hdr;
 int bytsperclus,bytspersec;
 
-void dummy();
 void *map_disk(const char *fname) {
   int fd = open(fname, O_RDWR);
 
@@ -256,9 +255,6 @@ int main(int argc, char *argv[]) {
   parse_args(argc,argv);
   // TODO: frecov
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
-    if(i==0x52c-2){
-      dummy();
-    }
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     if(!is_unused(page)&&is_dir(page)) printf("%x\n",i+2);
   }
@@ -266,7 +262,7 @@ int main(int argc, char *argv[]) {
   munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);
 }
 
-void dummy(){
+/*void dummy(){
   printf("DUMMY!\n");
   return;
-}
+}*/

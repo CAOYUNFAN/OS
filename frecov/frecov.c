@@ -290,7 +290,7 @@ void work(void * ptr){
     }
     static int tot=0;
     u32 addr=(u32)now->DIR_FstClusHI<<16|now->DIR_FstClusLO;
-    if(get_file(addr,now->DIR_FileSize,name)) printf("Name %d:%s %s\n",tot++,name);
+    if(get_file(addr,now->DIR_FileSize,name)) printf("Name %d:%s %s\n",tot++,buf,name);
   }
   return;
 }

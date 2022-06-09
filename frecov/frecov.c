@@ -260,7 +260,7 @@ char * get_short_name(dirStrct * ptr,int * chk){
 
 static char buf[1024];
 #ifdef LOCAL
-const char * filepath="%s";
+const char * filepath="bmp/%s";
 #else
 const char * filepath="/tmp/%s";
 #endif

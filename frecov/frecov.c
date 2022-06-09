@@ -255,6 +255,9 @@ int main(int argc, char *argv[]) {
   parse_args(argc,argv);
   // TODO: frecov
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
+    if(i==0x52c-2){
+      printf("AAA!\n");
+    }
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     if(!is_unused(page)&&is_dir(page)) printf("%x\n",i+2);
   }

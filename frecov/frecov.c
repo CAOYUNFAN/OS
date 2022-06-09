@@ -260,9 +260,9 @@ char * get_short_name(dirStrct * ptr,int * chk){
 
 static char buf[1024];
 #ifdef LOCAL
-const char * filepath="%s"
+const char * filepath="%s";
 #else
-const char * filepath="/tmp/%s"
+const char * filepath="/tmp/%s";
 #endif
 void file_recovery(void * ptr,u32 filesize,FILE * file);
 int get_file(void * ptr,u32 filesize,char * filename){
@@ -322,7 +322,7 @@ int main(int argc, char *argv[]) {
 }
 
 void file_recovery(void * ptr,u32 filesize,FILE * file){
-  
+
 }
 /*void dummy(){
   printf("DUMMY!\n");

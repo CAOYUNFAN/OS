@@ -350,7 +350,7 @@ typedef unsigned long long uLL;
 int chk(u8 * x,u8 * y,int len){
   uLL sum=0;
   double sigma=15.0;
-  for(int i=0;i<len;i++) sum+=((uLL)x-(uLL)y)*((uLL)x-(uLL)y);
+  for(int i=0;i<len;i++) sum+=((uLL)x[i]-(uLL)y[i])*((uLL)x[i]-(uLL)y[i]);
   if(sum<sigma*sigma*len) return 1;
   return 0;
 }

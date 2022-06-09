@@ -382,6 +382,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
     if(filesize) ptr=next_cluster(ptr,rowsize);
     if(!ptr) return 0;
   }
+  printf("\n");
   return 1;
 }
 /*void dummy(){

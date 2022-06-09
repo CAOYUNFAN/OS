@@ -264,19 +264,21 @@ const char * filepath="bmp/%s";
 #else
 const char * filepath="/tmp/%s";
 #endif
-void file_recovery(void * ptr,u32 filesize,FILE * file);
+int file_recovery(void * ptr,u32 filesize,FILE * file);
 int get_file(void * ptr,u32 filesize,char * filename){
   static char name[500],cmd[512];
   sprintf(name,filepath,filename);
   sprintf(cmd,"sha1sum %s",name);
   FILE * fd=fopen(name,"w");
-  file_recovery(ptr,filesize,fd);
+  int ret=file_recovery(ptr,filesize,fd);
   fclose(fd);
-  FILE * fp=popen(cmd,"r");
-  assert(fp>=0);
-  fscanf(fp, "%s", buf); // Get it!
-  pclose(fp);
-  return 1;
+  if(ret){
+    FILE * fp=popen(cmd,"r");
+    assert(fp>=0);
+    fscanf(fp, "%s", buf); // Get it!
+    pclose(fp);
+  }
+  return ret;
 }
 
 void work(void * ptr){
@@ -313,7 +315,7 @@ int main(int argc, char *argv[]) {
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     if(!is_unused(page)&&is_dir(page)){
-      printf("%x\n",i+2);
+      DEBUG(printf("dir:%x\n",i+2);)
       work(page);
     }
   }
@@ -321,8 +323,36 @@ int main(int argc, char *argv[]) {
   munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);
 }
 
-void file_recovery(void * ptr,u32 filesize,FILE * file){
+struct _bmpHdr{
+  u16 bfType;
+  u32 bfSize;
+  u32 bfReserved;
+  u32 boffBits;
+}__attribute__((packed));;
+typedef struct _bmpHdr bmpHdr;
 
+struct _bmpInfo{
+  u32 bisize;
+  u32 biWidth;
+  u32 biHeight;
+  u16 biPlanes;
+  u16 biBitCount;
+  u32 biCompression;
+  u32 biSizeImages;
+  int biXPelsPerMeter;
+  int biYPelsPerMeter;
+  u32 biClrUsed;
+  u32 biClrImportant;
+}__attribute__((packed));
+typedef struct _bmpInfo bmpInfo;
+
+int file_recovery(void * ptr,u32 filesize,FILE * file){
+  assert(sizeof(bmpHdr)==14);assert(sizeof(bmpInfo)==40);
+  bmpHdr * bmphdr=ptr;
+  if(bmphdr->bfType!=0x4d42||bmphdr->bfSize!=filesize||bmphdr->bfReserved!=0||bmphdr->bfSize!=54) return 0;
+  bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
+  if(bmpinfo->bisize!=40||bmpinfo->biPlanes!=1||bmpinfo->biBitCount!=24||bmpinfo->biCompression!=0||bmpinfo->biSizeImages!=filesize-54||) return 0;
+  return 1;
 }
 /*void dummy(){
   printf("DUMMY!\n");

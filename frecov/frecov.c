@@ -283,10 +283,11 @@ void work(void * ptr){
         for(int i=0;i<4;i+=2) fpp(pre->LDIR_Name3[i]);
       }
       longname[len]=0;
+      if(pre->LDIR_Ord&0x40!=0) continue;
     }
     printf("Name:%s\n",name);
   }
-  return 1;
+  return 0;
 }
 
 int main(int argc, char *argv[]) {

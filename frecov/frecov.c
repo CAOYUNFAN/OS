@@ -176,7 +176,6 @@ inline static int check_char2(u8 ch){
   if(ch==0x22||(ch>=0x2a&&ch<=0x2f)||(ch>=0x3a&&ch<=0x3f)||(ch>=0x5b&&ch<=0x5d)||ch==0x7c||ch==0xff) return 0;
   return check_char(ch);
 }
-
 int check_lname(lnameStrct * lname){
   if(lname->LDIR_Type!=0) return 0;
   if(lname->LDIR_FstClusLO!=0) return 0;
@@ -208,7 +207,6 @@ int check_lname(lnameStrct * lname){
   }
   return 1;
 }
-
 int check_dir(dirStrct * dir){
   if(dir->DIR_Attr==((u8)0xf)) return check_lname((lnameStrct *)dir);
   if(dir->DIR_NTRes!=0) return 0;
@@ -239,7 +237,6 @@ int check_dir(dirStrct * dir){
   }
   return 0;
 }
-
 int is_dir(void * ptr){
   dirStrct * now=ptr;
   int temp=0;
@@ -250,12 +247,6 @@ int is_dir(void * ptr){
   }
   return temp;
 }
-
-static char buf[1024];
-int get_file(void * ptr,u32 filesize,char * filename){
-  return 1;
-}
-
 char * get_short_name(dirStrct * ptr,int * chk){
   static char temp[16];int len=0;*chk=0;
   for(int i=0;i<11;i++) if(ptr->DIR_name[i]!=' '){
@@ -266,6 +257,12 @@ char * get_short_name(dirStrct * ptr,int * chk){
   temp[len]=0;
   return temp;
 }
+
+static char buf[1024];
+int get_file(void * ptr,u32 filesize,char * filename){
+  return 1;
+}
+
 
 void work(void * ptr){
   dirStrct * now=ptr;

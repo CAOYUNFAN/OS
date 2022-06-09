@@ -378,7 +378,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);
-    printf("#%lx ",((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);
+    printf("#%x ",((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);
     if(filesize) ptr=next_cluster(ptr,rowsize);
     if(!ptr) return 0;
   }

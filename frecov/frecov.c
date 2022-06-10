@@ -349,11 +349,11 @@ void work(void * ptr){
   }
   return;
 }
+int tot=0;
 
 int main(int argc, char *argv[]) {
   parse_args(argc,argv);
   // TODO: frecov
-  int tot=0;
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
     if(type[i+2]!=0) continue;
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
@@ -391,8 +391,8 @@ void * next_cluster(void * ptr,u32 rowsize){
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
   if(nxtptr<end_of_file && type[num]==0 && chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
 //  DEBUG(printf("FAIL for nxtptr,");)
-  for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]!=1&&type[i+2]!=(u16)(-1)&&type[type[i+2]]!=1){
-    void * page=OFFSET_DATA_NUM(i,bytsperclus);
+  for(int i=2;i<=tot;i++) if(type[i]==0){
+    void * page=OFFSET_DATA_NUM(i-2,bytsperclus);
     if(chk((u8 *)nxtptr-rowsize,page,rowsize)) {
 //      printf( "To %x %p",i,page);
       return page;

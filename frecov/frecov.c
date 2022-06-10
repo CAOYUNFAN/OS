@@ -400,7 +400,7 @@ void * next_cluster(void * ptr,u32 rowsize){
   else return NULL;
 }
 
-int file_recovery(void * ptr,u32 filesize,FILE * file){
+int file_recovery(void * ptr,u32 filesize,FILE * file){printf("IN!\n");
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   u32 rowsize=4*((3*bmpinfo->biWidth+3)/4);
   while(filesize) {
@@ -410,7 +410,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
     if(filesize) ptr=next_cluster(ptr,rowsize);
     if(!ptr) return 0;
   }
-  DEBUG(printf("\n");)
+  DEBUG(printf("\n");)printf("OUT!\n");
   return 1;
 }
 /*void dummy(){

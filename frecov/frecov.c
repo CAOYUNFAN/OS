@@ -353,14 +353,16 @@ void work(void * ptr){
 int main(int argc, char *argv[]) {
   parse_args(argc,argv);
   // TODO: frecov
+  int tot=0;
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
     if(type[i+2]!=0) continue;
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     if(is_unused(page)) type[i+2]=-1;
     else if(is_dir(page,i+2)) type[i+2]=1;
     else type[i+2]=0;
+    tot=i+2;
   }
-  for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]==1){
+  for(int i=0;i<=tot-2;i++) if(type[i+2]==1){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     DEBUG(printf("dir:%x\n",i+2);)
     work(page);

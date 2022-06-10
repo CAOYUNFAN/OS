@@ -382,8 +382,8 @@ int chk(u8 * x,u8 * y,int len){
   assert(y+bytsperclus<=(u8 *)end_of_file);
   LL sum=0;
   double sigma=15.0;
-  for(int i=0;i<len;i++) sum+=((LL)x[i]-(LL)y[i]);
-//  if(abs(sum)>3.0*sigma*sqrt((double)len)) return 0;
+  for(int i=0;i<len;i++) sum+=abs((LL)x[i]-(LL)y[i]);
+  if(sum>sigma*len) return 0;
   return 1;
 }
 void * next_cluster(void * ptr,u32 rowsize){

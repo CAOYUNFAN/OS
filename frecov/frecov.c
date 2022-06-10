@@ -406,11 +406,11 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){printf("IN!\n");
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);
-    DEBUG(printf("#%x ",(u32)((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);)
+    DEBUG(printf("#%x ",(u32)((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);)printf("IN2! ");
     if(filesize) ptr=next_cluster(ptr,rowsize);
     if(!ptr) return 0;
   }
-  DEBUG(printf("\n");)printf("OUT!\n");
+  DEBUG(printf("\n");)//printf("OUT!\n");
   return 1;
 }
 /*void dummy(){

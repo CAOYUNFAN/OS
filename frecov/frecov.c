@@ -6,7 +6,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include<math.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -381,8 +380,8 @@ int chk(u8 * x,u8 * y,int len){
   LL sum=0;
   double sigma=15.0;
   for(int i=0;i<len;i++) sum+=((LL)x[i]-(LL)y[i]);
-  if(abs(sum)<3.0*sigma*sqrt((double)len)) return 1;
-  return 0;
+//  if(abs(sum)>3.0*sigma*sqrt((double)len)) return 0;
+  return 1;
 }
 void * next_cluster(void * ptr,u32 rowsize){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);

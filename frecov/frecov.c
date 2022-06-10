@@ -379,7 +379,7 @@ int chk(u8 * x,u8 * y,int len){printf("In!\n");
   double sigma=15.0;
   for(int i=0;i<len;i++) sum+=((LL)x[i]-(LL)y[i]);
   printf("OUT!%d\n",len);
-  if(abs(sum)<3.0*sigma*sqrt(len)) return 1;
+  if(abs(sum)<3.0*sigma*sqrt((double)len)) return 1;
   return 0;
 }
 

@@ -392,7 +392,7 @@ void * next_cluster(void * ptr,u32 rowsize){
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]!=1&&type[i+2]!=(u32)(-1)&&type[type[i+2]]!=1){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     printf("%x\n",i+2);
-    if(i+2==0x46e) dummy();
+    if(i+2==0x46d) dummy();
     if(chk((u8 *)nxtptr-rowsize,page,rowsize)) {
       printf( "To %x %p",i,page);
       return page;

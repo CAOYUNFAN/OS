@@ -276,6 +276,7 @@ int check_dir(dirStrct * dir,int tag){
   return 0;
 }
 int is_dir(void * ptr,int tag){
+  assert(tag>=2&&tag<32768);
   dirStrct * now=ptr;
   int temp=0;
   for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++){

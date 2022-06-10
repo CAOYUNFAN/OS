@@ -345,7 +345,7 @@ void work(void * ptr){
     u32 addr=(u32)now->DIR_FstClusHI<<16|now->DIR_FstClusLO;
     if(get_file(OFFSET_DATA_NUM(addr-2,bytsperclus),now->DIR_FileSize,name)) {
       DEBUG(printf("Name %d:\n",tot++);)
-      printf("%s  %s\n",buf,name);
+      printf(" %s\n",name);
       DEBUG("start at %x\n",addr);
       fflush(stdout);
     }

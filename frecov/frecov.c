@@ -384,7 +384,7 @@ int chk(u8 * x,u8 * y,int len){
   if(abs(sum)<3.0*sigma*sqrt((double)len)) return 1;
   return 0;
 }
-void * next_cluster(void * ptr,u32 rowsize){
+void * next_cluster(void * ptr,u32 rowsize){printf("IN2! ");
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
   if(nxtptr<end_of_file&&(type[num]==0||(type[num]!=-1&&type[type[num]]!=1))&&chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
@@ -406,7 +406,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){printf("IN!\n");
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);
-    DEBUG(printf("#%x ",(u32)((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);)printf("IN2! ");
+    DEBUG(printf("#%x ",(u32)((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);)
     if(filesize) ptr=next_cluster(ptr,rowsize);
     if(!ptr) return 0;
   }

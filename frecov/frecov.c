@@ -365,7 +365,7 @@ int main(int argc, char *argv[]) {
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]==1){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     DEBUG(printf("dir:%x\n",i+2);)
-    work(page);
+    //work(page);
   }
   // file system traversal
   munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);

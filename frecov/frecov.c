@@ -343,7 +343,7 @@ void work(void * ptr){
     
     DEBUG(printf("Name %d:\n",tot++);)
     if(get_file(OFFSET_DATA_NUM(addr-2,bytsperclus),now->DIR_FileSize,name)) printf("%s  %s\n",buf,name);
-//    else printf("  %s\n",name);
+    else printf("  %s\n",name);
     DEBUG("start at %x\n",addr);
     fflush(stdout);
   }

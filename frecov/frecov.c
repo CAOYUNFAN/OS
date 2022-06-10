@@ -400,6 +400,7 @@ void * next_cluster(void * ptr,u32 rowsize){
 }
 
 int file_recovery(void * ptr,u32 filesize,FILE * file){//printf("IN!\n");
+  return 1;
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   u32 rowsize=4*((3*bmpinfo->biWidth+3)/4);
   while(filesize) {

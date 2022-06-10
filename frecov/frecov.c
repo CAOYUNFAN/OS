@@ -389,7 +389,7 @@ void * next_cluster(void * ptr,u32 rowsize){
   DEBUG(printf("FAIL for nxtptr,");)
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]!=1&&type[i+2]!=-1&&type[type[i+2]]!=1){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
-      printf( "\nTo %x,%d",i,type[0x46b]);
+      printf( "\nTo %x,%d %d",i,type[0x46c],type[type[0x46c]]);
     if(chk((u8 *)nxtptr-rowsize,page,rowsize)) {
       printf( "To %p",page);
       return page;

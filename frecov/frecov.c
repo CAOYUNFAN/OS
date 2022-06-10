@@ -340,12 +340,12 @@ void work(void * ptr){
     }
     DEBUG(static int tot=1;)
     u32 addr=(u32)now->DIR_FstClusHI<<16|now->DIR_FstClusLO;
-    if(get_file(OFFSET_DATA_NUM(addr-2,bytsperclus),now->DIR_FileSize,name)) {
-      DEBUG(printf("Name %d:\n",tot++);)
-      printf("%s  %s\n",buf,name);
-      DEBUG("start at %x\n",addr);
-      fflush(stdout);
-    }
+    
+    DEBUG(printf("Name %d:\n",tot++);)
+    if(get_file(OFFSET_DATA_NUM(addr-2,bytsperclus),now->DIR_FileSize,name)) printf("%s  %s\n",buf,name);
+    else printf("  %s\n",name);
+    DEBUG("start at %x\n",addr);
+    fflush(stdout);
   }
   return;
 }

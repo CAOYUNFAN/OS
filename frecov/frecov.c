@@ -375,6 +375,8 @@ int main(int argc, char *argv[]) {
 
 typedef long long LL;
 int chk(u8 * x,u8 * y,int len){
+  assert(x+len<=(u8 *)end_of_file);
+  assert(y+bytsperclus<=(u8 *)end_of_file);
   LL sum=0;
   double sigma=15.0;
   for(int i=0;i<len;i++) sum+=((LL)x[i]-(LL)y[i]);

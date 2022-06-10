@@ -374,7 +374,7 @@ int main(int argc, char *argv[]) {
 
 
 typedef long long LL;
-int chk(u8 * x,u8 * y,int len){
+int chk(u8 * x,u8 * y,int len){printf("In!\n");
   LL sum=0;
   double sigma=15.0;
   for(int i=0;i<len;i++) sum+=((LL)x[i]-(LL)y[i]);

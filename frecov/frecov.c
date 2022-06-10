@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include<math.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -376,8 +377,8 @@ typedef long long LL;
 int chk(u8 * x,u8 * y,int len){
   LL sum=0;
   double sigma=15.0;
-  for(int i=0;i<len;i++) sum+=((LL)x[i]-(LL)y[i])*((LL)x[i]-(LL)y[i]);
-  if(sum<sigma*sigma*len) return 1;
+  for(int i=0;i<len;i++) sum+=((LL)x[i]-(LL)y[i]);
+  if(abs(sum)<3.0*sigma*sqrt(len)) return 1;
   return 0;
 }
 

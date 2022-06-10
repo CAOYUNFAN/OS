@@ -362,7 +362,7 @@ int main(int argc, char *argv[]) {
     else type[i+2]=0;
     tot=i+2;
   }
-  for(int i=2;i<=tot;i++) if(type[i]!=1&&type[i]!=-1&&type[i]!=0){
+  for(int i=2;i<=tot;i++) if(type[i]!=1&&type[i]!=(u16)(-1)&&type[i]!=0){
     if(type[type[i]]==1) type[i]=2;
     else type[i]=0;
   }

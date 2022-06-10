@@ -190,7 +190,7 @@ int is_bmp_hdr(void * ptr,int filesize){
   if(bmphdr->bfType!=0x4d42||bmphdr->bfSize!=filesize||bmphdr->bfReserved!=0||bmphdr->boffBits!=54) return 0;
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   if(bmpinfo->bisize!=40||bmpinfo->biPlanes!=1||bmpinfo->biBitCount!=24||bmpinfo->biCompression!=0||bmpinfo->biSizeImages!=filesize-54) return 0;
-//  if(bmpinfo->biXPelsPerMeter!=0xec4||bmpinfo->biYPelsPerMeter!=0xec4||bmpinfo->biClrUsed!=0||bmpinfo->biClrImportant!=0) return 0;
+  if(bmpinfo->biXPelsPerMeter!=0xec4||bmpinfo->biYPelsPerMeter!=0xec4||bmpinfo->biClrUsed!=0||bmpinfo->biClrImportant!=0) return 0;
   return 1;
 }
 inline static int check_char(u8 ch){
@@ -265,11 +265,8 @@ int check_dir(dirStrct * dir,int tag){
     if(dir->DIR_name[0]==0x20) return 0;
     for(int i=0;i<11;++i) if(!check_char2(dir->DIR_name[i])) return 0;
     if(dir->DIR_name[8]=='B'&&dir->DIR_name[9]=='M'&&dir->DIR_name[10]=='P') {
-      if((!(type[addr]==-1||type[addr]==1||type[type[addr]]==1))&&is_bmp_hdr(OFFSET_DATA_NUM(addr-2,bytsperclus),dir->DIR_FileSize)){
-        type[addr]=tag;
-        return 1;
-      }
-      else return 0;
+      type[addr]=tag;
+      return 1;
     }
   }
   return 0;
@@ -400,6 +397,7 @@ void * next_cluster(void * ptr,u32 rowsize){
 }
 
 int file_recovery(void * ptr,u32 filesize,FILE * file){
+  if(!is_bmp_hdr(ptr,filesize)) return 0;
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   u32 rowsize=4*((3*bmpinfo->biWidth+3)/4);
   while(filesize) {

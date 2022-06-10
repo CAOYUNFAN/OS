@@ -190,7 +190,7 @@ int is_bmp_hdr(void * ptr,int filesize){
   if(bmphdr->bfType!=0x4d42||bmphdr->bfSize!=filesize||bmphdr->bfReserved!=0||bmphdr->boffBits!=54) return 0;
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   if(bmpinfo->bisize!=40||bmpinfo->biPlanes!=1||bmpinfo->biBitCount!=24||bmpinfo->biCompression!=0||bmpinfo->biSizeImages!=filesize-54) return 0;
-  if(bmpinfo->biXPelsPerMeter!=0xec4||bmpinfo->biYPelsPerMeter!=0xec4||bmpinfo->biClrUsed!=0||bmpinfo->biClrImportant!=0) return 0;
+//  if(bmpinfo->biXPelsPerMeter!=0xec4||bmpinfo->biYPelsPerMeter!=0xec4||bmpinfo->biClrUsed!=0||bmpinfo->biClrImportant!=0) return 0;
   return 1;
 }
 inline static int check_char(u8 ch){

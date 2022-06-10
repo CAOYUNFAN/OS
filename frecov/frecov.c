@@ -395,7 +395,7 @@ void * next_cluster(void * ptr,u32 rowsize){
 }
 
 int file_recovery(void * ptr,u32 filesize,FILE * file){
-  bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
+  /*bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   u32 rowsize=4*((3*bmpinfo->biWidth+3)/4);
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))
@@ -403,7 +403,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
     DEBUG(printf("#%x ",(u32)((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);)
     if(filesize) ptr=next_cluster(ptr,rowsize);
     if(!ptr) return 0;
-  }
+  }*/
   DEBUG(printf("\n");)
   return 1;
 }

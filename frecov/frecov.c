@@ -382,7 +382,7 @@ int chk(u8 * x,u8 * y,int len){printf("In!\n");
   if(abs(sum)<3.0*sigma*sqrt((double)len)) return 1;
   return 0;
 }
-
+void dummy();
 void * next_cluster(void * ptr,u32 rowsize){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
@@ -390,7 +390,7 @@ void * next_cluster(void * ptr,u32 rowsize){
   DEBUG(printf("FAIL for nxtptr,");)
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]!=1&&type[i+2]!=(u32)(-1)&&type[type[i+2]]!=1){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
-      printf( "\nTo %x,%d",i+2,type[0x470]);
+    if(i==0x46d-2) dummy();
     if(chk((u8 *)nxtptr-rowsize,page,rowsize)) {
       printf( "To %p",page);
       return page;
@@ -413,7 +413,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
   DEBUG(printf("\n");)
   return 1;
 }
-/*void dummy(){
+void dummy(){
   printf("DUMMY!\n");
   return;
-}*/
+}

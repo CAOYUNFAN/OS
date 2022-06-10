@@ -359,7 +359,7 @@ int main(int argc, char *argv[]) {
     if(type[i+2]!=0) continue;
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     if(is_unused(page)) type[i+2]=-1;
-    else if(is_dir(page,i)) type[i+2]=1;
+    else if(is_dir(page,i+2)) type[i+2]=1;
     else type[i+2]=0;
   }
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]==1){

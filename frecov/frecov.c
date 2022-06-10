@@ -362,6 +362,10 @@ int main(int argc, char *argv[]) {
     else type[i+2]=0;
     tot=i+2;
   }
+  for(int i=2;i<=tot;i++) if(type[i]!=1&&type[i]!=-1&&type[i]!=0){
+    if(type[type[i]]==1) type[i]=2;
+    else type[i]=0;
+  }
   for(int i=0;i<=tot-2;i++) if(type[i+2]==1){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     DEBUG(printf("dir:%x\n",i+2);)
@@ -385,7 +389,7 @@ int chk(u8 * x,u8 * y,int len){
 void * next_cluster(void * ptr,u32 rowsize){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
-  if(nxtptr<end_of_file&&(type[num]!=(u16)-1&&type[num]!=1&&type[type[num]]!=1)&&chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
+  if(nxtptr<end_of_file && type[num]==0 && chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
 //  DEBUG(printf("FAIL for nxtptr,");)
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]!=1&&type[i+2]!=(u16)(-1)&&type[type[i+2]]!=1){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);

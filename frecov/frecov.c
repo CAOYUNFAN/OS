@@ -72,6 +72,28 @@ struct _lnameStrct{
 }__attribute__((packed));
 typedef struct _lnameStrct lnameStrct;
 
+struct _bmpHdr{
+  u16 bfType;
+  u32 bfSize;
+  u32 bfReserved;
+  u32 boffBits;
+}__attribute__((packed));;
+typedef struct _bmpHdr bmpHdr;
+
+struct _bmpInfo{
+  u32 bisize;
+  u32 biWidth;
+  u32 biHeight;
+  u16 biPlanes;
+  u16 biBitCount;
+  u32 biCompression;
+  u32 biSizeImages;
+  int biXPelsPerMeter;
+  int biYPelsPerMeter;
+  u32 biClrUsed;
+  u32 biClrImportant;
+}__attribute__((packed));
+typedef struct _bmpInfo bmpInfo;
 
 void * start_of_file=NULL, * start_of_FAT=NULL,* start_of_data=NULL, *end_of_file =NULL;
 #define OFFSET_BASIC(byte,start) ((void *)(((u8 *)start)+byte))
@@ -97,6 +119,7 @@ void * start_of_file=NULL, * start_of_FAT=NULL,* start_of_data=NULL, *end_of_fil
 
 struct fat32hdr * hdr;
 int bytsperclus,bytspersec;
+u16 type[32768];
 
 void *map_disk(const char *fname) {
   int fd = open(fname, O_RDWR);
@@ -161,7 +184,15 @@ int is_unused(void * ptr){
   for(int num=0;num<bytsperclus;++num,++begin) if(*begin) return 0;
   return 1;
 }
-
+int is_bmp_hdr(void * ptr,int filesize){
+  assert(sizeof(bmpHdr)==14);assert(sizeof(bmpInfo)==40);
+  bmpHdr * bmphdr=ptr;
+  if(bmphdr->bfType!=0x4d42||bmphdr->bfSize!=filesize||bmphdr->bfReserved!=0||bmphdr->boffBits!=54) return 0;
+  bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
+  if(bmpinfo->bisize!=40||bmpinfo->biPlanes!=1||bmpinfo->biBitCount!=24||bmpinfo->biCompression!=0||bmpinfo->biSizeImages!=filesize-54) return 0;
+  if(bmpinfo->biXPelsPerMeter!=0xec4||bmpinfo->biYPelsPerMeter!=0xec4||bmpinfo->biClrUsed!=0||bmpinfo->biClrImportant!=0) return 0;
+  return 1;
+}
 inline static int check_char(u8 ch){
   return 
     (ch>='0'&&ch<='9')||
@@ -207,7 +238,7 @@ int check_lname(lnameStrct * lname){
   }
   return 1;
 }
-int check_dir(dirStrct * dir){
+int check_dir(dirStrct * dir,int tag){
   if(dir->DIR_Attr==((u8)0xf)) return check_lname((lnameStrct *)dir);
   if(dir->DIR_NTRes!=0) return 0;
   if(dir->DIR_name[0]==0xe5) return 2;
@@ -233,15 +264,21 @@ int check_dir(dirStrct * dir){
   }else{
     if(dir->DIR_name[0]==0x20) return 0;
     for(int i=0;i<11;++i) if(!check_char2(dir->DIR_name[i])) return 0;
-    if(dir->DIR_name[8]=='B'&&dir->DIR_name[9]=='M'&&dir->DIR_name[10]=='P') return 1;
+    if(dir->DIR_name[8]=='B'&&dir->DIR_name[9]=='M'&&dir->DIR_name[10]=='P') {
+      if((!(type[addr]==-1||type[addr]==1||type[type[addr]]==1))&&is_bmp_hdr(OFFSET_DATA_NUM(addr-2,bytsperclus),dir->DIR_FileSize)){
+        type[addr]=tag;
+        return 1;
+      }
+      else return 0;
+    }
   }
   return 0;
 }
-int is_dir(void * ptr){
+int is_dir(void * ptr,int tag){
   dirStrct * now=ptr;
   int temp=0;
   for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++){
-    int res=check_dir(now);
+    int res=check_dir(now,tag);
     if(!res) return 0;
     if(res==1) temp=1;
   }
@@ -257,6 +294,7 @@ char * get_short_name(dirStrct * ptr,int * chk){
   temp[len]=0;
   return temp;
 }
+
 
 static char buf[1024];
 #ifdef LOCAL
@@ -318,38 +356,21 @@ int main(int argc, char *argv[]) {
   parse_args(argc,argv);
   // TODO: frecov
   for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
+    if(type[i+2]!=0) continue;
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
-    if(!is_unused(page)&&is_dir(page)){
-      DEBUG(printf("dir:%x\n",i+2);)
-      work(page);
-    }
+    if(is_unused(page)) type[i+2]=-1;
+    else if(is_dir(page,i)) type[i+2]=1;
+    else type[i+2]=0;
+  }
+  for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]==1){
+    void * page=OFFSET_DATA_NUM(i,bytsperclus);
+    DEBUG(printf("dir:%x\n",i+2);)
+    work(page);
   }
   // file system traversal
   munmap(start_of_file, hdr->BPB_TotSec32 * hdr->BPB_BytsPerSec);
 }
 
-struct _bmpHdr{
-  u16 bfType;
-  u32 bfSize;
-  u32 bfReserved;
-  u32 boffBits;
-}__attribute__((packed));;
-typedef struct _bmpHdr bmpHdr;
-
-struct _bmpInfo{
-  u32 bisize;
-  u32 biWidth;
-  u32 biHeight;
-  u16 biPlanes;
-  u16 biBitCount;
-  u32 biCompression;
-  u32 biSizeImages;
-  int biXPelsPerMeter;
-  int biYPelsPerMeter;
-  u32 biClrUsed;
-  u32 biClrImportant;
-}__attribute__((packed));
-typedef struct _bmpInfo bmpInfo;
 
 typedef long long LL;
 int chk(u8 * x,u8 * y,int len){
@@ -362,9 +383,10 @@ int chk(u8 * x,u8 * y,int len){
 
 void * next_cluster(void * ptr,u32 rowsize){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
-  if(nxtptr<end_of_file&&chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
+  int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
+  if(nxtptr<end_of_file&&(type[num]==0||(type[num]!=-1&&type[type[num]]!=1))&&chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
   DEBUG(printf("FAIL for nxtptr!");)
-  for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++){
+  for(int i=0;OFFSET_DATA_NUM(i,bytsperclus)<end_of_file;i++) if(type[i+2]==0||(type[i+2]!=-1&&type[type[i+2]]!=1)){
     void * page=OFFSET_DATA_NUM(i,bytsperclus);
     if(chk((u8 *)nxtptr-rowsize,page,rowsize)) return page;
   }
@@ -373,12 +395,7 @@ void * next_cluster(void * ptr,u32 rowsize){
 }
 
 int file_recovery(void * ptr,u32 filesize,FILE * file){
-  assert(sizeof(bmpHdr)==14);assert(sizeof(bmpInfo)==40);
-  bmpHdr * bmphdr=ptr;
-  if(bmphdr->bfType!=0x4d42||bmphdr->bfSize!=filesize||bmphdr->bfReserved!=0||bmphdr->boffBits!=54) return 0;
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
-  if(bmpinfo->bisize!=40||bmpinfo->biPlanes!=1||bmpinfo->biBitCount!=24||bmpinfo->biCompression!=0||bmpinfo->biSizeImages!=filesize-54) return 0;
-  if(bmpinfo->biXPelsPerMeter!=0xec4||bmpinfo->biYPelsPerMeter!=0xec4||bmpinfo->biClrUsed!=0||bmpinfo->biClrImportant!=0) return 0;
   u32 rowsize=4*((3*bmpinfo->biWidth+3)/4);
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))

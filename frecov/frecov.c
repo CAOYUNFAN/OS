@@ -302,7 +302,7 @@ void work(void * ptr){
       longname[len]=0;
       if(!(pre->LDIR_Ord&0x40)) continue;
     }
-    DEBUG(static int tot=0;)
+    DEBUG(static int tot=1;)
     u32 addr=(u32)now->DIR_FstClusHI<<16|now->DIR_FstClusLO;
     if(get_file(OFFSET_DATA_NUM(addr-2,bytsperclus),now->DIR_FileSize,name)) {
       DEBUG(printf("Name %d:\n",tot++);)

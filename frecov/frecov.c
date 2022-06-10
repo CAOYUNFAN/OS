@@ -397,6 +397,7 @@ void * next_cluster(void * ptr,u32 rowsize){
       printf( "To %x %p",i,page);
       return page;
     }
+    if(i+2==0x46d) dummy();
   }
   if(nxtptr<end_of_file) return nxtptr;
   else return NULL;

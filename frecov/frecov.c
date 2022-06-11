@@ -407,7 +407,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
   if(!is_bmp_hdr(ptr,filesize)) return 0;
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   u32 rowsize=4*((3*bmpinfo->biWidth+3)/4);
-  DEBUG(printf("%x\n",rowsize);)
+  DEBUG(printf("%d\n",rowsize);)
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);

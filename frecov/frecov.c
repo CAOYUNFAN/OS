@@ -389,7 +389,8 @@ LL chk(u8 * x,u8 * y,int len){
 void * next_cluster(void * ptr,u32 rowsize,int tag,int len){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
-  if(nxtptr<end_of_file && type[num]!=1 && type[num]!=(u16)(-1) && type[num]!=tag && chk((u8 *)nxtptr-rowsize,nxtptr,len) < MAXNN *rowsize) {
+  LL res=chk((u8 *)nxtptr-rowsize,nxtptr,len);
+  if(nxtptr<end_of_file && type[num]!=1 && type[num]!=(u16)(-1) && type[num]!=tag &&( res<MAXNN * rowsize/2 || (type[num]==0 && res < MAXNN *rowsize) )) {
     type[num]=tag;
     return nxtptr;
   }
@@ -397,7 +398,8 @@ void * next_cluster(void * ptr,u32 rowsize,int tag,int len){
   for(int i=2;i<=tot;i++) if(type[i]!=1 && type[i]!=(u16)(-1) && type[i]!=tag){
     void * page=OFFSET_DATA_NUM(i-2,bytsperclus);
     LL temp=chk((u8 *)nxtptr-rowsize,page,len);
-    if(temp<min_now||(temp==min_now&&abs(ptr-page)<=abs(ptr-page_min))){
+    if(temp<min_now||(temp==min_now&&abs(ptr-page)<=abs(ptr-page_min)))
+    if(type[i]==0||temp<min_now/2){
       min_now=temp;
       page_min=page;
       page_num=i;

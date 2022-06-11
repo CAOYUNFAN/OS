@@ -395,7 +395,7 @@ void * next_cluster(void * ptr,u32 rowsize,int tag,int len){
     return nxtptr;
   }
   void * page_min=NULL;LL min_now=MAXNN *MAXNN*rowsize,page_num=0;
-  for(int i=2;i<=tot;i++) if(type[i]!=1 && type[i]!=(u16)(-1) && type[num]!=2 && type[i]!=tag){
+  for(int i=2;i<=tot;i++) if(type[i]!=1 && type[i]!=(u16)(-1) && type[i]!=2 && type[i]!=tag){
     void * page=OFFSET_DATA_NUM(i-2,bytsperclus);
     LL temp=chk((u8 *)nxtptr-rowsize,page,len);
     if(temp<min_now||(temp==min_now&&abs(ptr-page)<=abs(ptr-page_min)))

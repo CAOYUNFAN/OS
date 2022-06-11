@@ -377,29 +377,30 @@ int main(int argc, char *argv[]) {
 
 
 typedef long long LL;
-int chk(u8 * x,u8 * y,int len){
+#define MAXNN 10000
+LL chk(u8 * x,u8 * y,int len){
   assert(x+len<=(u8 *)end_of_file);
   assert(y+bytsperclus<=(u8 *)end_of_file);
   LL sum=0;
-  double sigma=15.0;
-  for(int i=0;i<len;i++) sum+=abs((LL)x[i]-(LL)y[i]);
-  if(sum>sigma*len) return 0;
-  return 1;
+  #define Sqr(x) ((x)*(x))
+  for(int i=0;i<len;i++) sum+=Sqr((LL)x[i]-(LL)y[i]);
+  return sum;
 }
 void * next_cluster(void * ptr,u32 rowsize){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
-  if(nxtptr<end_of_file && type[num]==0 && chk((u8 *)nxtptr-rowsize,nxtptr,rowsize)) return nxtptr;
+  if(nxtptr<end_of_file && type[num]==0 && chk((u8 *)nxtptr-rowsize,nxtptr,rowsize) < MAXNN *rowsize) return nxtptr;
 //  DEBUG(printf("FAIL for nxtptr,");)
+  void * page_min=NULL;LL min_now=10*MAXNN*rowsize;
   for(int i=2;i<=tot;i++) if(type[i]==0){
     void * page=OFFSET_DATA_NUM(i-2,bytsperclus);
-    if(chk((u8 *)nxtptr-rowsize,page,rowsize)) {
-//      printf( "To %x %p",i,page);
-      return page;
+    LL temp=chk((u8 *)nxtptr-rowsize,page,rowsize);
+    if(temp<min_now||(temp==min_now&&abs(ptr-page)<=abs(ptr-page_min))){
+      min_now=temp;
+      page_min=ptr;
     }
   }
-  if(nxtptr<end_of_file) return nxtptr;
-  else return NULL;
+  return page_min;
 }
 
 int file_recovery(void * ptr,u32 filesize,FILE * file){

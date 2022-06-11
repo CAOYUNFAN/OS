@@ -377,7 +377,7 @@ int main(int argc, char *argv[]) {
 
 
 typedef long long LL;
-#define MAXNN 100
+#define MAXNN 152
 LL chk(u8 * x,u8 * y,int len){
   assert(x+len<=(u8 *)end_of_file);
   assert(y+bytsperclus<=(u8 *)end_of_file);

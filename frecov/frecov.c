@@ -400,7 +400,7 @@ void * next_cluster(void * ptr,u32 rowsize,int tag){
     LL temp=chk((u8 *)nxtptr-rowsize,page,rowsize);
     if(temp<min_now||(temp==min_now&&abs(ptr-page)<=abs(ptr-page_min))){
       min_now=temp;
-      page_min=ptr;
+      page_min=page;
       page_num=i;
     }
   }

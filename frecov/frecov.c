@@ -377,13 +377,13 @@ int main(int argc, char *argv[]) {
 
 
 typedef long long LL;
-#define MAXNN 10000
+#define MAXNN 150
 LL chk(u8 * x,u8 * y,int len){
   assert(x+len<=(u8 *)end_of_file);
   assert(y+bytsperclus<=(u8 *)end_of_file);
   LL sum=0;
   #define Sqr(x) ((x)*(x))
-  for(int i=0;i<len;i++) sum+=Sqr((LL)x[i]-(LL)y[i]);
+  for(int i=0;i<len;i++) sum+=abs((LL)x[i]-(LL)y[i]);
   return sum;
 }
 void * next_cluster(void * ptr,u32 rowsize,int tag){

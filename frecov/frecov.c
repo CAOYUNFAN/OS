@@ -386,17 +386,17 @@ LL chk(u8 * x,u8 * y,int len){
   for(int i=0;i<len;i++) sum+=abs((LL)x[i]-(LL)y[i]);
   return sum;
 }
-void * next_cluster(void * ptr,u32 rowsize,int tag){
+void * next_cluster(void * ptr,u32 rowsize,int tag,int len){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
-  if(nxtptr<end_of_file && type[num]!=1 && type[num]!=(u16)(-1) && type[num]!=tag && chk((u8 *)nxtptr-rowsize,nxtptr,rowsize) < MAXNN *rowsize) {
+  if(nxtptr<end_of_file && type[num]!=1 && type[num]!=(u16)(-1) && type[num]!=tag && chk((u8 *)nxtptr-rowsize,nxtptr,len) < MAXNN *rowsize) {
     type[num]=tag;
     return nxtptr;
   }
   void * page_min=NULL;LL min_now=10*MAXNN*rowsize,page_num=0;
   for(int i=2;i<=tot;i++) if(type[i]!=1 && type[i]!=(u16)(-1) && type[i]!=tag){
     void * page=OFFSET_DATA_NUM(i-2,bytsperclus);
-    LL temp=chk((u8 *)nxtptr-rowsize,page,rowsize);
+    LL temp=chk((u8 *)nxtptr-rowsize,page,len);
     if(temp<min_now||(temp==min_now&&abs(ptr-page)<=abs(ptr-page_min))){
       min_now=temp;
       page_min=page;
@@ -417,7 +417,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file,int tag){
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);
 //    DEBUG(printf("#%x ",(u32)((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);)
-    if(filesize) ptr=next_cluster(ptr,rowsize,tag);
+    if(filesize) ptr=next_cluster(ptr,rowsize,tag,Min(rowsize,filesize));
     if(!ptr) return 0;
   }
 //  DEBUG(printf("\n");)//printf("OUT!\n");

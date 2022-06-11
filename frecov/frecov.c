@@ -412,7 +412,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file,int tag){
   if(!is_bmp_hdr(ptr,filesize)) return 0;
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   u32 rowsize=4*((3*bmpinfo->biWidth+3)/4);
-  DEBUG(printf("%d\n",rowsize);)
+//  DEBUG(printf("%d\n",rowsize);)
   while(filesize) {
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);
@@ -420,7 +420,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file,int tag){
     if(filesize) ptr=next_cluster(ptr,rowsize,tag);
     if(!ptr) return 0;
   }
-  DEBUG(printf("\n");)//printf("OUT!\n");
+//  DEBUG(printf("\n");)//printf("OUT!\n");
   return 1;
 }
 /*void dummy(){

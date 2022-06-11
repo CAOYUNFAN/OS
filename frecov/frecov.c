@@ -300,13 +300,13 @@ const char * filepath="bmp/%s";
 #else
 const char * filepath="/tmp/%s";
 #endif
-int file_recovery(void * ptr,u32 filesize,FILE * file);
-int get_file(void * ptr,u32 filesize,char * filename){
+int file_recovery(void * ptr,u32 filesize,FILE * file,int tag);
+int get_file(void * ptr,u32 filesize,char * filename,int tag){
   static char name[500],cmd[512];
   sprintf(name,filepath,filename);
   sprintf(cmd,"sha1sum %s",name);
   FILE * fd=fopen(name,"wb");
-  int ret=file_recovery(ptr,filesize,fd);
+  int ret=file_recovery(ptr,filesize,fd,tag);
   fclose(fd);
   if(ret){
     FILE * fp=popen(cmd,"r");
@@ -320,6 +320,7 @@ int get_file(void * ptr,u32 filesize,char * filename){
 void work(void * ptr){
   dirStrct * now=ptr;
   static char longname[256];
+  static int tot=1;
   for(int tot_idents=bytsperclus/sizeof(dirStrct);tot_idents;tot_idents--,now++){
     if(now->DIR_name[0]==0x00||now->DIR_name[0]==0xe5||now->DIR_Attr&0x10||now->DIR_Attr==0xf) continue;
     int chk=0; char * name=get_short_name(now,&chk);
@@ -338,11 +339,10 @@ void work(void * ptr){
       longname[len]=0;
       if(!(pre->LDIR_Ord&0x40)) continue;
     }
-    DEBUG(static int tot=1;)
     u32 addr=(u32)now->DIR_FstClusHI<<16|now->DIR_FstClusLO;
     
     DEBUG(printf("Name %d:\n",tot++);)
-    if(get_file(OFFSET_DATA_NUM(addr-2,bytsperclus),now->DIR_FileSize,name)) printf("%s  %s\n",buf,name);
+    if(get_file(OFFSET_DATA_NUM(addr-2,bytsperclus),now->DIR_FileSize,name,tot+10)) printf("%s  %s\n",buf,name);
     else printf("  %s\n",name);
     DEBUG("start at %x\n",addr);
     fflush(stdout);
@@ -386,24 +386,29 @@ LL chk(u8 * x,u8 * y,int len){
   for(int i=0;i<len;i++) sum+=Sqr((LL)x[i]-(LL)y[i]);
   return sum;
 }
-void * next_cluster(void * ptr,u32 rowsize){
+void * next_cluster(void * ptr,u32 rowsize,int tag){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
-  if(nxtptr<end_of_file && type[num]==0 && chk((u8 *)nxtptr-rowsize,nxtptr,rowsize) < MAXNN *rowsize) return nxtptr;
+  if(nxtptr<end_of_file && type[num]!=1 && type[num]!=-1 && type[num]!=tag && chk((u8 *)nxtptr-rowsize,nxtptr,rowsize) < MAXNN *rowsize) {
+    type[num]=tag;
+    return nxtptr;
+  }
   DEBUG(printf("%x FAIL for nxtptr! \n",(int)(ptr-start_of_data)/bytsperclus+2);)
-  void * page_min=NULL;LL min_now=10*MAXNN*rowsize;
-  for(int i=2;i<=tot;i++) if(type[i]==0){
+  void * page_min=NULL;LL min_now=10*MAXNN*rowsize,page_num=0;
+  for(int i=2;i<=tot;i++) if(type[i]!=1 && type[i]!=-1 && type[i]!=tag){
     void * page=OFFSET_DATA_NUM(i-2,bytsperclus);
     LL temp=chk((u8 *)nxtptr-rowsize,page,rowsize);
     if(temp<min_now||(temp==min_now&&abs(ptr-page)<=abs(ptr-page_min))){
       min_now=temp;
       page_min=ptr;
+      page_num=i;
     }
   }
+  if(page_min) type[page_num]=tag;
   return page_min;
 }
 
-int file_recovery(void * ptr,u32 filesize,FILE * file){
+int file_recovery(void * ptr,u32 filesize,FILE * file,int tag){
   if(!is_bmp_hdr(ptr,filesize)) return 0;
   bmpInfo * bmpinfo=OFFSET_BASIC_TYPE(14,ptr,bmpInfo *);
   u32 rowsize=4*((3*bmpinfo->biWidth+3)/4);
@@ -412,7 +417,7 @@ int file_recovery(void * ptr,u32 filesize,FILE * file){
     #define Min(x,y) ((x)<(y)?(x):(y))
     filesize-=fwrite(ptr,1,Min(filesize,bytsperclus),file);
 //    DEBUG(printf("#%x ",(u32)((u8 *)ptr-(u8 *)start_of_data)/bytsperclus+2);)
-    if(filesize) ptr=next_cluster(ptr,rowsize);
+    if(filesize) ptr=next_cluster(ptr,rowsize,tag);
     if(!ptr) return 0;
   }
   DEBUG(printf("\n");)//printf("OUT!\n");

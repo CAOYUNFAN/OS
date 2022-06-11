@@ -389,12 +389,12 @@ LL chk(u8 * x,u8 * y,int len){
 void * next_cluster(void * ptr,u32 rowsize,int tag,int len){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
-  LL res=chk((u8 *)nxtptr-rowsize,nxtptr,len);
+  LL res=nxtptr<end_of_file?chk((u8 *)nxtptr-rowsize,nxtptr,len):MAXNN * MAXNN * rowsize;
   if(nxtptr<end_of_file && type[num]!=1 && type[num]!=(u16)(-1) && type[num]!=tag &&( res<MAXNN * rowsize/2 || (type[num]==0 && res < MAXNN *rowsize) )) {
     type[num]=tag;
     return nxtptr;
   }
-  void * page_min=NULL;LL min_now=10*MAXNN*rowsize,page_num=0;
+  void * page_min=NULL;LL min_now=MAXNN *MAXNN*rowsize,page_num=0;
   for(int i=2;i<=tot;i++) if(type[i]!=1 && type[i]!=(u16)(-1) && type[i]!=tag){
     void * page=OFFSET_DATA_NUM(i-2,bytsperclus);
     LL temp=chk((u8 *)nxtptr-rowsize,page,len);

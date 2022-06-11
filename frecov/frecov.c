@@ -390,7 +390,7 @@ void * next_cluster(void * ptr,u32 rowsize){
   void * nxtptr=OFFSET_BASIC(bytsperclus,ptr);
   int num=((u8 *)nxtptr-(u8 *)start_of_data)/bytsperclus+2;
   if(nxtptr<end_of_file && type[num]==0 && chk((u8 *)nxtptr-rowsize,nxtptr,rowsize) < MAXNN *rowsize) return nxtptr;
-  DEBUG(printf("FAIL for nxtptr,");)
+  DEBUG(printf("%p FAIL for nxtptr! ",ptr);)
   void * page_min=NULL;LL min_now=10*MAXNN*rowsize;
   for(int i=2;i<=tot;i++) if(type[i]==0){
     void * page=OFFSET_DATA_NUM(i-2,bytsperclus);

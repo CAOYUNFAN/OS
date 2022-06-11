@@ -393,7 +393,6 @@ void * next_cluster(void * ptr,u32 rowsize,int tag){
     type[num]=tag;
     return nxtptr;
   }
-  DEBUG(printf("%x FAIL for nxtptr! \n",(int)(ptr-start_of_data)/bytsperclus+2);)
   void * page_min=NULL;LL min_now=10*MAXNN*rowsize,page_num=0;
   for(int i=2;i<=tot;i++) if(type[i]!=1 && type[i]!=-1 && type[i]!=tag){
     void * page=OFFSET_DATA_NUM(i-2,bytsperclus);
@@ -404,6 +403,7 @@ void * next_cluster(void * ptr,u32 rowsize,int tag){
       page_num=i;
     }
   }
+  DEBUG(printf("%x FAIL for nxtptr! ,next %llx\n",(int)(ptr-start_of_data)/bytsperclus+2,page_num);)
   if(page_min) type[page_num]=tag;
   return page_min;
 }

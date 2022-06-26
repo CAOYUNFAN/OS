@@ -21,7 +21,7 @@ static inline void unlock_inside(int * addr,int status){
     if(status) iset(true);
 }
 
-static task_t * current_all[8]={};
+task_t * current_all[8]={};
 static task_t * previous_all[8]={};
 
 /*
@@ -71,11 +71,25 @@ static inline task_t * task_queue_pop(task_queue * q){
     return ret;
 }
 
+static void cpush(Cstack ** all,Context * ctx){
+    Cstack * temp = pmm->alloc(sizeof(Cstack));
+    temp->nxt=*all;temp->ctx=ctx;
+    *all=temp;
+}
+static Context * cpop(Cstack ** all){
+    Cstack * temp= *all;
+    Context * ret= temp->ctx;
+    Assert(temp,"%p should not be NULL!",temp);
+    *all=temp->nxt;
+    pmm->free(temp);
+    return ret;
+}
+
 static Context * kmt_context_save(Event ev,Context * ctx){
 //    Log("save_context!");
     task_t * current=current_all[cpu_current()];
 //    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %s SHOULD NOT be RUNNABLE!",current->status,current->name);
-    if(current) current->ctx=ctx;
+    if(current&&current->status!=TASK_DEAD) cpush(&current->ctx,ctx);
 //    Log("%p %p",current,ctx);
     task_t * previous=previous_all[cpu_current()];
     if(previous){
@@ -87,14 +101,21 @@ static Context * kmt_context_save(Event ev,Context * ctx){
     return NULL;
 }
 
+static inline real_free(task_t * task){
+    pmm->free(task->stack);
+    while(task->ctx) cpop(&task->ctx);
+    extern void uproc_clear_space(utaskk * ut);
+    uproc_clear_space(&task->utask);
+}
+
 static Context * kmt_schedule(Event ev,Context * ctx){
     task_t * current=current_all[cpu_current()];
-/*    if(ev.event == EVENT_SYSCALL || ev.event == EVENT_PAGEFAULT || ev.event == EVENT_ERROR) {
+    if(ev.event == EVENT_SYSCALL || ev.event == EVENT_PAGEFAULT ) {
         Assert(current,"%p shou not be NULL!\n",current);
-        return current->ctx;
+        return NULL;
     }
 //    Log("Schedule!");
-#ifdef LOCAL
+/*#ifdef LOCAL
     if(ev.event==EVENT_IRQ_TIMER) return ctx;
 #endif
 */
@@ -113,6 +134,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     while (!current||current->status!=TASK_RUNABLE||(pre!=current&&atomic_xchg(&current->lock,1))){
         //if(!current) Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
         Assert(current==NULL||current->status==TASK_RUNABLE||current->status==TASK_DEAD,"%s unexpected status %d",current->name,current->status);
+        if(current->status==TASK_DEAD) real_free(current);
         if(current&&current->status==TASK_RUNABLE&&pre!=current) task_queue_push(&runnable,current);
         current=task_queue_pop(&runnable);
     };
@@ -123,7 +145,34 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 
     current_all[cpu_current()]=current;
 //    Log("switch to task %s,%p",current->name,current);
-    return current->ctx;
+    return cpop(&current->ctx);
+}
+
+static Context * kmt_pagefault(Event ev,Context * ctx){
+    printf("pf:%p by %p \n",ev.ref,c->rip);
+    return ctx;
+}
+
+static Context * kmt_syscall(Event ev,Context * ctx){
+    task_t * current=current_all[cpu_current()];
+    extern Context * syscall(task_t * task,Context * ctx);
+    ctx=syscall(current,ctx);
+    return ctx;
+}
+
+static void kmt_teardown(task_t * task){
+    Assert(task->status==TASK_RUNABLE||task->status==TASK_RUNNING,"task %p is blocked!\n",task);
+    Assert(task_all_pid[task->pid]==task,"Invalid pid %s!",task->name);
+    task_all_pid[task->pid]=NULL;
+    task->status=TASK_DEAD;
+    task->ch=NULL;
+    pid_free(task->pid);
+}
+
+static Context * kmt_error(Event ev,Context * ctx){
+    Assert(0,"%s error happens!",current_all[cpu_current()]->name);
+    kmt_teardown(current_all[cpu_current()]);
+    return NULL;
 }
 
 static void kmt_init(){
@@ -131,12 +180,57 @@ static void kmt_init(){
     #  define INT_MAX	2147483647
     os->on_irq(INT_MIN,EVENT_NULL,kmt_context_save);
     os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
+    os->on_irq(INT_MIN+10,EVENT_PAGEFAULT,kmt_pagefault);
+    os->on_irq(INT_MIN+15,EVENT_SYSCALL,kmt_syscall);
+    os->on_irq(INT_MIN+15,EVENT_ERROR,kmt_syscall);
     task_queue_init(&runnable);
 
     #ifdef LOCAL
 //    kmt->create(task_alloc(), "tty_reader1", tty_reader, "tty1");
 //    kmt->create(task_alloc(), "tty_reader2", tty_reader, "tty2");
     #endif
+}
+
+static int pid_lock,pid_lock2,pid_max;
+task_t * task_all_pid[32768];
+typedef struct pid_unit__{
+    int data;
+    struct pid_unit__ * nxt;
+}pid_unit;
+pid_unit * pid_start, * pid_end;
+
+static int new_pid(){
+    int i=0,ret;
+    pid_unit * temp=NULL;
+    lock_inside(&pid_lock,&i);
+    if(pid_max<32768) ret=++pid_max;
+    else{
+        lock_inside_ker(&pid_lock2);
+        panic_on(pid_start==NULL,"Too many procedures!");
+        ret=pid_start->data;
+        temp=pid_start;
+        pid_start=pid_start->nxt;
+        if(!pid_start) pid_end=NULL;
+        unlock_inside_ker(&pid_lock2);
+    }
+    unlock_inside(&pid_lock,i);
+    if(temp) pmm->free(temp);
+    return ret;
+}
+
+static void pid_free(int pid){
+    pid_unit * temp=(pid_unit *)pmm->alloc(sizeof(pid_unit));
+    temp->data=pid;temp->nxt=NULL;
+    int i=0;
+    lock_inside(&pid_lock2,&i);
+    if(pid_start) pid_start=temp;
+    else{
+        Assert(pid_end,"%s SHOULD NOT BE NULL!","queue of pid");
+        pid_end->nxt=temp;
+    }
+    pid_end=temp;
+    unlock_inside(&pid_lock2,&i);
+    return;
 }
 
 static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg),void * arg){
@@ -146,20 +240,21 @@ static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg
     task->lock=0;
     Area temp;
     temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);
-    task->ctx=kcontext(temp,entry,arg);
+    task->ctx=NULL;
+    cpush(task->ctx,kcontext(temp,entry,arg));
     #ifdef LOCAL
     task->name=name;
     #endif
+    memset(&task->utask,0,sizeof(utaskk));
+    task->pid=new_pid();
+    task_t * current=current_all[cpu_current()];Assert(current->lock,"CURRENT %s IS NOT LOCKED!",current->name);
+    task->ch=NULL;
+    task->bro=current->ch;current->ch=task;
+    task->ret=0;
+    task_all_pid[task->pid]=task;
 //    Log("Task %s is added to %p",name,task);
     task_queue_push(&runnable,task);
     return 0;
-}
-
-static void kmt_teardown(task_t * task){
-    pmm->free(task->stack);
-    Assert(task->status==TASK_RUNABLE||task->status==TASK_RUNNING,"task %p is blocked!\n",task);
-    task->status=TASK_DEAD;
-    free(task->stack);
 }
 
 static void kmt_spin_init(spinlock_t *lk, const char * name){//Log("building %s",name);
@@ -194,6 +289,10 @@ static int kmt_wakeup(task_queue * q){
 }
 
 static void kmt_spin_lock(spinlock_t *lk){
+    if(current_all[cpu_current()]->status==TASK_DEAD){
+        yield();
+        Assert(0,"%s Unexpected reach!",current_all[cpu_current()]->name);
+    }
     int i=0;
     lock_inside(&lk->lock,&i);
     
@@ -224,6 +323,10 @@ static void kmt_spin_unlock(spinlock_t * lk){
     } 
     i=lk->status;
     unlock_inside(&lk->lock,i);
+    if(current_all[cpu_current()]->status==TASK_DEAD){
+        yield();
+        Assert(0,"%s Unexpected reach!",current_all[cpu_current()]->name);
+    }
     return;
 }
 
@@ -235,6 +338,10 @@ static void kmt_sem_init(sem_t * sem,const char * name, int value){//Log("buildi
 }
 
 static void kmt_sem_wait(sem_t * sem){
+    if(current_all[cpu_current()]->status==TASK_DEAD){
+        yield();
+        Assert(0,"%s Unexpected reach!",current_all[cpu_current()]->name);
+    }
     int i=0;
     lock_inside(&sem->lock,&i);
     sem->num--;
@@ -257,6 +364,10 @@ static void kmt_sem_signal(sem_t * sem){
         Assert(sem->num<=0,"%d SHOULD BELOW ZERO!",sem->num);
     }else Assert(sem->num>0,"%d SHOULD ABOVE ZERO!",sem->num);
     unlock_inside(&sem->lock,i);
+    if(current_all[cpu_current()]->status==TASK_DEAD){
+        yield();
+        Assert(0,"%s Unexpected reach!",current_all[cpu_current()]->name);
+    }
 } 
 
 MODULE_DEF(kmt) = {

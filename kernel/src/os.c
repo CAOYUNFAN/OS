@@ -15,6 +15,7 @@ static inline task_t *task_alloc() {
 static void os_init() {
   pmm->init();
   kmt->init();
+  uproc->init();
 
   #ifdef LOCAL
 //  dev->init();
@@ -51,12 +52,14 @@ typedef struct event_local{
 }event_local_t;
 
 event_local_t * start=NULL;
+extern task_t * current_all[8];
 
 static Context * os_trap(Event ev, Context * context){
   Context *next = NULL;
 //  Log("CPU%d:%d",cpu_current(),ev.event);
+  int flag=(current_all[cpu_current()]->status!=TASK_DEAD);
   for (event_local_t *h=start;h;h=h->nxt) {
-    if (h->event == EVENT_NULL || h->event == ev.event) {
+    if (h->event == EVENT_NULL || (h->event == ev.event && flag)) {
 //      Log("In function %p",h->handler);
       Context *r = h->handler(ev, context);
       panic_on(r && next, "returning multiple contexts");

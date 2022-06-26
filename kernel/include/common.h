@@ -29,11 +29,23 @@ enum task_status{
   TASK_RUNNING,TASK_RUNABLE,TASK_WAITING,TASK_DEAD
 };
 
+typedef struct{
+  AddrSpace as;
+}utaskk;
+
+typedef struct _context_stack{
+  Context * ctx;
+  _context_stack * nxt;
+}Cstack;
+
 struct task {
   int status,lock;
-  struct task * nxt;
-  Context * ctx;
+  int pid,ret;
+//  uint64_t awake_time;
+  struct task * nxt, * ch, * bro;
+  Cstack * ctx;
   void * stack;
+  utaskk utask;
   NAME
 };
 

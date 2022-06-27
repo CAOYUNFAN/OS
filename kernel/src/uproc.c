@@ -27,8 +27,51 @@ static inline void unlock_inside(int * addr,int status){
     if(status) iset(true);
 }
 
+counter * add_cnt(counter * cnt){
+    if(cnt==NULL){
+        cnt=pmm->alloc(sizeof(counter));
+        cnt->lock=cnt->cnt=0;
+    }
+    int i=0; lock_inside(&cnt->lock,&i);
+    cnt->cnt++;
+    unlock_inside(&cnt->lock,i);
+    return cnt;
+}
+counter * dec_cnt(counter * cnt){
+    int i=0; lock_inside(&cnt->lock,&i);
+    cnt->cnt--;
+    if(cnt->cnt){
+        unlock_inside(&cnt->lock,i);
+        return cnt;
+    }
+    pmm->free(cnt);
+    return NULL;
+}
+
+void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){
+    assert(cnt==NULL||pa!=NULL);
+    assert(cnt==NULL||!shared);
+    pgs * now=pmm->alloc(sizeof(pgs));
+    now->pa=pa;
+    if(pa==NULL) now->va=(void *)((uintptr_t)va | prot | (shared << 8));
+    else now->va=(void *)((uintptr_t)va | prot | (shared << 8)) | 16;
+    if(cnt) now->cnt=add_cnt(cnt);
+    else now->cnt=NULL;
+    now->nxt=*all;*all=now;
+}
+void del_pg(pgs ** all,AddrSpace * as){
+    pgs * now=*all; *all = now->nxt;
+    if(real(now->va)){
+        map(as,get_vaddr(now->va),NULL,MMAP_NONE);
+        if(now->cnt) now->cnt=dec_cnt(now->cnt);
+    }
+    if(!now->cnt) pmm->free(now->pa);
+    pmm->free(now);
+}
+
 void uproc_clear_space(utaskk * ut){
-    ut->as;
+    while (ut->start) del_pg(&ut->start,&ut->as);    
+    unprotect(&ut->as);
     return;
 }
 
@@ -46,15 +89,52 @@ static int uproc_kputc(task_t * task,char ch){
     return 0;
 }
 
+extern int create_all(task_t * task, const char * name, void (*entry)(void * arg), void * arg, Context * ctx);
 static int uproc_fork(task_t *task){
-    return -1;
+    Assert(task->nc==1,"%s multicall of fork",task->name);
+    task_t * task_new=(task_t *)pmm->alloc(sizeof(task_t));
+    AddrSpace * as=&task_new->utask.as;pgs ** all=&task_new->utask.start;
+    protect(as);all=NULL;
+    for(pgs * now=task->utask.start;now;now=now->nxt){
+        if(!real(now->va)) now->va=(void *)((uintptr_t)now->va | 16), now->pa=pmm->alloc(4096);
+        if(!now->cnt) now->cnt=add_cnt(NULL);
+        void * va=get_vaddr(now->va), *pa=now->pa;
+        int prot=get_prot(now->va);
+        if(is_shared(now->va)){
+            add_pg(all,va,pa,prot,1 ,now->cnt);
+            map(as,va,pa,prot);
+        }else{
+            add_pg(all,va,pa,prot,0 ,now->cnt);
+            if(prot & PROT_WRITE) prot-=PROT_WRITE;
+            map(as,va,pa,prot);
+            map(&task->utask.as,va,pa,prot);
+        }
+    }
+
+    task_new->stack=pmm->alloc(16*4096);
+    Area temp;
+    temp.start=task_new->stack;temp.end=(void *)((uintptr_t)task_new->stack+16*4096);
+    Context * ctx2=ucreate(&task_new->utask.as,temp,task_new->utask.as.area.start);
+    uintptr_t rsp0=ctx2->rsp0;
+    void * cr3=ctx2->cr3;
+    memcpy(ctx2,task->ctx[0],sizeof(Context));
+    ctx2->rsp0=rsp0;
+    ctx2->cr3=cr3;
+    ctx2->GPRx=0;
+
+    #ifdef LOCAL
+    char * ch=task->name;
+    #else
+    char * ch=NULL;
+    #endif
+    return create_all(task_new,ch,NULL,NULL,ctx2);
 }
 
 static int uproc_wait(task_t * task,int * status){
     Assert(task==current_all[cpu_current()],"unexpected task %s",task->name);
     Assert(task->status==TASK_RUNNING&&task->lock,"Unexpected current %s,status %d, lock %d",task->name,task->status,task->lock);
     if(!task->ch)return -1;
-    while (!release) {
+    while (1) {
         task_t ** pre=&task->ch;
         for(task_t * temp=task->ch;temp;pre=&temp->bro,temp=temp->bro) if(temp->status==TASK_DEAD){
             if(status) *status=temp->ret;
@@ -63,6 +143,7 @@ static int uproc_wait(task_t * task,int * status){
         }
         yield();
     }
+    Assert(0,"%s should not reach here",task->name);
     return 0;
 }
 
@@ -86,7 +167,30 @@ static int uproc_kill(task_t *task, int pid){
 }
 
 static void * uproc_mmap(task_t *task, void *addr, int length, int prot, int flags){
-    return NULL;
+    AddrSpace * as=&task->utask.as;int pgsize=as->pgsize;
+    if(flags==MAP_UNMAP){
+        uintptr_t vaddr=addr;
+        pgs ** pre=&task->utask.start; pgs * now=*pre;
+        while (now){
+            uintptr_t temp=(uintptr_t)get_vaddr(now->va);
+            if(temp>=vaddr&&temp<vaddr+length){
+                del_pg(pre,as);
+                now=*pre;
+            }else pre=&now->nxt,now=now->nxt;
+        }
+        return NULL;
+    }else{
+        char * vaddr=(char *)((uintptr_t)addr & (-4096L));
+        int flag=0;uintptr_t maxn=0;
+        for(pgs * now=task->utask.start;now;now=now->nxt){
+            if((uintptr_t)now->va>=(uintptr_t)vaddr&&(uintptr_t)now->va<(uintptr_t)vaddr+length) flag=1;
+            if((uintptr_t)now->va > maxn) maxn= (uintptr_t) now->va + 4096;
+        }
+        if(flag || !vaddr) vaddr=maxn;
+        addr=vaddr;
+        for(;length>0;length-=pgsize,vaddr+=pgsize) add_pg(&task->utask.start,vaddr,NULL,prot,flags==MAP_SHARED,NULL);
+    } 
+    return addr;
 }
 
 static int uproc_getpid(task_t *task){
@@ -120,6 +224,7 @@ MODULE_DEF(uproc) = {
     case SYS_ ## name : ctx->GPRx = (uintptr_t) uproc -> name (task , ## __VA_ARGS__); break;
 
 Context * syscall(task_t * task,Context * ctx){
+    iset(true);
     switch (ctx->GPRx) {
         NAME_RELATION(kputc,ctx->GPR1)
         NAME_RELATION(fork)
@@ -131,5 +236,6 @@ Context * syscall(task_t * task,Context * ctx){
         NAME_RELATION(uptime)   
         default: ctx->GPRx=-1; break;
     }
+    iset(false);
     return ctx;
 }

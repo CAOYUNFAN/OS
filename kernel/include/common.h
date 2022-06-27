@@ -30,20 +30,31 @@ enum task_status{
 };
 
 typedef struct{
-  AddrSpace as;
-}utaskk;
+  int lock,cnt;
+}counter;
 
-typedef struct _context_stack{
-  Context * ctx;
-  _context_stack * nxt;
-}Cstack;
+#define get_vaddr(va) ((void *)((uintptr_t)va & (-4096L)))
+#define get_prot(va) ((uintptr_t)va & 0x7L)
+#define is_shared(va) (((uintptr_t)va & 0x8L) >> 3)
+#define real(va) ((uintptr_t)va & 0x16L)
+
+typedef struct pgstruct{
+  void * va, * pa;
+  pgstruct * nxt;counter * cnt;
+}pgs;
+
+typedef struct{
+  AddrSpace as;
+  pgs * start;
+}utaskk;
 
 struct task {
   int status,lock;
   int pid,ret;
 //  uint64_t awake_time;
   struct task * nxt, * ch, * bro;
-  Cstack * ctx;
+  Context * ctx[2];
+  unsigned char nc; 
   void * stack;
   utaskk utask;
   NAME

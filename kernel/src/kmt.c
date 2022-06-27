@@ -71,25 +71,12 @@ static inline task_t * task_queue_pop(task_queue * q){
     return ret;
 }
 
-static void cpush(Cstack ** all,Context * ctx){
-    Cstack * temp = pmm->alloc(sizeof(Cstack));
-    temp->nxt=*all;temp->ctx=ctx;
-    *all=temp;
-}
-static Context * cpop(Cstack ** all){
-    Cstack * temp= *all;
-    Context * ret= temp->ctx;
-    Assert(temp,"%p should not be NULL!",temp);
-    *all=temp->nxt;
-    pmm->free(temp);
-    return ret;
-}
-
 static Context * kmt_context_save(Event ev,Context * ctx){
 //    Log("save_context!");
     task_t * current=current_all[cpu_current()];
 //    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %s SHOULD NOT be RUNNABLE!",current->status,current->name);
-    if(current&&current->status!=TASK_DEAD) cpush(&current->ctx,ctx);
+    if(current&&current->status!=TASK_DEAD) current->ctx[current->nc++]=ctx;
+    Assert(current->nc==1||current->nc==2,"%s traped too much times!\n",current->name);
 //    Log("%p %p",current,ctx);
     task_t * previous=previous_all[cpu_current()];
     if(previous){
@@ -103,7 +90,6 @@ static Context * kmt_context_save(Event ev,Context * ctx){
 
 static inline real_free(task_t * task){
     pmm->free(task->stack);
-    while(task->ctx) cpop(&task->ctx);
     extern void uproc_clear_space(utaskk * ut);
     uproc_clear_space(&task->utask);
 }
@@ -134,7 +120,10 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     while (!current||current->status!=TASK_RUNABLE||(pre!=current&&atomic_xchg(&current->lock,1))){
         //if(!current) Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
         Assert(current==NULL||current->status==TASK_RUNABLE||current->status==TASK_DEAD,"%s unexpected status %d",current->name,current->status);
-        if(current->status==TASK_DEAD) real_free(current);
+        if(current->status==TASK_DEAD){
+            if(current!=pre) real_free(current);
+            else task_queue_push(&runnable,current);
+        }
         if(current&&current->status==TASK_RUNABLE&&pre!=current) task_queue_push(&runnable,current);
         current=task_queue_pop(&runnable);
     };
@@ -145,15 +134,18 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 
     current_all[cpu_current()]=current;
 //    Log("switch to task %s,%p",current->name,current);
-    return cpop(&current->ctx);
+    Assert(current->nc==1||current->nc==2,"%s traped too much times!",current->name);
+    return current->ctx[--current->nc];
 }
 
 static Context * kmt_pagefault(Event ev,Context * ctx){
-    printf("pf:%p by %p \n",ev.ref,c->rip);
+    Assert(current_all[cpu_current()]->nc==1,"%s multitrap of pagefault!",current_all[cpu_current()]->name);
+    printf("pf:%p by %p \n",ev.ref,ctx->rip);
     return ctx;
 }
 
 static Context * kmt_syscall(Event ev,Context * ctx){
+    Assert(current_all[cpu_current()]->nc==1,"%s multitrap of pagefault!",current_all[cpu_current()]->name);
     task_t * current=current_all[cpu_current()];
     extern Context * syscall(task_t * task,Context * ctx);
     ctx=syscall(current,ctx);
@@ -233,19 +225,23 @@ static void pid_free(int pid){
     return;
 }
 
-static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg),void * arg){
-    assert(task);
+int create_all(task_t * task, const char * name, void (*entry)(void * arg), void * arg, Context * ctx){
+    assert(task);assert((entry==NULL && ctx!=NULL)||(entry!=NULL && ctx ==NULL));
     task->status=TASK_RUNABLE;
-    task->stack=pmm->alloc(16*4096);
     task->lock=0;
-    Area temp;
-    temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);
     task->ctx=NULL;
-    cpush(task->ctx,kcontext(temp,entry,arg));
+    if(entry) {
+        task->stack=pmm->alloc(16*4096);
+        Area temp;
+        temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);
+        task->ctx[0]=kcontext(temp,entry,arg);task->nc=
+        memset(&task->utask,0,sizeof(utaskk));
+    }else{
+        cpush(task->ctx,ctx);
+    }
     #ifdef LOCAL
     task->name=name;
     #endif
-    memset(&task->utask,0,sizeof(utaskk));
     task->pid=new_pid();
     task_t * current=current_all[cpu_current()];Assert(current->lock,"CURRENT %s IS NOT LOCKED!",current->name);
     task->ch=NULL;
@@ -254,6 +250,11 @@ static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg
     task_all_pid[task->pid]=task;
 //    Log("Task %s is added to %p",name,task);
     task_queue_push(&runnable,task);
+    return task->pid;
+}
+
+static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg),void * arg){
+    create_all(task,name,entry,arg,NULL);
     return 0;
 }
 

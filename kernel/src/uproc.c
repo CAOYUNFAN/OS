@@ -202,16 +202,19 @@ static void * pgalloc(int len){return pmm->alloc((size_t)len);}
 static void uproc_init(){
     vme_init(pgalloc, pmm->free);
     task_t * task=pmm->alloc(sizeof(task_t));
-    protect(&task->utask.as);task->utask.start=NULL;
-    assert(task->utask.as.pgsize==4096);
-    Log("%lx %lx %lx",&(task->utask.as),task->utask.as.area.start,task->utask.as.area.end);
-    void * vaddr=uproc_mmap(task,task->utask.as.area.start,_init_len, PROT_READ | PROT_WRITE,MAP_PRIVATE);
+    AddrSpace * as=&task->utask.as;
+    protect(as);task->utask.start=NULL;
+    assert(as->pgsize==4096);
+    Log("%lx %lx %lx",as,as->area.start,as->area.end);
+    void * vaddr=uproc_mmap(task,as->area.start,_init_len, PROT_READ | PROT_WRITE,MAP_PRIVATE); assert(vaddr);
+
     for(pgs * now=task->utask.start;now;now=now->nxt) if((uintptr_t)now->va >= (uintptr_t) vaddr && (uintptr_t) now->va < (uintptr_t) vaddr + _init_len){
         now->va =(void *)((uintptr_t)now->va | 16L);
         uintptr_t offset = (uintptr_t) now->va - (uintptr_t) vaddr, len= 4096;
         if(offset+len>_init_len) len=_init_len-offset;
         now->pa = pmm->alloc(4096);
         memcpy(now->pa,_init+offset,len);
+        map(as,get_vaddr(now->va),now->pa,PROT_READ | PROT_WRITE);
     }
     task->stack=pmm->alloc(16*4096);
     Area temp;

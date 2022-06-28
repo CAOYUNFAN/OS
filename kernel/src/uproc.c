@@ -256,7 +256,7 @@ Context * syscall(task_t * task,Context * ctx){
 void pagefault_handler(void * va,int prot,task_t * task){
     AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
     while(now&&get_vaddr(now->va)!=va) now=now->nxt;
-    Assert(now&& (get_prot(now->va) & prot)==prot,"%s addr do not exist!",task->name);
+    Assert(now&& (get_prot(now->va) & prot)==prot,"%s addr %p do not exist!",task->name,va);
     if(!real(now->va)){
         Assert(now->pa==NULL&&now->cnt==NULL,"%s unexpected page states!",task->name);
         now->pa=pmm->alloc(4096);

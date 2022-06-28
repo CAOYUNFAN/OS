@@ -1,41 +1,9 @@
 #include <os.h>
 #include "kmt-test.h"
-
-static inline void lock_inside_ker(int * addr){
-    while (1) {
-        if(atomic_xchg(addr,1)==0) {
-            iset(false);
-            return;
-        }
-    }
-}
-static inline void unlock_inside_ker(int * addr){
-    atomic_xchg(addr,0);
-}
-static inline void lock_inside(int * addr,int * status){
-    *status=ienabled();
-    lock_inside_ker(addr);
-}
-static inline void unlock_inside(int * addr,int status){
-    unlock_inside_ker(addr);
-    if(status) iset(true);
-}
+#include "kmt.h"
 
 task_t * current_all[8]={};
 static task_t * previous_all[8]={};
-
-/*
-#ifdef LOCAL
-static void show_queue(task_queue * q){
-    Log("Show queue!");
-    for(task_t * temp=q->head;temp;temp=temp->nxt){
-        printf("%s",temp->name);
-        if(temp==q->tail) putch('\n');
-        else printf("-->");
-    }
-}
-#endif
-*/
 
 static inline void task_queue_init(task_queue * q){
     q->head=q->tail=NULL;
@@ -43,33 +11,6 @@ static inline void task_queue_init(task_queue * q){
     return;
 }
 static task_queue runnable;
-
-static inline void task_queue_push(task_queue * q,task_t * task){
-    int x=0;
-    lock_inside(&q->lock,&x);
-    task->nxt=NULL;
-    if(q->tail) q->tail->nxt=task;
-    else {
-        Assert(q->head==NULL,"SHOULD BE NULL %p",q->head);
-        q->head=task;
-    }
-    q->tail=task;//show_queue(q);
-    unlock_inside(&q->lock,x);
-    return;
-}
-static inline task_t * task_queue_pop(task_queue * q){
-    int x=0;
-    task_t * ret;
-    lock_inside(&q->lock,&x);
-    ret=q->head;
-    if(q->head) q->head=q->head->nxt;
-    if(!q->head){
-        Assert(q->tail==ret,"Wrong queue %p",q);
-        q->tail=NULL;
-    }//show_queue(q);
-    unlock_inside(&q->lock,x);
-    return ret;
-}
 
 static Context * kmt_context_save(Event ev,Context * ctx){
 //    Log("save_context!");
@@ -136,48 +77,6 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 //    Log("switch to task %s,%p",current->name,current);
     Assert(current->nc==1||current->nc==2,"%s traped too much times!",current->name);
     return current->ctx[--current->nc];
-}
-
-static int pid_lock,pid_lock2,pid_max;
-task_t * task_all_pid[32768];
-typedef struct pid_unit__{
-    int data;
-    struct pid_unit__ * nxt;
-}pid_unit;
-pid_unit * pid_start, * pid_end;
-
-static int new_pid(){
-    int i=0,ret;
-    pid_unit * temp=NULL;
-    lock_inside(&pid_lock,&i);
-    if(pid_max<32768) ret=++pid_max;
-    else{
-        lock_inside_ker(&pid_lock2);
-        panic_on(pid_start==NULL,"Too many procedures!");
-        ret=pid_start->data;
-        temp=pid_start;
-        pid_start=pid_start->nxt;
-        if(!pid_start) pid_end=NULL;
-        unlock_inside_ker(&pid_lock2);
-    }
-    unlock_inside(&pid_lock,i);
-    if(temp) pmm->free(temp);
-    return ret;
-}
-
-static void pid_free(int pid){
-    pid_unit * temp=(pid_unit *)pmm->alloc(sizeof(pid_unit));
-    temp->data=pid;temp->nxt=NULL;
-    int i=0;
-    lock_inside(&pid_lock2,&i);
-    if(pid_start) pid_start=temp;
-    else{
-        Assert(pid_end,"%s SHOULD NOT BE NULL!","queue of pid");
-        pid_end->nxt=temp;
-    }
-    pid_end=temp;
-    unlock_inside(&pid_lock2,i);
-    return;
 }
 
 static void kmt_teardown(task_t * task){

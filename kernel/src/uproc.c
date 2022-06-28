@@ -209,6 +209,7 @@ static void uproc_init(){
     void * vaddr=uproc_mmap(task,as->area.start,_init_len, PROT_READ | PROT_WRITE,MAP_PRIVATE); assert(vaddr);
 
     for(pgs * now=task->utask.start;now;now=now->nxt) if((uintptr_t)now->va >= (uintptr_t) vaddr && (uintptr_t) now->va < (uintptr_t) vaddr + _init_len){
+        Log("va %p->pa %p",now->va,now->pa);
         now->va =(void *)((uintptr_t)now->va | 16L);
         uintptr_t offset = (uintptr_t) now->va - (uintptr_t) vaddr, len= 4096;
         if(offset+len>_init_len) len=_init_len-offset;

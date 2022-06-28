@@ -140,7 +140,9 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 
 static Context * kmt_pagefault(Event ev,Context * ctx){
     Assert(current_all[cpu_current()]->nc==1,"%s multitrap of pagefault!",current_all[cpu_current()]->name);
-    printf("pf:%p by %p \n",ev.ref,ctx->rip);
+    extern void pagefault_handler(void * va,int prot,task_t * task);
+    pagefault_handler(get_vaddr(ev.ref),ev.cause,current_all[cpu_current()]);
+//    printf("pf:%p by %p \n",ev.ref,ctx->rip);
     return ctx;
 }
 

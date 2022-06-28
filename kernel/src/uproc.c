@@ -42,9 +42,7 @@ counter * dec_cnt(counter * cnt){
     cnt->cnt--;
     if(cnt->cnt){
         unlock_inside(&cnt->lock,i);
-        return cnt;
-    }
-    pmm->free(cnt);
+    }else pmm->free(cnt);
     return NULL;
 }
 
@@ -60,7 +58,8 @@ void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){
     now->nxt=*all;*all=now;
 }
 void del_pg(pgs ** all,AddrSpace * as){
-    pgs * now=*all; *all = now->nxt;
+    assert(all&&*all);
+    pgs * now=*all;*all = now->nxt;
     if(real(now->va)){
         map(as,get_vaddr(now->va),NULL,MMAP_NONE);
         if(now->cnt) now->cnt=dec_cnt(now->cnt);
@@ -238,4 +237,32 @@ Context * syscall(task_t * task,Context * ctx){
     }
     iset(false);
     return ctx;
+}
+
+void pagefault_handler(void * va,int prot,task_t * task){
+    AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
+    while(now&&get_vaddr(now->va)!=va) now=now->nxt;
+    Assert(now&& (get_prot(now->va) & prot)==prot,"%s addr do not exist!",task->name);
+    if(!real(now->va)){
+        Assert(now->pa==NULL&&now->cnt==NULL,"%s unexpected page states!",task->name);
+        now->pa=pmm->alloc(4096);
+        map(as,now->va,now->pa,get_prot(now->va));
+        now->va = (void *)((uintptr_t) now->va | 16L);
+    }else{
+        Assert(now->pa && now->cnt,"%s unexpected page states!",task->name);
+        void * pa_old=now->pa;
+        int i=0;lock_inside(&now->cnt->lock,&i);
+        now->cnt->cnt--;
+        if(now->cnt->cnt){
+            now->pa=pmm->alloc(4096);
+            memcpy(now->pa,pa_old,4096);
+            unlock_inside(&now->cnt->lock,i);
+        }else{
+            now->pa=pa_old;
+            free(now->cnt);
+        }
+        now->cnt=NULL;
+        map(as,get_vaddr(now->va),now->pa,get_prot(now->va));
+    }
+    return;
 }

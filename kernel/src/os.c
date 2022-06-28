@@ -19,7 +19,7 @@ static void os_init() {
 
   #ifdef LOCAL
 //  dev->init();
-  static char ch1[5][20],ch2[5][20];
+/*  static char ch1[5][20],ch2[5][20];
   kmt->sem_init(&empty, "empty", 5);  // 缓冲区大小为 5
   kmt->sem_init(&fill,  "fill",  0);
   for (int i = 0; i < 2; i++){
@@ -29,7 +29,7 @@ static void os_init() {
   for (int i = 0; i < 2; i++){
     sprintf(ch2[i],"consumer-%d",i);
     kmt->create(task_alloc(), ch2[i], consumer, NULL);
-  } // 5 个消费者
+  } // 5 个消费者*/
   #endif
 }
 

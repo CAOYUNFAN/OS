@@ -203,7 +203,7 @@ static void uproc_init(){
     vme_init(pgalloc, pmm->free);
     task_t * task=pmm->alloc(sizeof(task_t));
     protect(&task->utask.as);task->utask.start=NULL;
-    Log("%p %p",task->utask.as.area.start,task->utask.as.area.end);
+    Log("%p %p %p",&(task->utask),task->utask.as.area.start,task->utask.as.area.end);
     void * vaddr=uproc_mmap(task,task->utask.as.area.start,_init_len, PROT_READ | PROT_WRITE,MAP_PRIVATE);
     for(pgs * now=task->utask.start;now;now=now->nxt) if((uintptr_t)now->va >= (uintptr_t) vaddr && (uintptr_t) now->va < (uintptr_t) vaddr + _init_len){
         now->va =(void *)((uintptr_t)now->va | 16L);

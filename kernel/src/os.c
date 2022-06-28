@@ -16,7 +16,6 @@ static void os_init() {
   pmm->init();
   kmt->init();
   uproc->init();
-  printf("HERE!\n");
   #ifdef LOCAL
 //  dev->init();
 /*  static char ch1[5][20],ch2[5][20];
@@ -36,7 +35,7 @@ static void os_init() {
 static void os_run() {
   #ifdef LOCAL
   for (const char *s = "Hello World from CPU #*\n"; *s; s++) {
-//    putch(*s == '*' ? '0' + cpu_current() : *s);
+    putch(*s == '*' ? '0' + cpu_current() : *s);
   }
   #endif
   iset(true);

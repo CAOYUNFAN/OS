@@ -88,7 +88,7 @@ static Context * kmt_context_save(Event ev,Context * ctx){
     return NULL;
 }
 
-static inline real_free(task_t * task){
+static inline void real_free(task_t * task){
     pmm->free(task->stack);
     extern void uproc_clear_space(utaskk * ut);
     uproc_clear_space(&task->utask);
@@ -138,53 +138,6 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     return current->ctx[--current->nc];
 }
 
-static Context * kmt_pagefault(Event ev,Context * ctx){
-    Assert(current_all[cpu_current()]->nc==1,"%s multitrap of pagefault!",current_all[cpu_current()]->name);
-    extern void pagefault_handler(void * va,int prot,task_t * task);
-    pagefault_handler(get_vaddr(ev.ref),ev.cause,current_all[cpu_current()]);
-//    printf("pf:%p by %p \n",ev.ref,ctx->rip);
-    return ctx;
-}
-
-static Context * kmt_syscall(Event ev,Context * ctx){
-    Assert(current_all[cpu_current()]->nc==1,"%s multitrap of pagefault!",current_all[cpu_current()]->name);
-    task_t * current=current_all[cpu_current()];
-    extern Context * syscall(task_t * task,Context * ctx);
-    ctx=syscall(current,ctx);
-    return ctx;
-}
-
-static void kmt_teardown(task_t * task){
-    Assert(task->status==TASK_RUNABLE||task->status==TASK_RUNNING,"task %p is blocked!\n",task);
-    Assert(task_all_pid[task->pid]==task,"Invalid pid %s!",task->name);
-    task_all_pid[task->pid]=NULL;
-    task->status=TASK_DEAD;
-    task->ch=NULL;
-    pid_free(task->pid);
-}
-
-static Context * kmt_error(Event ev,Context * ctx){
-    Assert(0,"%s error happens!",current_all[cpu_current()]->name);
-    kmt_teardown(current_all[cpu_current()]);
-    return NULL;
-}
-
-static void kmt_init(){
-    #  define INT_MIN	(-INT_MAX - 1)
-    #  define INT_MAX	2147483647
-    os->on_irq(INT_MIN,EVENT_NULL,kmt_context_save);
-    os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
-    os->on_irq(INT_MIN+10,EVENT_PAGEFAULT,kmt_pagefault);
-    os->on_irq(INT_MIN+15,EVENT_SYSCALL,kmt_syscall);
-    os->on_irq(INT_MIN+15,EVENT_ERROR,kmt_syscall);
-    task_queue_init(&runnable);
-
-    #ifdef LOCAL
-//    kmt->create(task_alloc(), "tty_reader1", tty_reader, "tty1");
-//    kmt->create(task_alloc(), "tty_reader2", tty_reader, "tty2");
-    #endif
-}
-
 static int pid_lock,pid_lock2,pid_max;
 task_t * task_all_pid[32768];
 typedef struct pid_unit__{
@@ -223,23 +176,70 @@ static void pid_free(int pid){
         pid_end->nxt=temp;
     }
     pid_end=temp;
-    unlock_inside(&pid_lock2,&i);
+    unlock_inside(&pid_lock2,i);
     return;
+}
+
+static void kmt_teardown(task_t * task){
+    Assert(task->status==TASK_RUNABLE||task->status==TASK_RUNNING,"task %p is blocked!\n",task);
+    Assert(task_all_pid[task->pid]==task,"Invalid pid %s!",task->name);
+    task_all_pid[task->pid]=NULL;
+    task->status=TASK_DEAD;
+    task->ch=NULL;
+    pid_free(task->pid);
+}
+
+static Context * kmt_pagefault(Event ev,Context * ctx){
+    Assert(current_all[cpu_current()]->nc==1,"%s multitrap of pagefault!",current_all[cpu_current()]->name);
+    extern void pagefault_handler(void * va,int prot,task_t * task);
+    pagefault_handler(get_vaddr(ev.ref),ev.cause,current_all[cpu_current()]);
+//    printf("pf:%p by %p \n",ev.ref,ctx->rip);
+    return ctx;
+}
+
+static Context * kmt_syscall(Event ev,Context * ctx){
+    Assert(current_all[cpu_current()]->nc==1,"%s multitrap of pagefault!",current_all[cpu_current()]->name);
+    task_t * current=current_all[cpu_current()];
+    extern Context * syscall(task_t * task,Context * ctx);
+    ctx=syscall(current,ctx);
+    return ctx;
+}
+
+static Context * kmt_error(Event ev,Context * ctx){
+    Assert(0,"%s error happens!",current_all[cpu_current()]->name);
+    kmt_teardown(current_all[cpu_current()]);
+    return NULL;
+}
+
+static void kmt_init(){
+    #  define INT_MIN	(-INT_MAX - 1)
+    #  define INT_MAX	2147483647
+    os->on_irq(INT_MIN,EVENT_NULL,kmt_context_save);
+    os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
+    os->on_irq(INT_MIN+10,EVENT_PAGEFAULT,kmt_pagefault);
+    os->on_irq(INT_MIN+15,EVENT_SYSCALL,kmt_syscall);
+    os->on_irq(INT_MIN+15,EVENT_ERROR,kmt_error);
+    task_queue_init(&runnable);
+
+    #ifdef LOCAL
+//    kmt->create(task_alloc(), "tty_reader1", tty_reader, "tty1");
+//    kmt->create(task_alloc(), "tty_reader2", tty_reader, "tty2");
+    #endif
 }
 
 int create_all(task_t * task, const char * name, void (*entry)(void * arg), void * arg, Context * ctx){
     assert(task);assert((entry==NULL && ctx!=NULL)||(entry!=NULL && ctx ==NULL));
     task->status=TASK_RUNABLE;
     task->lock=0;
-    task->ctx=NULL;
+    task->ctx[0]=NULL;
     if(entry) {
         task->stack=pmm->alloc(16*4096);
         Area temp;
         temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);
-        task->ctx[0]=kcontext(temp,entry,arg);task->nc=
+        task->ctx[0]=kcontext(temp,entry,arg);task->nc=1;
         memset(&task->utask,0,sizeof(utaskk));
     }else{
-        cpush(task->ctx,ctx);
+        task->ctx[0]=ctx;task->nc=1;
     }
     #ifdef LOCAL
     task->name=name;

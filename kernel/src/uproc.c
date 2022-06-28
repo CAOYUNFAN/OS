@@ -7,6 +7,7 @@
 extern task_t * current_all[8];
 extern task_t * task_all_pid[32768];
 
+extern int create_all(task_t * task, const char * name, void (*entry)(void * arg), void * arg, Context * ctx);
 static inline void lock_inside_ker(int * addr){
     while (1) {
         if(atomic_xchg(addr,1)==0) {
@@ -52,7 +53,7 @@ void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){
     pgs * now=pmm->alloc(sizeof(pgs));
     now->pa=pa;
     if(pa==NULL) now->va=(void *)((uintptr_t)va | prot | (shared << 8));
-    else now->va=(void *)((uintptr_t)va | prot | (shared << 8)) | 16;
+    else now->va=(void *)((uintptr_t)va | prot | (shared << 8) | 16);
     if(cnt) now->cnt=add_cnt(cnt);
     else now->cnt=NULL;
     now->nxt=*all;*all=now;
@@ -74,10 +75,8 @@ void uproc_clear_space(utaskk * ut){
     return;
 }
 
-static void uproc_init(){
-    vme_init(pmm->alloc, pmm->free);
-    return;
-}
+extern unsigned char _init[];
+extern unsigned int _init_len;
 
 static inline uint64_t get_time_us(){
     return io_read(AM_TIMER_UPTIME).us;
@@ -88,7 +87,6 @@ static int uproc_kputc(task_t * task,char ch){
     return 0;
 }
 
-extern int create_all(task_t * task, const char * name, void (*entry)(void * arg), void * arg, Context * ctx);
 static int uproc_fork(task_t *task){
     Assert(task->nc==1,"%s multicall of fork",task->name);
     task_t * task_new=(task_t *)pmm->alloc(sizeof(task_t));
@@ -113,7 +111,7 @@ static int uproc_fork(task_t *task){
     task_new->stack=pmm->alloc(16*4096);
     Area temp;
     temp.start=task_new->stack;temp.end=(void *)((uintptr_t)task_new->stack+16*4096);
-    Context * ctx2=ucreate(&task_new->utask.as,temp,task_new->utask.as.area.start);
+    Context * ctx2=ucontext(&task_new->utask.as,temp,task_new->utask.as.area.start);
     uintptr_t rsp0=ctx2->rsp0;
     void * cr3=ctx2->cr3;
     memcpy(ctx2,task->ctx[0],sizeof(Context));
@@ -122,7 +120,7 @@ static int uproc_fork(task_t *task){
     ctx2->GPRx=0;
 
     #ifdef LOCAL
-    char * ch=task->name;
+    char * ch="FORK!";
     #else
     char * ch=NULL;
     #endif
@@ -168,7 +166,7 @@ static int uproc_kill(task_t *task, int pid){
 static void * uproc_mmap(task_t *task, void *addr, int length, int prot, int flags){
     AddrSpace * as=&task->utask.as;int pgsize=as->pgsize;
     if(flags==MAP_UNMAP){
-        uintptr_t vaddr=addr;
+        uintptr_t vaddr=(uintptr_t)addr;
         pgs ** pre=&task->utask.start; pgs * now=*pre;
         while (now){
             uintptr_t temp=(uintptr_t)get_vaddr(now->va);
@@ -185,7 +183,7 @@ static void * uproc_mmap(task_t *task, void *addr, int length, int prot, int fla
             if((uintptr_t)now->va>=(uintptr_t)vaddr&&(uintptr_t)now->va<(uintptr_t)vaddr+length) flag=1;
             if((uintptr_t)now->va > maxn) maxn= (uintptr_t) now->va + 4096;
         }
-        if(flag || !vaddr) vaddr=maxn;
+        if(flag || !vaddr) vaddr=(char *)maxn;
         addr=vaddr;
         for(;length>0;length-=pgsize,vaddr+=pgsize) add_pg(&task->utask.start,vaddr,NULL,prot,flags==MAP_SHARED,NULL);
     } 
@@ -207,6 +205,27 @@ static int64_t uproc_uptime(task_t *task){
     return (int64_t)(get_time_us()/1000uLL);
 }
 
+static void * pgalloc(int len){return pmm->alloc((size_t)len);}
+static void uproc_init(){
+    vme_init(pgalloc, pmm->free);
+    task_t * task=pmm->alloc(sizeof(task_t));
+    protect(&task->utask.as);task->utask.start=NULL;
+    void * vaddr=uproc_mmap(task,task->utask.as.area.start,_init_len, PROT_READ | PROT_WRITE,MAP_PRIVATE);
+    for(pgs * now=task->utask.start;now;now=now->nxt) if((uintptr_t)now->va >= (uintptr_t) vaddr && (uintptr_t) now->va < (uintptr_t) vaddr + _init_len){
+        now->va =(void *)((uintptr_t)now->va | 16L);
+        uintptr_t offset = (uintptr_t) now->va - (uintptr_t) vaddr, len= 4096;
+        if(offset+len>_init_len) len=_init_len-offset;
+        now->pa = pmm->alloc(4096);
+        memcpy(now->pa,_init+offset,len);
+    }
+    task->stack=pmm->alloc(16*4096);
+    Area temp;
+    temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);    
+    Context * ctx=ucontext(&task->utask.as,temp,task->utask.as.area.start);
+    create_all(task,"first_uproc",NULL,NULL,ctx);
+    return;
+}
+
 MODULE_DEF(uproc) = {
     UPROC_NAME(init)
     UPROC_NAME(kputc)
@@ -216,6 +235,7 @@ MODULE_DEF(uproc) = {
     UPROC_NAME(kill)
     UPROC_NAME(mmap)
     UPROC_NAME(getpid)
+    UPROC_NAME(sleep)
     UPROC_NAME(uptime)
 };
 
@@ -227,10 +247,11 @@ Context * syscall(task_t * task,Context * ctx){
     switch (ctx->GPRx) {
         NAME_RELATION(kputc,ctx->GPR1)
         NAME_RELATION(fork)
-        NAME_RELATION(wait,c->GPR1)
-        NAME_RELATION(exit,c->GPR1)
-        NAME_RELATION(kill,c->GPR1)
-        NAME_RELATION(mmap,c->GPR1,c->GPR2,c->GPR3,c->GPR4)
+        NAME_RELATION(wait,(int *)ctx->GPR1)
+        NAME_RELATION(exit,ctx->GPR1)
+        NAME_RELATION(kill,ctx->GPR1)
+        NAME_RELATION(mmap,(void *)ctx->GPR1,ctx->GPR2,ctx->GPR3,ctx->GPR4)
+        NAME_RELATION(sleep,ctx->GPR1)
         NAME_RELATION(getpid)
         NAME_RELATION(uptime)   
         default: ctx->GPRx=-1; break;

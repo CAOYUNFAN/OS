@@ -40,7 +40,7 @@ typedef struct{
 
 typedef struct pgstruct{
   void * va, * pa;
-  pgstruct * nxt;counter * cnt;
+  struct pgstruct * nxt;counter * cnt;
 }pgs;
 
 typedef struct{

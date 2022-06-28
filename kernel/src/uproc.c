@@ -1,11 +1,7 @@
 #include <os.h>
 #include <syscall.h>
 
-#include "initcode.inc"
 #include "uproc.h"
-
-extern task_t * current_all[8];
-extern task_t * task_all_pid[32768];
 
 extern int create_all(task_t * task, const char * name, void (*entry)(void * arg), void * arg, Context * ctx);
 static inline void lock_inside_ker(int * addr){
@@ -74,9 +70,6 @@ void uproc_clear_space(utaskk * ut){
     unprotect(&ut->as);
     return;
 }
-
-extern unsigned char _init[];
-extern unsigned int _init_len;
 
 static inline uint64_t get_time_us(){
     return io_read(AM_TIMER_UPTIME).us;

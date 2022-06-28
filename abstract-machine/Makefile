@@ -24,9 +24,9 @@ ifeq ($(wildcard $(AM_HOME)/am/include/am.h),)
   $(error $$AM_HOME must be an AbstractMachine repo)
 endif
 
-ifeq ($(wildcard $(TEST_HOME)/test.c),)
-  $(error $$TEST_HOME must be an testing repo)
-endif
+#ifeq ($(wildcard $(TEST_HOME)/test.c),)
+#  $(error $$TEST_HOME must be an testing repo)
+#endif
 
 ### Check: environment variable `$ARCH` must be in the supported list
 ARCHS = $(basename $(notdir $(shell ls $(AM_HOME)/scripts/*.mk)))

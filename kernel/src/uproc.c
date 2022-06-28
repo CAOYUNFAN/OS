@@ -43,7 +43,7 @@ counter * dec_cnt(counter * cnt){
     return NULL;
 }
 
-void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){
+void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){ Log("va %p -> pa %p",va,pa);
     assert(cnt==NULL||pa!=NULL);
     assert(cnt==NULL||!shared);
     pgs * now=pmm->alloc(sizeof(pgs));

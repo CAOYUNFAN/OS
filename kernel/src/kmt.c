@@ -92,6 +92,7 @@ static void kmt_teardown(task_t * task){
 
 static Context * kmt_pagefault(Event ev,Context * ctx){
     Assert(current_all[cpu_current()]->nc==1,"%s multitrap of pagefault!",current_all[cpu_current()]->name);
+    Log("%p %d",ev.ref,ev.cause);
     extern void pagefault_handler(void * va,int prot,task_t * task);
     pagefault_handler(get_vaddr(ev.ref),ev.cause,current_all[cpu_current()]);
 //    printf("pf:%p by %p \n",ev.ref,ctx->rip);

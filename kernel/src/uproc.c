@@ -44,7 +44,8 @@ counter * dec_cnt(counter * cnt){
     return NULL;
 }
 
-void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){ Log("va %p -> pa %p",(uint32_t)((uintptr_t)va>>32),pa);
+void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){ 
+    Log("va %p -> pa %p",va,pa);
     assert(cnt==NULL||pa!=NULL);
     assert(cnt==NULL||!shared);
     pgs * now=pmm->alloc(sizeof(pgs));
@@ -211,7 +212,7 @@ static void uproc_init(){
         if(offset+len>_init_len) len=_init_len-offset;
         now->pa = pmm->alloc(4096);
         memcpy(now->pa,_init+offset,len);
-        map(as,get_vaddr(now->va),now->pa,PROT_READ | PROT_WRITE);
+    //    map(as,get_vaddr(now->va),now->pa,PROT_READ | PROT_WRITE);
         Log("va %p->pa %p",now->va,now->pa);
     }
     create_all(task,"first_uproc",ucontext(as,make_stack(task),as->area.start));

@@ -3,7 +3,8 @@
 
 #include "uproc.h"
 
-extern int create_all(task_t * task, const char * name, void (*entry)(void * arg), void * arg, Context * ctx);
+extern int create_all(task_t * task, const char * name, Context * ctx);
+extern Area make_stack(task_t * task);
 static inline void lock_inside_ker(int * addr){
     while (1) {
         if(atomic_xchg(addr,1)==0) {
@@ -101,10 +102,7 @@ static int uproc_fork(task_t *task){
         }
     }
 
-    task_new->stack=pmm->alloc(16*4096);
-    Area temp;
-    temp.start=task_new->stack;temp.end=(void *)((uintptr_t)task_new->stack+16*4096);
-    Context * ctx2=ucontext(as,temp,as->area.start);
+    Context * ctx2=ucontext(as,make_stack(task_new),as->area.start);
     uintptr_t rsp0=ctx2->rsp0;
     void * cr3=ctx2->cr3;
     memcpy(ctx2,task->ctx[0],sizeof(Context));
@@ -117,7 +115,7 @@ static int uproc_fork(task_t *task){
     #else
     char * ch=NULL;
     #endif
-    return create_all(task_new,ch,NULL,NULL,ctx2);
+    return create_all(task_new,ch,ctx2);
 }
 
 static int uproc_wait(task_t * task,int * status){
@@ -216,11 +214,7 @@ static void uproc_init(){
         map(as,get_vaddr(now->va),now->pa,PROT_READ | PROT_WRITE);
         Log("va %p->pa %p",now->va,now->pa);
     }
-    task->stack=pmm->alloc(16*4096);
-    Area temp;
-    temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);    
-    Context * ctx=ucontext(as,temp,as->area.start);Log("%p",ctx->rip);
-    create_all(task,"first_uproc",NULL,NULL,ctx);
+    create_all(task,"first_uproc",ucontext(as,make_stack(task),as->area.start));
     return;
 }
 

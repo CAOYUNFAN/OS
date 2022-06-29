@@ -129,20 +129,20 @@ static void kmt_init(){
     #endif
 }
 
-int create_all(task_t * task, const char * name, void (*entry)(void * arg), void * arg, Context * ctx){
-    assert(task);assert((entry==NULL && ctx!=NULL)||(entry!=NULL && ctx ==NULL));
+Area make_stack(task_t * task){
+    task->stack=pmm->alloc(16*4096);
+    Area temp;
+    temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);
+    return temp;
+}
+
+int create_all(task_t * task, const char * name, Context * ctx){
+    assert(task);assert(ctx);
+    Log("create name %s",name);
     task->status=TASK_RUNABLE;
     task->lock=0;
-    task->ctx[0]=NULL;
-    if(entry) {
-        task->stack=pmm->alloc(16*4096);
-        Area temp;
-        temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);
-        task->ctx[0]=kcontext(temp,entry,arg);task->nc=1;
-        memset(&task->utask,0,sizeof(utaskk));
-    }else{
-        task->ctx[0]=ctx;task->nc=1;
-    }
+    task->nc=1;
+    task->ctx[0]=ctx;
     #ifdef LOCAL
     task->name=name;
     #endif
@@ -158,7 +158,8 @@ int create_all(task_t * task, const char * name, void (*entry)(void * arg), void
 }
 
 static int kmt_create(task_t * task, const char * name, void (*entry)(void * arg),void * arg){
-    create_all(task,name,entry,arg,NULL);
+    memset(&task->utask,0,sizeof(utaskk));
+    create_all(task,name,kcontext(make_stack(task),entry,arg));
     return 0;
 }
 

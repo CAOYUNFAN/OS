@@ -219,7 +219,7 @@ static void uproc_init(){
     task->stack=pmm->alloc(16*4096);
     Area temp;
     temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);    
-    Context * ctx=ucontext(&task->utask.as,temp,task->utask.as.area.start);
+    Context * ctx=ucontext(as,temp,as->area.start);
     create_all(task,"first_uproc",NULL,NULL,ctx);
     return;
 }
@@ -258,7 +258,7 @@ Context * syscall(task_t * task,Context * ctx){
     return ctx;
 }
 
-void pagefault_handler(void * va,int prot,task_t * task){assert(va);
+void pagefault_handler(void * va,int prot,task_t * task){
     AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
     while(now&&get_vaddr(now->va)!=va) now=now->nxt;
     Assert(now,"%s addr %p do not exist!",task->name,va);

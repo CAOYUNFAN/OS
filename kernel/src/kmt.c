@@ -13,7 +13,7 @@ static inline void task_queue_init(task_queue * q){
 static task_queue runnable;
 
 static Context * kmt_context_save(Event ev,Context * ctx){
-    Log("save_context! rip=%p",ctx->rip);
+    Log("save_context! rip=%p,rsp=%p",ctx->rip,ctx->rsp);
     task_t * current=current_all[cpu_current()];
 //    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %s SHOULD NOT be RUNNABLE!",current->status,current->name);
     if(current&&current->status!=TASK_DEAD) current->ctx[current->nc++]=ctx;

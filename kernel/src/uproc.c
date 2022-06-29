@@ -254,7 +254,7 @@ Context * syscall(task_t * task,Context * ctx){
 }
 
 void pagefault_handler(void * va,int prot,task_t * task){
-    Log("%p",va);assert(va);
+    Log("%p",va);//assert(va);
     AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
     while(now&&get_vaddr(now->va)!=va) now=now->nxt;
 //    Assert(now,"%s addr %p do not exist!",task->name,va);

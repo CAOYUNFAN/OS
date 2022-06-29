@@ -149,7 +149,7 @@ image: image-dep
 archive: $(ARCHIVE)
 image-dep: $(OBJS) am $(LIBS)
 	@echo \# Creating image [$(ARCH)]
-.PHONY: image image-dep archive run test test-all $(LIBS)
+.PHONY: image image-dep archive run qemu-gdb test test-all $(LIBS)
 -include $(TEST_HOME)/Makefile
 
 ### Clean a single project (remove `build/`)

@@ -12,20 +12,20 @@ static const char num_table[]={'0','1','2','3','4','5','6','7','8','9','A','B','
 	while(*(fmt)>='0'&&*(fmt)<='9') data = (data) *10 +*(fmt) -'0',++fmt;\
 }
 
-inline static char* num_to_str(char *st,int d,bool positive){
+inline static char* num_to_str(char *st,long long d,bool positive){
 	if(d==0){*st++='0';return st;}
 	if(d>=0&&positive) {*st++='+';}
 	if(d<0){*st++='-';d=-d;}
-	char temp[30];
+	char temp[40];
 	int top=0;
 	for(;d;d/=10) temp[++top]=d%10+'0';
 	while(top) *st++=temp[top--];
 	return st;
 }
 
-inline static char* unum_to_str(char *st,unsigned int d,int base){
+inline static char* unum_to_str(char *st,unsigned long long d,int base){
 	if(d==0){*st++='0';return st;}
-	char temp[30];
+	char temp[40];
 	int top=0;
 	for(;d;d/=base) temp[++top]=num_table[d%base];
 	while(top) *st++=temp[top--];
@@ -44,14 +44,14 @@ int printf(const char *fmt, ...) {
 }
 
 #define cao_arg(d,ap,ch) switch(ch){\
- case 'l':d=va_arg(ap,intptr_t);break;\
- case 'L':d=va_arg(ap,int64_t);break;\
+ case 'l':d=(long long)va_arg(ap,intptr_t);break;\
+ case 'L':d=(long long)va_arg(ap,int64_t);break;\
  case 'h':\
- default: d=va_arg(ap,int);break;\
+ default: d=(long long)va_arg(ap,int);break;\
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
-	int d;char c;char *st=out;char* s;
+	long long d;char c;char *st=out;char* s;
 	while(*fmt){
 		if(*fmt!='%'){
 			*st++=*fmt++;
@@ -97,7 +97,6 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
 			if(length=='l'&&*fmt=='l'){
 				length='L';
 				++fmt;
-				panic("Not implemented or Error hapens");
 			}
 		}
 
@@ -127,7 +126,15 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
 				cao_arg(d,ap,length)
 				stt=unum_to_str(stt,(unsigned)d,8);
 				break;
-			case 'X': case 'x':case 'p':
+			case 'p': *(stt++)='0';*(stt++)='x';
+				uintptr_t ptr = (uintptr_t) va_arg(ap,void *);
+				intptr_t tt=sizeof(uintptr_t) * 8;
+				tt-=4;
+				while(tt>=0&&(ptr>>tt==0)) tt-=4;
+				if(tt<0) *(stt++)='0';
+				for(;tt>=0;tt-=4) *(stt++)=num_table[(ptr>>tt)&15l];
+				break;
+			case 'X': case 'x':
 				cao_arg(d,ap,length)
 				stt=unum_to_str(stt,(unsigned)d,16);
 				break;

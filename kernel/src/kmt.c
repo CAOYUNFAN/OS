@@ -43,10 +43,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
         return NULL;
     }
     Log("Schedule!");
-/*#ifdef LOCAL
-    if(ev.event==EVENT_IRQ_TIMER) return ctx;
-#endif
-*/
+
     if(current&&current->status==TASK_RUNNING){
         current->status=TASK_RUNABLE;
         task_queue_push(&runnable,current);
@@ -77,7 +74,9 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current_all[cpu_current()]=current;
 //    Log("switch to task %s,%p",current->name,current);
     Assert(current->nc==1||current->nc==2,"%s traped too much times!",current->name);
-    return current->ctx[--current->nc];
+    Context * ctx2=current->ctx[--current->nc];
+    Log("%p",ctx2->rip);
+    return ctx2;
 }
 
 static void kmt_teardown(task_t * task){

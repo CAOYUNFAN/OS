@@ -219,7 +219,7 @@ static void uproc_init(){
     task->stack=pmm->alloc(16*4096);
     Area temp;
     temp.start=task->stack;temp.end=(void *)((uintptr_t)task->stack+16*4096);    
-    Context * ctx=ucontext(as,temp,as->area.start);
+    Context * ctx=ucontext(as,temp,as->area.start);Log("%p",ctx->rip);
     create_all(task,"first_uproc",NULL,NULL,ctx);
     return;
 }

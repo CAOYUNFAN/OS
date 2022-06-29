@@ -205,7 +205,6 @@ static void uproc_init(){
     AddrSpace * as=&task->utask.as;
     protect(as);task->utask.start=NULL;
     assert(as->pgsize==4096);
-    Log("%p %p %p",as,(uintptr_t)as->area.start,(uintptr_t)as->area.end);
     void * vaddr=uproc_mmap(task,as->area.start,_init_len, PROT_READ | PROT_WRITE,MAP_PRIVATE); assert(vaddr);
 
     for(pgs * now=task->utask.start;now;now=now->nxt) if((uintptr_t)now->va >= (uintptr_t) vaddr && (uintptr_t) now->va < (uintptr_t) vaddr + _init_len){    

@@ -104,7 +104,7 @@ static int uproc_fork(task_t *task){
     task_new->stack=pmm->alloc(16*4096);
     Area temp;
     temp.start=task_new->stack;temp.end=(void *)((uintptr_t)task_new->stack+16*4096);
-    Context * ctx2=ucontext(&task_new->utask.as,temp,task_new->utask.as.area.start);
+    Context * ctx2=ucontext(as,temp,as->area.start);
     uintptr_t rsp0=ctx2->rsp0;
     void * cr3=ctx2->cr3;
     memcpy(ctx2,task->ctx[0],sizeof(Context));

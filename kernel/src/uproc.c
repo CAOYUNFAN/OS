@@ -262,7 +262,7 @@ void pagefault_handler(void * va,int prot,task_t * task){
         add_pg(&task->utask.start,va,NULL,PROT_READ|PROT_WRITE,0,NULL);
         now=task->utask.start;
     }
-    Assert((get_prot(now->va) & prot)==prot,"%s addr invalid rights %x, %x!",task->name,get_prot(now->va),prot);
+//    Assert((get_prot(now->va) & prot)==prot,"%s addr invalid rights %x, %x!",task->name,get_prot(now->va),prot);
     if(!real(now->va)){
         Assert(now->pa==NULL&&now->cnt==NULL,"%s unexpected page states!",task->name);
         now->pa=pmm->alloc(4096);

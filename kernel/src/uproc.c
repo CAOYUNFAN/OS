@@ -230,7 +230,7 @@ MODULE_DEF(uproc) = {
 };
 
 #define NAME_RELATION(func,...) \
-    case SYS_ ## func : Log("%s syscall %s",task->name,#func); ctx->GPRx = (uintptr_t) uproc -> func (task , ## __VA_ARGS__); break;
+    case SYS_ ## func :/* Log("%s syscall %s",task->name,#func);*/ ctx->GPRx = (uintptr_t) uproc -> func (task , ## __VA_ARGS__); break;
 
 Context * syscall(task_t * task,Context * ctx){
     iset(true);

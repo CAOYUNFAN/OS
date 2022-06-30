@@ -251,8 +251,9 @@ Context * syscall(task_t * task,Context * ctx){
 }
 
 void pagefault_handler(void * va,int prot,task_t * task){
-    Log("%p",va);//assert(va);
+    Log("%p",va);
     AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
+    Assert((uintptr_t)va>=(uintptr_t)as->area.start&&(uintptr_t)va<(uintptr_t)as->area.end,"Unexpected virtual address %p",va);
     while(now&&get_vaddr(now->va)!=va) now=now->nxt;
     if(!now){
         void * pa=pmm->alloc(4096);

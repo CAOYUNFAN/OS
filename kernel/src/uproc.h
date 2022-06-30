@@ -7,6 +7,8 @@
 #define PROT_READ   0x2
 #define PROT_WRITE  0x4
 
+#define MMAP_ALL (MMAP_READ | MMAP_WRITE)
+
 #include "initcode.inc"
 
 extern task_t * current_all[8];

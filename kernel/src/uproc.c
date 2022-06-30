@@ -100,10 +100,9 @@ static int uproc_fork(task_t *task){
             map(as,va,pa,prot);
         }else{
             add_pg(all,va,pa,prot,0 ,now->cnt);
-            if(prot & PROT_WRITE) prot-=PROT_WRITE;
-            map(as,va,pa,prot);
-            map(&task->utask.as,va,NULL,PROT_NONE);
-            map(&task->utask.as,va,pa,prot);
+            map(as,va,pa,MMAP_READ);
+            map(&task->utask.as,va,NULL,MMAP_NONE);
+            map(&task->utask.as,va,pa,MMAP_READ);
         }
     }
 
@@ -211,7 +210,7 @@ static void uproc_init(){
     char * va=as->area.start;
     for(int len=0;len<_init_len;len+=4096,pa+=4096,va+=4096){
         add_pg(&task->utask.start,va,pa,PROT_READ|PROT_WRITE,0,NULL);
-        map(as,va,pa,PROT_READ|PROT_WRITE);
+        map(as,va,pa,MMAP_ALL);
     } 
     create_all(task,"first_uproc",ucontext(as,make_stack(task),as->area.start));
     return;
@@ -258,11 +257,11 @@ void pagefault_handler(void * va,int prot,task_t * task){
     if(!now){
         void * pa=pmm->alloc(4096);
         add_pg(&task->utask.start,va,pa,PROT_READ|PROT_WRITE,0,NULL);
-        map(as,va,pa,PROT_READ|PROT_WRITE);
+        map(as,va,pa,MMAP_ALL);
     }else if(!real(now->va)){
         Assert(now->pa==NULL&&now->cnt==NULL&&is_shared(now->va),"%s unexpected page states %p!",task->name,now->va);
         now->pa=pmm->alloc(4096);
-        map(as,va,now->pa,get_prot(now->va));
+        map(as,va,now->pa,MMAP_ALL);
         now->va = (void *)((uintptr_t) now->va | 16L);
     }else{
         Assert(now->pa && now->cnt,"%s unexpected page states!",task->name);
@@ -278,7 +277,7 @@ void pagefault_handler(void * va,int prot,task_t * task){
             free(now->cnt);
         }
         now->cnt=NULL;
-        map(as,va,now->pa,get_prot(now->va));
+        map(as,va,now->pa,MMAP_ALL);
     }
     return;
 }

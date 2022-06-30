@@ -228,11 +228,13 @@ static void * kalloc_safe(size_t size){
   iset(false);
   void * ret=kalloc(size);
   if(i) iset(true);
+  Log("alloc %p %d",ret,size);
   return ret;
 }
 
 static void kfree_safe(void *ptr) {
   int i = ienabled();
+  Log("free %p",ptr);
   iset(false);
   kfree(ptr);
   if (i) iset(true);

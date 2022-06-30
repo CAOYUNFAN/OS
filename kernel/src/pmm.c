@@ -112,7 +112,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
   free_list * ret=NULL;
   spin_lock(&head->lock);
   if(!head->head){
-    for(int i=0;i<4;i++){printf("pmm1!here!size=%d\n",size);
+    for(int i=0;i<4;i++){
       spin_lock(&rubbish_all->lock);
       if(rubbish_all->first){
         rubbish_block * temp=rubbish_all->first;
@@ -126,7 +126,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
         pt->nxt=head->head;
         head->head=pt;
         continue;
-      }printf("pmm2!here!size=%d\n",size);
+      }
       spin_unlock(&rubbish_all->lock);
       spin_lock(&head_all->lock);
       if(!head_all->start) get_pages(head_all,size);
@@ -136,11 +136,12 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
         head->head=init_page((block_info *)now,size,head->head);
         head->nr_num+=NR_NUM(size);
       }
-      spin_unlock(&head_all->lock);printf("pmm3!here!size=%d\n",size);
+      spin_unlock(&head_all->lock);
     }
-  }
-  ret=head->head;
+  }printf("pmm1!here!size=%d\n",size);
+  ret=head->head;printf("pmm2!here!size=%d\n",size);
   if(ret) head->head=ret->nxt,head->nr_num--;
+  printf("pmm3!here!size=%d\n",size);
 //  printf("kalloc_small:%p %p\n",ret,head->head);
   spin_unlock(&head->lock);
   #ifdef TEST

@@ -266,7 +266,7 @@ void pagefault_handler(void * va,int prot,task_t * task){
         map(as,va,now->pa,MMAP_ALL);
         now->va = (void *)((uintptr_t) now->va | 16L);
     }else{
-        Assert(now->pa && now->cnt && ((((uintptr_t)get_prot(now->va))&PROT_WRITE) ==0),"%s unexpected page states!",task->name);
+        Assert(now->pa && now->cnt,"%s unexpected page states!",task->name);
         void * pa_old=now->pa;
         int i=0;lock_inside(&now->cnt->lock,&i);
         now->cnt->cnt--;

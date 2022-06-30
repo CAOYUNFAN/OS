@@ -76,6 +76,7 @@ static void os_on_irq(int seq,int event,handler_t handler){
   event_local_t ** now=&start;
   while(*now&&(*now)->seq<seq) now=&((*now)->nxt);
   event_local_t * temp=pmm->alloc(sizeof(event_local_t));
+  printf("END!\n");
   temp->seq=seq;temp->event=event;temp->handler=handler;
   temp->nxt=*now;
   *now=temp;

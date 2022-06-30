@@ -39,6 +39,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     task_t * current=current_all[cpu_current()];
     if(ev.event == EVENT_SYSCALL || ev.event == EVENT_PAGEFAULT ) {
         Assert(current,"%p shou not be NULL!\n",current);
+        current->nc--;
         return NULL;
     }
 

@@ -224,7 +224,7 @@ static void kfree(void * ptr){
 }
 
 static void * kalloc_safe(size_t size){
-  bool i=ienabled();
+  bool i=ienabled();Log("waiting for alloc %d",size);
   iset(false);
   void * ret=kalloc(size);
   if(i) iset(true);

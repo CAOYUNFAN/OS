@@ -115,7 +115,7 @@ static int uproc_fork(task_t *task){
     ctx2->GPRx=0;
 
     #ifdef LOCAL
-    char * ch=pmm->alloc(128);sprintf(ch,"Fork,ch of %d",task->pid);
+    char * ch=pmm->alloc(128);sprintf(ch,"\"fork ch of %d\"",task->pid);
     #else
     char * ch=NULL;
     #endif

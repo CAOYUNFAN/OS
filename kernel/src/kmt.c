@@ -41,7 +41,6 @@ static Context * kmt_schedule(Event ev,Context * ctx){
         Assert(current,"%p shou not be NULL!\n",current);
         return NULL;
     }
-    Log("Schedule!");
 
     if(current&&current->status==TASK_RUNNING){
         current->status=TASK_RUNABLE;
@@ -74,7 +73,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 //    Log("switch to task %s,%p",current->name,current);
     Assert(current->nc==1||current->nc==2,"%s traped too much times!",current->name);
     Context * ctx2=current->ctx[--current->nc];
-    Log("%p",ctx2->rip);
+    Log("Schedule! pc=%p,switch to name %s,nc=%d",ctx2->rip,current->name,current->nc+1);
     return ctx2;
 }
 

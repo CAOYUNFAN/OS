@@ -68,19 +68,28 @@ void del_pg(pgs ** all,AddrSpace * as){
     pmm->free(now);
 }
 
-void map_safe(AddrSpace * as,void * va,void * pa,int prot){
+static inline void map_safe(AddrSpace * as,void * va,void * pa,int prot){
     int i=0;lock_inside(&vme_lock,&i);
     map(as,va,pa,prot);
     unlock_inside(&vme_lock,i);
 }
-void protect_safe(AddrSpace * as){
+static inline void protect_safe(AddrSpace * as){
     int i=0;lock_inside(&vme_lock,&i);
     protect(as);
     unlock_inside(&vme_lock,i);
 }
+static inline Context * ucontext_safe(AddrSpace *as, Area kstack, void *entry){
+    int i=0;lock_inside(&vme_lock,&i);
+    Context * ctx=ucontext(as,kstack,entry);
+    unlock_inside(&vme_lock,i);
+    return ctx;
+}
+
 void uproc_clear_space(utaskk * ut){
+    int i=0;lock_inside(&vme_lock,&i);
     while (ut->start) del_pg(&ut->start,&ut->as);    
     unprotect(&ut->as);
+    unlock_inside(&vme_lock,i);
     return;
 }
 
@@ -117,7 +126,7 @@ static int uproc_fork(task_t *task){
         }
     }
 
-    Context * ctx2=ucontext(as,make_stack(task_new),as->area.start);
+    Context * ctx2=ucontext_safe(as,make_stack(task_new),as->area.start);
     uintptr_t rsp0=ctx2->rsp0;
     void * cr3=ctx2->cr3;
     memcpy(ctx2,task->ctx[0],sizeof(Context));
@@ -224,7 +233,7 @@ static void uproc_init(){
         add_pg(&task->utask.start,va,pa,PROT_READ|PROT_WRITE,0,NULL);
         map(as,va,pa,MMAP_ALL);
     } 
-    create_all(task,"first_uproc",ucontext(as,make_stack(task),as->area.start));
+    create_all(task,"first_uproc",ucontext_safe(as,make_stack(task),as->area.start));
     return;
 }
 

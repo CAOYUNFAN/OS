@@ -85,9 +85,12 @@ static int uproc_kputc(task_t * task,char ch){
 static int uproc_fork(task_t *task){
     Assert(task->nc==1,"%s multicall of fork",task->name);
     task_t * task_new=(task_t *)pmm->alloc(sizeof(task_t));
+    
     AddrSpace * as=&task_new->utask.as;pgs ** all=&task_new->utask.start;
-    protect(as);all=NULL;
+
+    task_new->utask.maxn=task->utask.maxn;protect(as);*all=NULL;
     for(pgs * now=task->utask.start;now;now=now->nxt){
+        Assert(real(now->va)||is_shared(now->va),"%s unexpected status %p",task->name,now->va);
         if(!real(now->va)) now->va=(void *)((uintptr_t)now->va | 16), now->pa=pmm->alloc(4096);
         if(!now->cnt) now->cnt=add_cnt(NULL);
         void * va=get_vaddr(now->va), *pa=now->pa;
@@ -169,15 +172,12 @@ static void * uproc_mmap(task_t *task, void *addr, int length, int prot, int fla
         }
         return NULL;
     }else{
-        char * vaddr=(char *)((uintptr_t)addr & (-4096L));
-        int flag=0;uintptr_t maxn=0;
-        for(pgs * now=task->utask.start;now;now=now->nxt){
-            if((uintptr_t)now->va>=(uintptr_t)vaddr&&(uintptr_t)now->va<(uintptr_t)vaddr+length) flag=1;
-            if((uintptr_t)now->va > maxn) maxn= (uintptr_t) now->va + 4096;
+        addr=(void *)task->utask.maxn;
+        task->utask.maxn+=length+4095l; task->utask.maxn = task->utask.maxn & -4096l;
+        if(flags==MAP_SHARED){
+            char * vaddr=addr;
+            for(;length>0;length-=pgsize,vaddr+=pgsize) add_pg(&task->utask.start,vaddr,NULL,prot,1,NULL);
         }
-        if(flag || !vaddr) vaddr=(char *)maxn;
-        addr=vaddr;
-        for(;length>0;length-=pgsize,vaddr+=pgsize) add_pg(&task->utask.start,vaddr,NULL,prot,flags==MAP_SHARED,NULL);
     } 
     return addr;
 }
@@ -204,17 +204,14 @@ static void uproc_init(){
     AddrSpace * as=&task->utask.as;
     protect(as);task->utask.start=NULL;
     assert(as->pgsize==4096);
-    void * vaddr=uproc_mmap(task,as->area.start,_init_len, PROT_READ | PROT_WRITE,MAP_PRIVATE); assert(vaddr);
-
-    for(pgs * now=task->utask.start;now;now=now->nxt) {    
-        now->va =(void *)((uintptr_t)now->va | 16L);
-        uintptr_t offset = (uintptr_t) now->va - (uintptr_t) vaddr, len= 4096;
-        if(offset+len>_init_len) len=_init_len-offset;
-        now->pa = pmm->alloc(4096);
-        memcpy(now->pa,_init+offset,len);
-        map(as,get_vaddr(now->va),now->pa,PROT_READ | PROT_WRITE);
-        Log("va %p->pa %p",now->va,now->pa);
-    }
+    task->utask.maxn=(uintptr_t)as->area.end;
+    char * pa=pmm->alloc(_init_len>4096?_init_len:4096);
+    memcpy(pa,_init,_init_len);
+    char * va=as->area.start;
+    for(int len=0;len<_init_len;len+=4096,pa+=4096,va+=4096){
+        add_pg(&task->utask.start,va,pa,PROT_READ|PROT_WRITE,0,NULL);
+        map(as,va,pa,PROT_READ|PROT_WRITE);
+    } 
     create_all(task,"first_uproc",ucontext(as,make_stack(task),as->area.start));
     return;
 }
@@ -257,16 +254,14 @@ void pagefault_handler(void * va,int prot,task_t * task){
     Log("%p",va);//assert(va);
     AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
     while(now&&get_vaddr(now->va)!=va) now=now->nxt;
-//    Assert(now,"%s addr %p do not exist!",task->name,va);
     if(!now){
-        add_pg(&task->utask.start,va,NULL,PROT_READ|PROT_WRITE,0,NULL);
-        now=task->utask.start;
-    }
-//    Assert((get_prot(now->va) & prot)==prot,"%s addr invalid rights %x, %x!",task->name,get_prot(now->va),prot);
-    if(!real(now->va)){
-        Assert(now->pa==NULL&&now->cnt==NULL,"%s unexpected page states!",task->name);
+        void * pa=pmm->alloc(4096);
+        add_pg(&task->utask.start,va,pa,PROT_READ|PROT_WRITE,0,NULL);
+        map(as,va,pa,PROT_READ|PROT_WRITE);
+    }else if(!real(now->va)){
+        Assert(now->pa==NULL&&now->cnt==NULL&&is_shared(now->va),"%s unexpected page states %p!",task->name,now->va);
         now->pa=pmm->alloc(4096);
-        map(as,now->va,now->pa,get_prot(now->va));
+        map(as,va,now->pa,get_prot(now->va));
         now->va = (void *)((uintptr_t) now->va | 16L);
     }else{
         Assert(now->pa && now->cnt,"%s unexpected page states!",task->name);
@@ -282,7 +277,7 @@ void pagefault_handler(void * va,int prot,task_t * task){
             free(now->cnt);
         }
         now->cnt=NULL;
-        map(as,get_vaddr(now->va),now->pa,get_prot(now->va));
+        map(as,va,now->pa,get_prot(now->va));
     }
     return;
 }

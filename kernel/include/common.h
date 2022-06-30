@@ -46,6 +46,7 @@ typedef struct pgstruct{
 typedef struct{
   AddrSpace as;
   pgs * start;
+  uintptr_t maxn;
 }utaskk;
 
 struct task {

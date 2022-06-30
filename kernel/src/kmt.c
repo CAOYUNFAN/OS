@@ -55,6 +55,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
         current->status=TASK_RUNABLE;
         task_queue_push(&runnable,current);
     }
+    if(current&&current->status==TASK_DEAD) task_queue_push(&runnable,current);
     if(current) {
         Assert(previous_all[cpu_current()]==NULL,"previous %s has not been emptied!",previous_all[cpu_current()]->name);
         Assert(current->lock==1,"Unexpected lock status %d with name %s!",current->lock,current->name);

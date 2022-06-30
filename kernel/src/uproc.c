@@ -277,6 +277,7 @@ void pagefault_handler(void * va,int prot,task_t * task){
             free(now->cnt);
         }
         now->cnt=NULL;
+        map(as,va,NULL,MMAP_NONE);
         map(as,va,now->pa,MMAP_ALL);
     }
     return;

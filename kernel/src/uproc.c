@@ -229,8 +229,8 @@ MODULE_DEF(uproc) = {
     UPROC_NAME(uptime)
 };
 
-#define NAME_RELATION(name,...) \
-    case SYS_ ## name : ctx->GPRx = (uintptr_t) uproc -> name (task , ## __VA_ARGS__); break;
+#define NAME_RELATION(func,...) \
+    case SYS_ ## func : Log("%s syscall %s",task->name,#func); ctx->GPRx = (uintptr_t) uproc -> func (task , ## __VA_ARGS__); break;
 
 Context * syscall(task_t * task,Context * ctx){
     iset(true);

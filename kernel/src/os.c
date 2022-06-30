@@ -14,7 +14,7 @@ static inline task_t *task_alloc() {
 
 static void os_init() {
   pmm->init();
-  kmt->init();
+  kmt->init();printf("A\n");
   uproc->init();
   #ifdef LOCAL
 //  dev->init();

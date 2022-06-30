@@ -3,6 +3,7 @@
 
 #include "uproc.h"
 
+int vme_lock=0;
 extern int create_all(task_t * task, const char * name, Context * ctx);
 extern Area make_stack(task_t * task);
 static inline void lock_inside_ker(int * addr){
@@ -67,6 +68,16 @@ void del_pg(pgs ** all,AddrSpace * as){
     pmm->free(now);
 }
 
+void map_safe(AddrSpace * as,void * va,void * pa,int prot){
+    int i=0;lock_inside(&vme_lock,&i);
+    map(as,va,pa,prot);
+    unlock_inside(&vme_lock,i);
+}
+void protect_safe(AddrSpace * as){
+    int i=0;lock_inside(&vme_lock,&i);
+    protect(as);
+    unlock_inside(&vme_lock,i);
+}
 void uproc_clear_space(utaskk * ut){
     while (ut->start) del_pg(&ut->start,&ut->as);    
     unprotect(&ut->as);
@@ -88,7 +99,7 @@ static int uproc_fork(task_t *task){
     
     AddrSpace * as=&task_new->utask.as;pgs ** all=&task_new->utask.start;
 
-    task_new->utask.maxn=task->utask.maxn;protect(as);*all=NULL;
+    task_new->utask.maxn=task->utask.maxn;protect_safe(as);*all=NULL;
     for(pgs * now=task->utask.start;now;now=now->nxt){
         Assert(real(now->va)||is_shared(now->va),"%s unexpected status %p",task->name,now->va);
         if(!real(now->va)) now->va=(void *)((uintptr_t)now->va | 16), now->pa=pmm->alloc(4096);
@@ -97,12 +108,12 @@ static int uproc_fork(task_t *task){
         int prot=get_prot(now->va);
         if(is_shared(now->va)){
             add_pg(all,va,pa,prot,1 ,now->cnt);
-            map(as,va,pa,prot);
+            map_safe(as,va,pa,prot);
         }else{
             add_pg(all,va,pa,prot,0 ,now->cnt);
-            map(as,va,pa,MMAP_READ);
-            map(&task->utask.as,va,NULL,MMAP_NONE);
-            map(&task->utask.as,va,pa,MMAP_READ);
+            map_safe(as,va,pa,MMAP_READ);
+            map_safe(&task->utask.as,va,NULL,MMAP_NONE);
+            map_safe(&task->utask.as,va,pa,MMAP_READ);
         }
     }
 
@@ -202,7 +213,7 @@ static void uproc_init(){
     vme_init(pgalloc, pmm->free);
     task_t * task=pmm->alloc(sizeof(task_t));
     AddrSpace * as=&task->utask.as;
-    protect(as);task->utask.start=NULL;
+    protect_safe(as);task->utask.start=NULL;
     assert(as->pgsize==4096);
     task->utask.maxn=(uintptr_t)as->area.end;
     char * pa=pmm->alloc(_init_len>4096?_init_len:4096);
@@ -258,12 +269,12 @@ void pagefault_handler(void * va,int prot,task_t * task){
     if(!now){
         void * pa=pmm->alloc(4096);
         add_pg(&task->utask.start,va,pa,PROT_READ|PROT_WRITE,0,NULL);
-        map(as,va,pa,MMAP_ALL);
+        map_safe(as,va,pa,MMAP_ALL);
     }else if(!real(now->va)){
         Assert(now->pa==NULL&&now->cnt==NULL&&is_shared(now->va),"%s unexpected page states %p!",task->name,now->va);
         Log("add dummy page %s->%s",now->va,now->pa);
         now->pa=pmm->alloc(4096);
-        map(as,va,now->pa,MMAP_ALL);
+        map_safe(as,va,now->pa,MMAP_ALL);
         now->va = (void *)((uintptr_t) now->va | 16L);
     }else{
         Assert(now->pa && now->cnt,"%s unexpected page states!",task->name);
@@ -280,8 +291,8 @@ void pagefault_handler(void * va,int prot,task_t * task){
             free(now->cnt);
         }
         now->cnt=NULL;
-        map(as,va,NULL,MMAP_NONE);
-        map(as,va,now->pa,MMAP_ALL);
+        map_safe(as,va,NULL,MMAP_NONE);
+        map_safe(as,va,now->pa,MMAP_ALL);
     }
     Log("%s pagefault ended!",current_all[cpu_current()]->name);
     return;

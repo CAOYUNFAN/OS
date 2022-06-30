@@ -44,10 +44,10 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     }
 
     #ifdef LOCAL
-    if(ev.event == EVENT_IRQ_TIMER){
+/*    if(ev.event == EVENT_IRQ_TIMER){
         current->nc --;
         return ctx;
-    }
+    }*/
     #endif
 
     if(current&&current->status==TASK_RUNNING){
@@ -150,10 +150,13 @@ int create_all(task_t * task, const char * name, Context * ctx){
     task->name=name;
     #endif
     task->pid=new_pid();
-    task_t * current=current_all[cpu_current()];Assert(current->lock,"CURRENT %s IS NOT LOCKED!",current->name);
     task->ch=NULL;
-    task->bro=current->ch;current->ch=task;
     task->ret=0;
+    task_t * current=current_all[cpu_current()];
+    if(current){
+        Assert(current->lock,"CURRENT %s IS NOT LOCKED!",current->name);
+        task->bro=current->ch;current->ch=task;
+    }else task->bro=NULL;
     task_all_pid[task->pid]=task;
     Log("create name %s,pid=%d",name,task->pid);
 //    Log("Task %s is added to %p",name,task);

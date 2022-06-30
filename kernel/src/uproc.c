@@ -87,7 +87,7 @@ static inline Context * ucontext_safe(AddrSpace *as, Area kstack, void *entry){
 
 void uproc_clear_space(utaskk * ut){
     int i=0;lock_inside(&vme_lock,&i);
-    while (ut->start) del_pg(&ut->start,&ut->as);    
+ //   while (ut->start) del_pg(&ut->start,&ut->as);    
     //unprotect(&ut->as);
     unlock_inside(&vme_lock,i);
     return;

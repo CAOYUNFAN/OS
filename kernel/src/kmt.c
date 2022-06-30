@@ -17,7 +17,7 @@ static Context * kmt_context_save(Event ev,Context * ctx){
 //    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %s SHOULD NOT be RUNNABLE!",current->status,current->name);
     if(current&&current->status!=TASK_DEAD) current->ctx[current->nc++]=ctx;
     Assert(!current||current->nc==1||current->nc==2,"%s traped too much times!\n",current->name);
-    if(current) Log("save_context! name=%s(pid=%d),nc=%d",current->name,current->pid,current->nc);else Log("save_context! NULL");
+    if(current) Log("save_context! name=%s(pid=%d),nc=%d,info:%s",current->name,current->pid,current->nc,ev.msg);else Log("save_context! NULL");
 //    Log("%p %p",current,ctx);
     task_t * previous=previous_all[cpu_current()];
     if(previous){

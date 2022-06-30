@@ -251,7 +251,7 @@ Context * syscall(task_t * task,Context * ctx){
 }
 
 void pagefault_handler(void * va,int prot,task_t * task){
-    Log("%s pagefault %p",current_all[cpu_current()]->name,va);
+    Log("%s (pid %d) pagefault %p",current_all[cpu_current()]->name,current_all[cpu_current()]->pid,va);
     AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
     Assert((uintptr_t)va>=(uintptr_t)as->area.start&&(uintptr_t)va<(uintptr_t)as->area.end,"Unexpected virtual address %p",va);
     while(now&&get_vaddr(now->va)!=va) now=now->nxt;
@@ -266,7 +266,7 @@ void pagefault_handler(void * va,int prot,task_t * task){
         map(as,va,now->pa,MMAP_ALL);
         now->va = (void *)((uintptr_t) now->va | 16L);
     }else{
-        Assert(now->pa && now->cnt,"%s unexpected page states!",task->name);
+        Assert(now->pa && now->cnt && ((((uintptr_t)get_prot(now->va))&PROT_WRITE) ==0),"%s unexpected page states!",task->name);
         void * pa_old=now->pa;
         int i=0;lock_inside(&now->cnt->lock,&i);
         now->cnt->cnt--;

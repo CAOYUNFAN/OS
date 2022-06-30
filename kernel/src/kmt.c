@@ -135,7 +135,6 @@ Area make_stack(task_t * task){
 
 int create_all(task_t * task, const char * name, Context * ctx){
     assert(task);assert(ctx);
-    Log("create name %s",name);
     task->status=TASK_RUNABLE;
     task->lock=0;
     task->nc=1;
@@ -149,6 +148,7 @@ int create_all(task_t * task, const char * name, Context * ctx){
     task->bro=current->ch;current->ch=task;
     task->ret=0;
     task_all_pid[task->pid]=task;
+    Log("create name %s,pid=%d",name,task->pid);
 //    Log("Task %s is added to %p",name,task);
     task_queue_push(&runnable,task);
     return task->pid;

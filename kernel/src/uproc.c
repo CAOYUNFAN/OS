@@ -115,7 +115,7 @@ static int uproc_fork(task_t *task){
     ctx2->GPRx=0;
 
     #ifdef LOCAL
-    char * ch="FORK!";
+    char * ch=pmm->alloc(128);sprintf(ch,"Fork,ch of %d",task->pid);
     #else
     char * ch=NULL;
     #endif
@@ -251,7 +251,7 @@ Context * syscall(task_t * task,Context * ctx){
 }
 
 void pagefault_handler(void * va,int prot,task_t * task){
-    Log("%p",va);
+    Log("%s pagefault %p",current_all[cpu_current()]->name,va);
     AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
     Assert((uintptr_t)va>=(uintptr_t)as->area.start&&(uintptr_t)va<(uintptr_t)as->area.end,"Unexpected virtual address %p",va);
     while(now&&get_vaddr(now->va)!=va) now=now->nxt;
@@ -261,6 +261,7 @@ void pagefault_handler(void * va,int prot,task_t * task){
         map(as,va,pa,MMAP_ALL);
     }else if(!real(now->va)){
         Assert(now->pa==NULL&&now->cnt==NULL&&is_shared(now->va),"%s unexpected page states %p!",task->name,now->va);
+        Log("add dummy page %s->%s",now->va,now->pa);
         now->pa=pmm->alloc(4096);
         map(as,va,now->pa,MMAP_ALL);
         now->va = (void *)((uintptr_t) now->va | 16L);
@@ -269,6 +270,7 @@ void pagefault_handler(void * va,int prot,task_t * task){
         void * pa_old=now->pa;
         int i=0;lock_inside(&now->cnt->lock,&i);
         now->cnt->cnt--;
+        Log("more access %s->%s",now->va,now->pa);
         if(now->cnt->cnt){
             now->pa=pmm->alloc(4096);
             memcpy(now->pa,pa_old,4096);
@@ -281,5 +283,6 @@ void pagefault_handler(void * va,int prot,task_t * task){
         map(as,va,NULL,MMAP_NONE);
         map(as,va,now->pa,MMAP_ALL);
     }
+    Log("%s pagefault ended!",current_all[cpu_current()]->name);
     return;
 }

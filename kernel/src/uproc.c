@@ -133,7 +133,7 @@ static int uproc_fork(task_t *task){
     ctx2->rsp0=rsp0;
     ctx2->cr3=cr3;
     ctx2->GPRx=0;
-
+    Assert(ctx2->rip==task->ctx[0]->rip&&ctx2->rip==0x100000000418,"%s here is not equal!",task->name);
     #ifdef LOCAL
     char * ch=pmm->alloc(128);sprintf(ch,"\"fork ch of %d\"",task->pid);
     #else

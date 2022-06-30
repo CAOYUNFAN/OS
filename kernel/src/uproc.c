@@ -129,7 +129,10 @@ static int uproc_fork(task_t *task){
     Context * ctx2=ucontext_safe(as,make_stack(task_new),as->area.start);
     uintptr_t rsp0=ctx2->rsp0;
     void * cr3=ctx2->cr3;
+    assert(ienabled()==1);
+    iset(0);
     memcpy(ctx2,task->ctx[0],sizeof(Context));
+    iset(1);
     Assert(ctx2->rip==task->ctx[0]->rip,"%s here is not equal!",task->name);
     Assert(ctx2->rip==0x100000000418,"%s here is not equal!",task->name);
     ctx2->rsp0=rsp0;

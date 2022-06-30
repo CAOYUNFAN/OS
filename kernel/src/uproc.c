@@ -270,7 +270,7 @@ void pagefault_handler(void * va,int prot,task_t * task){
         void * pa_old=now->pa;
         int i=0;lock_inside(&now->cnt->lock,&i);
         now->cnt->cnt--;
-        Log("more access %s->%s",now->va,now->pa);
+        Log("more access %p->%p",now->va,now->pa);
         if(now->cnt->cnt){
             now->pa=pmm->alloc(4096);
             memcpy(now->pa,pa_old,4096);

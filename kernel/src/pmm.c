@@ -139,9 +139,8 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
       spin_unlock(&head_all->lock);
     }
   }
-  ret=head->head;//if(size==4096) printf("pmm2!here!size=%d,nr_num=%d,ret=%p\n",size,head->nr_num,ret);
+  ret=head->head;
   if(ret) head->head=ret->nxt,head->nr_num--;
-  if(size==4096)// printf("pmm3!here!size=%d\n",size);
 //  printf("kalloc_small:%p %p\n",ret,head->head);
   spin_unlock(&head->lock);
   #ifdef TEST
@@ -151,7 +150,6 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
       memset(ret,MAGIC_SMALL,size);
     }
   #endif
-  assert(ret);
   return (void *)ret;
 }
 
@@ -161,7 +159,6 @@ static void * kalloc(size_t size){
     spin_lock(&self_lock);
     void * ret=buddy_alloc(self,ROUNDUP(size,Unit_size)/Unit_size);
     spin_unlock(&self_lock);
-    assert(ret);
     return ret;
   }
   #define CONDITION(X) if(size<=X) return kalloc_small(contact(head_,X)[cpu_current()],X,contact(head_,contact(X,_all)),contact(head_,contact(X,_rubbish)));

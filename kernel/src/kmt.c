@@ -129,7 +129,7 @@ static void kmt_init(){
     os->on_irq(INT_MIN+15,EVENT_SYSCALL,kmt_syscall);
     os->on_irq(INT_MIN+15,EVENT_ERROR,kmt_error);
     task_queue_init(&runnable);
-
+    printf("A\n");
     #ifdef LOCAL
 //    kmt->create(task_alloc(), "tty_reader1", tty_reader, "tty1");
 //    kmt->create(task_alloc(), "tty_reader2", tty_reader, "tty2");

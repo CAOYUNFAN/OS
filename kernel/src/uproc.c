@@ -57,11 +57,10 @@ void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){
     else now->cnt=NULL;
     now->nxt=*all;*all=now;
 }
-void del_pg(pgs ** all,AddrSpace * as){
+void del_pg(pgs ** all){
     assert(all&&*all);
     pgs * now=*all;*all = now->nxt;
     if(real(now->va)){
-        map(as,get_vaddr(now->va),NULL,MMAP_NONE);
         if(now->cnt) now->cnt=dec_cnt(now->cnt);
     }
     if(!now->cnt) pmm->free(now->pa);
@@ -87,7 +86,7 @@ static inline Context * ucontext_safe(AddrSpace *as, Area kstack, void *entry){
 
 void uproc_clear_space(utaskk * ut){
     int i=0;lock_inside(&vme_lock,&i);
-//    while (ut->start) del_pg(&ut->start,&ut->as);    
+    while (ut->start) del_pg(&ut->start);    
 //    unprotect(&ut->as);
     unlock_inside(&vme_lock,i);
     return;
@@ -191,7 +190,7 @@ static void * uproc_mmap(task_t *task, void *addr, int length, int prot, int fla
         while (now){
             uintptr_t temp=(uintptr_t)get_vaddr(now->va);
             if(temp>=vaddr&&temp<vaddr+length){
-                del_pg(pre,as);
+                del_pg(pre);
                 now=*pre;
             }else pre=&now->nxt,now=now->nxt;
         }

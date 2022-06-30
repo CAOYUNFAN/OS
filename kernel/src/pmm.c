@@ -174,20 +174,20 @@ static inline void kfree_small(void * ptr,size_t size){
   free_list * now=(free_list *)ptr;
   DEBUG(memset((void *)now,MAGIC_BIG,size);)
   Assert(LOWBIT((uintptr_t)ptr)>=size,"NOT aligned! %p,size=%d\n",ptr,size);
-  start_info * head; start_info_rubbish * head_rubbish;
-  #define CASE(X) case X: head=contact(head_,X)[cpu_current()];head_rubbish=contact(head_,contact(X,_rubbish));break;
+  start_info * head; //start_info_rubbish * head_rubbish;
+  #define CASE(X) case X: head=contact(head_,X)[cpu_current()];/*head_rubbish=contact(head_,contact(X,_rubbish));*/break;
   switch (size){
     CASE(32)
     CASE(128)
     CASE(512)
     CASE(4096)
-    default: head=head_4096[cpu_current()];head_rubbish=head_4096_rubbish;break;
+    default: head=head_4096[cpu_current()];/*head_rubbish=head_4096_rubbish;*/break;
   }
   spin_lock(&head->lock);
   now->nxt=head->head;
   head->head=now;
   head->nr_num++;
-  if(head->nr_num>=NR_NUM(size)*16){
+  /*if(head->nr_num>=NR_NUM(size)*16){
     for(int i=0;i<8;++i){
       rubbish_block * now=(rubbish_block *)head->head;
       head->head=head->head->nxt;
@@ -203,7 +203,7 @@ static inline void kfree_small(void * ptr,size_t size){
       now->nxt=head_rubbish->first;head_rubbish->first=now;
       spin_unlock(&head_rubbish->lock);
     }
-  }
+  }*/
   spin_unlock(&head->lock);
 }
 

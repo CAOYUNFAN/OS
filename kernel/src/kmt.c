@@ -15,10 +15,11 @@ static task_queue runnable;
 static Context * kmt_context_save(Event ev,Context * ctx){
     task_t * current=current_all[cpu_current()];
 //    Assert(current==NULL||current->status!=TASK_RUNABLE,"the status %d of %s SHOULD NOT be RUNNABLE!",current->status,current->name);
-    if(current&&current->status!=TASK_DEAD) current->ctx[current->nc++]=ctx;
+    if(current) current->ctx[current->nc++]=ctx;
     Assert(!current||current->nc==1||current->nc==2,"%s traped too much times!\n",current->name);
     if(current) Log("save_context! name=%s(pid=%d),nc=%d,rip=%p,info:%s",current->name,current->pid,current->nc,ctx->rip,ev.msg);else Log("save_context! NULL");
 //    Log("%p %p",current,ctx);
+    Assert(!current || current->status!= TASK_DEAD || current->nc ==2,"enexpected dead status!nc=%d",current->nc);
     task_t * previous=previous_all[cpu_current()];
     if(previous){
         Assert(previous->lock==1,"previos %s should be locked!",previous->name);

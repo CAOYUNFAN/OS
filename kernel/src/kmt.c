@@ -124,17 +124,11 @@ static void kmt_init(){
     #  define INT_MIN	(-INT_MAX - 1)
     #  define INT_MAX	2147483647
     os->on_irq(INT_MIN,EVENT_NULL,kmt_context_save);
-    printf("A\n");
     os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
-    printf("A\n");
     os->on_irq(INT_MIN+10,EVENT_PAGEFAULT,kmt_pagefault);
-    printf("A\n");
     os->on_irq(INT_MIN+15,EVENT_SYSCALL,kmt_syscall);
-    printf("A\n");
     os->on_irq(INT_MIN+15,EVENT_ERROR,kmt_error);
-    printf("A\n");
     task_queue_init(&runnable);
-    printf("A\n");
     #ifdef LOCAL
 //    kmt->create(task_alloc(), "tty_reader1", tty_reader, "tty1");
 //    kmt->create(task_alloc(), "tty_reader2", tty_reader, "tty2");

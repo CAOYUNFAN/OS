@@ -87,7 +87,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 static void kmt_teardown(task_t * task){
     Assert(task->status==TASK_RUNABLE||task->status==TASK_RUNNING,"task %p is blocked!\n",task);
     Assert(task_all_pid[task->pid]==task,"Invalid pid %s!",task->name);
-    Log("task %s is ended",task->name);
+    Log("task %s (pid %d) is ended",task->name,task->pid);
     task_all_pid[task->pid]=NULL;
     task->status=TASK_DEAD;
     task->ch=NULL;

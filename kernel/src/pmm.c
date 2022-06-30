@@ -126,7 +126,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
         pt->nxt=head->head;
         head->head=pt;
         continue;
-      }printf("pmm!here!size=%d",size);
+      }printf("pmm!here!size=%d\n",size);
       spin_unlock(&rubbish_all->lock);
       spin_lock(&head_all->lock);
       if(!head_all->start) get_pages(head_all,size);

@@ -139,7 +139,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
       spin_unlock(&head_all->lock);
     }
   }
-  ret=head->head;printf("pmm2!here!size=%d,nr_num=%d\n",size,head->nr_num);
+  ret=head->head;printf("pmm2!here!size=%d,nr_num=%d,ret=%p\n",size,head->nr_num,ret);
   if(ret) head->head=ret->nxt,head->nr_num--;
   printf("pmm3!here!size=%d\n",size);
 //  printf("kalloc_small:%p %p\n",ret,head->head);

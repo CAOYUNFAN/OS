@@ -107,7 +107,7 @@ static int uproc_fork(task_t *task){
     task_t * task_new=(task_t *)pmm->alloc(sizeof(task_t));
     
     AddrSpace * as=&task_new->utask.as;pgs ** all=&task_new->utask.start;
-
+    iset(0);
     task_new->utask.maxn=task->utask.maxn;protect_safe(as);*all=NULL;
     for(pgs * now=task->utask.start;now;now=now->nxt){
         Assert(real(now->va)||is_shared(now->va),"%s unexpected status %p",task->name,now->va);
@@ -141,7 +141,9 @@ static int uproc_fork(task_t *task){
     #else
     char * ch=NULL;
     #endif
-    return create_all(task_new,ch,ctx2);
+    int ret=create_all(task_new,ch,ctx2);
+    iset(1);
+    return ret;
 }
 
 static int uproc_wait(task_t * task,int * status){

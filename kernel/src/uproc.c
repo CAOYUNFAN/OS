@@ -138,6 +138,7 @@ static int uproc_wait(task_t * task,int * status){
     Assert(task->status==TASK_RUNNING&&task->lock,"Unexpected current %s,status %d, lock %d",task->name,task->status,task->lock);
     if(!task->ch)return -1;
     while (1) {
+        assert(task->lock);
         task_t ** pre=&task->ch;
         for(task_t * temp=task->ch;temp;pre=&temp->bro,temp=temp->bro) if(temp->status==TASK_DEAD){
             if(status) *status=temp->ret;

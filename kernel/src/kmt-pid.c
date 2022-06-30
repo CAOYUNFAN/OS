@@ -33,7 +33,7 @@ void pid_free(int pid){
     temp->data=pid;temp->nxt=NULL;
     int i=0;
     lock_inside(&pid_lock2,&i);
-    if(pid_start) pid_start=temp;
+    if(!pid_start) pid_start=temp;
     else{
         Assert(pid_end,"%s SHOULD NOT BE NULL!","queue of pid");
         pid_end->nxt=temp;

@@ -157,6 +157,7 @@ int create_all(task_t * task, const char * name, Context * ctx){
         Assert(current->lock,"CURRENT %s IS NOT LOCKED!",current->name);
         task->bro=current->ch;current->ch=task;
     }else task->bro=NULL;
+    Assert(!task_all_pid[task->pid],"%d should be NULL!",task->pid);
     task_all_pid[task->pid]=task;
     Log("create name %s,pid=%d",name,task->pid);
 //    Log("Task %s is added to %p",name,task);

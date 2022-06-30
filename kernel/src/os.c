@@ -72,7 +72,7 @@ static Context * os_trap(Event ev, Context * context){
 }
 
 static void os_on_irq(int seq,int event,handler_t handler){
-//  Log("Insert function %p",handler);
+  Log("Insert function %p",handler);
   event_local_t ** now=&start;
   while(*now&&(*now)->seq<seq) now=&((*now)->nxt);
   event_local_t * temp=pmm->alloc(sizeof(event_local_t));

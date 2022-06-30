@@ -123,12 +123,12 @@ static Context * kmt_error(Event ev,Context * ctx){
 static void kmt_init(){
     #  define INT_MIN	(-INT_MAX - 1)
     #  define INT_MAX	2147483647
-    printf("A\n");
     os->on_irq(INT_MIN,EVENT_NULL,kmt_context_save);
     os->on_irq(INT_MAX, EVENT_NULL, kmt_schedule);
     os->on_irq(INT_MIN+10,EVENT_PAGEFAULT,kmt_pagefault);
     os->on_irq(INT_MIN+15,EVENT_SYSCALL,kmt_syscall);
     os->on_irq(INT_MIN+15,EVENT_ERROR,kmt_error);
+    printf("A\n");
     task_queue_init(&runnable);
     printf("A\n");
     #ifdef LOCAL

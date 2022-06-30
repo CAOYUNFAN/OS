@@ -102,6 +102,7 @@ static int uproc_fork(task_t *task){
             add_pg(all,va,pa,prot,0 ,now->cnt);
             if(prot & PROT_WRITE) prot-=PROT_WRITE;
             map(as,va,pa,prot);
+            map(&task->utask.as,va,NULL,PROT_NONE);
             map(&task->utask.as,va,pa,prot);
         }
     }

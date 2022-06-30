@@ -43,6 +43,13 @@ static Context * kmt_schedule(Event ev,Context * ctx){
         return NULL;
     }
 
+    #ifdef LOCAL
+    if(ev.event == EVENT_IRQ_TIMER){
+        current->nc --;
+        return ctx;
+    }
+    #endif
+
     if(current&&current->status==TASK_RUNNING){
         current->status=TASK_RUNABLE;
         task_queue_push(&runnable,current);
@@ -105,7 +112,7 @@ static Context * kmt_syscall(Event ev,Context * ctx){
 }
 
 static Context * kmt_error(Event ev,Context * ctx){
-    Assert(0,"%s error happens!",current_all[cpu_current()]->name);
+    Assert(0,"%s error happens! msg: %s",current_all[cpu_current()]->name,ev.msg);
     kmt_teardown(current_all[cpu_current()]);
     return NULL;
 }

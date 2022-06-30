@@ -80,7 +80,7 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current_all[cpu_current()]=current;
     Assert(current->nc==1||current->nc==2,"%s traped too much times!",current->name);
     Context * ctx2=current->ctx[--current->nc];
-    Log("Schedule! pc=%p,switch to name %s(pid=%d),nc=%d",ctx2->rip,current->name,current->pid,current->nc+1);
+    Log("Schedule! pc=%p,switch to name %s(pid=%d),nc=%d,rip=%p",ctx2->rip,current->name,current->pid,current->nc+1,ctx2->rip);
 //    Assert(current->pid==1||ctx2->GPRx==0,"Unexpected non-zero %s(pid %d) with ret %d",current->name,current->pid,ctx2->GPRx);
     return ctx2;
 }

@@ -57,7 +57,7 @@ static Context * os_trap(Event ev, Context * context){
   Context *next = NULL;
 //  Log("CPU%d:%d",cpu_current(),ev.event);
   assert(!ienabled());
-  Log("%s",ev.msg);
+//  Log("%s",ev.msg);
   int flag=(current_all[cpu_current()]->status!=TASK_DEAD);
   for (event_local_t *h=start;h;h=h->nxt) {
     if (h->event == EVENT_NULL || (h->event == ev.event && flag)) {

@@ -71,7 +71,6 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     current->status=TASK_RUNNING;
 
     current_all[cpu_current()]=current;
-//    Log("switch to task %s,%p",current->name,current);
     Assert(current->nc==1||current->nc==2,"%s traped too much times!",current->name);
     Context * ctx2=current->ctx[--current->nc];
 //    Log("Schedule! pc=%p,switch to name %s,nc=%d",ctx2->rip,current->name,current->nc+1);

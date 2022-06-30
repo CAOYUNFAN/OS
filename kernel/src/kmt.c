@@ -162,7 +162,7 @@ int create_all(task_t * task, const char * name, Context * ctx){
     Assert(!task_all_pid[task->pid],"%d should be NULL!",task->pid);
     task_all_pid[task->pid]=task;
     Log("create name %s,pid=%d",name,task->pid);
-    Assert(task->pid==1 ||(ctx->GPRx ==0 && ctx->rip ==0x100000000418),"pid %d unexpected non-zero",task->pid);
+    Assert(task->pid==1 ||(ctx->GPRx ==0 && ctx->rip ==0x100000000418),"pid %d unexpected non-zero, GPRx=%p,rip=%p",task->pid,ctx->GPRx,ctx->rip);
     Assert(current_all[cpu_current()]==NULL||current_all[cpu_current()]->pid==1,"%s (pid %d) unexpected creator!",current_all[cpu_current()]->name,current_all[cpu_current()]->pid);
 //    Log("Task %s is added to %p",name,task);
     task_queue_push(&runnable,task);

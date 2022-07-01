@@ -1,7 +1,7 @@
 NAME           := kernel
 SRCS           := framework/main.c $(shell find -L ./src/ -name "*.c")
 INC_PATH       := include/ framework/
-CFLAGS 		   += -DLOCAL
+CFLAGS 		   += #-DLOCAL
 
 export AM_HOME := $(PWD)/../abstract-machine
 #export TEST_HOME := $(PWD)/../test

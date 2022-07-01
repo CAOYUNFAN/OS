@@ -236,10 +236,10 @@ static void * kalloc_safe(size_t size){
 
 static void kfree_safe(void *ptr) {
   int i = ienabled();
-  Assert((uintptr_t)ptr<0x552f20||(uintptr_t)ptr>=0x55300,"free 32-alloc! %p",ptr);
-  Assert((uintptr_t)ptr<0x562f80||(uintptr_t)ptr>=(0x562f80+128),"free 128-alloc %p",ptr);
-  Assert((uintptr_t)ptr<0x5df000||(uintptr_t)ptr>=0x5e7000,"free 4096-alloc %p",ptr);
-  Assert((uintptr_t)ptr<0x5c0000||(uintptr_t)ptr>=0x5c0000+65536,"free utask-1 %p",ptr);
+//  Assert((uintptr_t)ptr<0x552f20||(uintptr_t)ptr>=0x55300,"free 32-alloc! %p",ptr);
+//  Assert((uintptr_t)ptr<0x562f80||(uintptr_t)ptr>=(0x562f80+128),"free 128-alloc %p",ptr);
+//  Assert((uintptr_t)ptr<0x5df000||(uintptr_t)ptr>=0x5e7000,"free 4096-alloc %p",ptr);
+//  Assert((uintptr_t)ptr<0x5c0000||(uintptr_t)ptr>=0x5c0000+65536,"free utask-1 %p",ptr);
   iset(false);
   kfree(ptr);
   if (i) iset(true);

@@ -130,8 +130,6 @@ static int uproc_fork(task_t *task){
     uintptr_t rsp0=ctx2->rsp0;
     void * cr3=ctx2->cr3;
     memcpy(ctx2,task->ctx[0],sizeof(Context));
-    Assert(ctx2->rip==task->ctx[0]->rip,"%s here is not equal!",task->name);
-    Assert(ctx2->rip==0x100000000418,"%s here is not equal!",task->name);
     ctx2->rsp0=rsp0;
     ctx2->cr3=cr3;
     ctx2->GPRx=0;
@@ -230,8 +228,8 @@ static void uproc_init(){
     AddrSpace * as=&task->utask.as;
     protect_safe(as);task->utask.start=NULL;
     assert(as->pgsize==4096);
-    task->utask.maxn=(uintptr_t)as->area.end;
     char * pa=pmm->alloc(_init_len>4096?_init_len:4096);
+    task->utask.maxn=ROUNDUP(_init_len,4096);
     memcpy(pa,_init,_init_len);
     char * va=as->area.start;
     for(int len=0;len<_init_len;len+=4096,pa+=4096,va+=4096){

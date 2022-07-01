@@ -154,7 +154,6 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
 }
 
 static void * kalloc(size_t size){
-  assert(ienabled()==0);
   if(size>MAX_alloc) return NULL;
   if(size>Unit_size){
     spin_lock(&self_lock);
@@ -209,9 +208,9 @@ static inline void kfree_small(void * ptr,size_t size){
 }
 
 static void kfree(void * ptr){
-  assert(ienabled()==0);
   if((uintptr_t)ptr<(uintptr_t)heap.start||(uintptr_t)ptr>=(uintptr_t)heap.end) return;
   if(LOWBIT((uintptr_t)ptr)>Unit_size&&!is_block(self,(((uintptr_t)ptr)-HEAP_OFFSET_START)/Unit_size)){
+    Log("free %p size=big",ptr);
     spin_lock(&self_lock);
     buddy_free(self,ptr);
     spin_unlock(&self_lock);
@@ -222,6 +221,7 @@ static void kfree(void * ptr){
     block_info * start=(block_info *)ROUNDDOWN(ptr,Unit_size);
     len=start->size;
   }
+  Log("free %p size=%d",ptr,len);
   kfree_small(ptr,len);
 }
 
@@ -236,7 +236,6 @@ static void * kalloc_safe(size_t size){
 
 static void kfree_safe(void *ptr) {
   int i = ienabled();
-  Log("free %p",ptr);
   Assert((uintptr_t)ptr<0x552f20||(uintptr_t)ptr>=0x55300,"free 32-alloc! %p",ptr);
   Assert((uintptr_t)ptr<0x562f80||(uintptr_t)ptr>=(0x562f80+128),"free 128-alloc %p",ptr);
   Assert((uintptr_t)ptr<0x5df000||(uintptr_t)ptr>=0x5e7000,"free 4096-alloc %p",ptr);

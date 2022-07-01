@@ -26,6 +26,23 @@ static inline void unlock_inside(int * addr,int status){
     if(status) iset(true);
 }
 
+static inline void map_safe(AddrSpace * as,void * va,void * pa,int prot){
+    int i=0;lock_inside(&vme_lock,&i);
+    map(as,va,pa,prot);
+    unlock_inside(&vme_lock,i);
+}
+static inline void protect_safe(AddrSpace * as){
+    int i=0;lock_inside(&vme_lock,&i);
+    protect(as);
+    unlock_inside(&vme_lock,i);
+}
+static inline Context * ucontext_safe(AddrSpace *as, Area kstack, void *entry){
+    int i=0;lock_inside(&vme_lock,&i);
+    Context * ctx=ucontext(as,kstack,entry);
+    unlock_inside(&vme_lock,i);
+    return ctx;
+}
+
 counter * add_cnt(counter * cnt){
     if(cnt==NULL){
         cnt=pmm->alloc(sizeof(counter));
@@ -41,7 +58,8 @@ counter * dec_cnt(counter * cnt){
     cnt->cnt--;
     if(cnt->cnt){
         unlock_inside(&cnt->lock,i);
-    }else pmm->free(cnt);
+        return cnt;
+    }pmm->free(cnt);
     return NULL;
 }
 
@@ -61,28 +79,11 @@ void del_pg(pgs ** all,AddrSpace * as){
     assert(all&&*all);
     pgs * now=*all;*all = now->nxt;
     if(real(now->va)){
-        map(as,get_vaddr(now->va),NULL,MMAP_NONE);
+        map_safe(as,get_vaddr(now->va),NULL,MMAP_NONE);
         if(now->cnt) now->cnt=dec_cnt(now->cnt);
     }
     if(!now->cnt) pmm->free(now->pa);
     pmm->free(now);
-}
-
-static inline void map_safe(AddrSpace * as,void * va,void * pa,int prot){
-    int i=0;lock_inside(&vme_lock,&i);
-    map(as,va,pa,prot);
-    unlock_inside(&vme_lock,i);
-}
-static inline void protect_safe(AddrSpace * as){
-    int i=0;lock_inside(&vme_lock,&i);
-    protect(as);
-    unlock_inside(&vme_lock,i);
-}
-static inline Context * ucontext_safe(AddrSpace *as, Area kstack, void *entry){
-    int i=0;lock_inside(&vme_lock,&i);
-    Context * ctx=ucontext(as,kstack,entry);
-    unlock_inside(&vme_lock,i);
-    return ctx;
 }
 
 void uproc_clear_space(utaskk * ut){

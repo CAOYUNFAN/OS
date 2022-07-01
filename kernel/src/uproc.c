@@ -80,6 +80,7 @@ void del_pg(pgs ** all,AddrSpace * as){
     pgs * now=*all;*all = now->nxt;
     if(real(now->va)){
         map_safe(as,get_vaddr(now->va),NULL,MMAP_NONE);
+        if(now->cnt) Log("%d",now->cnt->cnt);
         if(now->cnt) now->cnt=dec_cnt(now->cnt);
     }
     if(!now->cnt) pmm->free(now->pa);

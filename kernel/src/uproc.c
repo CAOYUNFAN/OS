@@ -107,7 +107,7 @@ static int uproc_kputc(task_t * task,char ch){
 static int uproc_fork(task_t *task){
     Assert(task->nc==1,"%s multicall of fork",task->name);
     task_t * task_new=(task_t *)pmm->alloc(sizeof(task_t));
-    
+    iset(0);
     AddrSpace * as=&task_new->utask.as;pgs ** all=&task_new->utask.start;
     task_new->utask.maxn=task->utask.maxn;protect_safe(as);*all=NULL;
     for(pgs * now=task->utask.start;now;now=now->nxt){
@@ -126,7 +126,6 @@ static int uproc_fork(task_t *task){
             map_safe(&task->utask.as,va,pa,MMAP_READ);
         }
     }
-
     Context * ctx2=ucontext_safe(as,make_stack(task_new),as->area.start);
     uintptr_t rsp0=ctx2->rsp0;
     void * cr3=ctx2->cr3;
@@ -143,6 +142,7 @@ static int uproc_fork(task_t *task){
     char * ch=NULL;
     #endif
     int ret=create_all(task_new,ch,ctx2);
+    iset(1);
     return ret;
 }
 

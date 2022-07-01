@@ -154,6 +154,7 @@ static inline void * kalloc_small(start_info * head,size_t size,start_info_all *
 }
 
 static void * kalloc(size_t size){
+  assert(ienabled()==0);
   if(size>MAX_alloc) return NULL;
   if(size>Unit_size){
     spin_lock(&self_lock);
@@ -208,6 +209,7 @@ static inline void kfree_small(void * ptr,size_t size){
 }
 
 static void kfree(void * ptr){
+  assert(ienabled()==0);
   if((uintptr_t)ptr<(uintptr_t)heap.start||(uintptr_t)ptr>=(uintptr_t)heap.end) return;
   if(LOWBIT((uintptr_t)ptr)>Unit_size&&!is_block(self,(((uintptr_t)ptr)-HEAP_OFFSET_START)/Unit_size)){
     spin_lock(&self_lock);

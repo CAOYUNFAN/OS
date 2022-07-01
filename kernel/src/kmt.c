@@ -65,17 +65,21 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     }
 
     task_t * pre=current;
-    current=task_queue_pop(&runnable);
-    while (!current||current->status!=TASK_RUNABLE||(pre!=current&&atomic_xchg(&current->lock,1))){
-        //if(!current) Log("Current is NULL! CPU %d Waiting for the first Runnable program!",cpu_current());
-        Assert(current==NULL||current->status==TASK_RUNABLE||current->status==TASK_DEAD,"%s unexpected status %d",current->name,current->status);
+    for(current=task_queue_pop(&runnable);;current=task_queue_pop(&runnable)) {
+        if(!current) continue;
+        if(current!=pre&&atomic_xchg(&current->lock,1)){
+            task_queue_push(&runnable,current);
+            continue;
+        }
+        assert(current->lock);
         if(current->status==TASK_DEAD){
             if(current!=pre) real_free(current);
             else task_queue_push(&runnable,current);
+            continue;
         }
-        if(current&&current->status==TASK_RUNABLE&&pre!=current) task_queue_push(&runnable,current);
-        current=task_queue_pop(&runnable);
-    };
+        break;
+    }
+    
     Assert(current,"CPU%d:Current is NULL!",cpu_current());
     Assert(current->status==TASK_RUNABLE,"CPU%d: Unexpected status %d",current->status);
     if(current==pre) previous_all[cpu_current()]=NULL;

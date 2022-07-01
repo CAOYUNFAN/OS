@@ -64,7 +64,7 @@ counter * dec_cnt(counter * cnt){
 }
 
 void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){ 
-    Log("va %p -> pa %p",va,pa);
+//    Log("va %p -> pa %p",va,pa);
     assert(cnt==NULL||pa!=NULL);
     assert(cnt==NULL||!shared);
     pgs * now=pmm->alloc(sizeof(pgs));
@@ -276,6 +276,7 @@ Context * syscall(task_t * task,Context * ctx){
 
 void pagefault_handler(void * va,int prot,task_t * task){
     Log("%s (pid %d) pagefault %p",current_all[cpu_current()]->name,current_all[cpu_current()]->pid,va);
+    va=get_vaddr(va);
     AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
     Assert((uintptr_t)va>=(uintptr_t)as->area.start&&(uintptr_t)va<(uintptr_t)as->area.end,"Unexpected virtual address %p",va);
     while(now&&get_vaddr(now->va)!=va) now=now->nxt;

@@ -31,7 +31,7 @@ static Context * kmt_context_save(Event ev,Context * ctx){
 }
 
 static inline void real_free(task_t * task){
-    Log("freeing task's memory! %s",task->name);
+    Log("freeing task's memory! %s %d",task->name,task->pid);
     pmm->free(task->stack);
     extern void uproc_clear_space(utaskk * ut);
     uproc_clear_space(&task->utask);
@@ -102,7 +102,7 @@ static Context * kmt_pagefault(Event ev,Context * ctx){
     Assert(current_all[cpu_current()]->nc==1,"%s multitrap of pagefault!",current_all[cpu_current()]->name);
 //    Log("%p %p %p",ev.ref,ev.cause,current_all[cpu_current()]->ctx[0]->rip);
     extern void pagefault_handler(void * va,int prot,task_t * task);
-    pagefault_handler(get_vaddr(ev.ref),ev.cause,current_all[cpu_current()]);
+    pagefault_handler((void *)ev.ref,ev.cause,current_all[cpu_current()]);
 //    printf("pf:%p by %p \n",ev.ref,ctx->rip);
     return ctx;
 }

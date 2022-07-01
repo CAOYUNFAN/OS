@@ -87,7 +87,6 @@ void del_pg(pgs ** all,AddrSpace * as){
 }
 
 void uproc_clear_space(utaskk * ut){
-    Log("clearing utask! %d",0);
     while (ut->start) del_pg(&ut->start,&ut->as);
     int i=0;lock_inside(&vme_lock,&i);    
     unprotect(&ut->as);

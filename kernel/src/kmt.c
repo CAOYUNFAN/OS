@@ -31,6 +31,7 @@ static Context * kmt_context_save(Event ev,Context * ctx){
 }
 
 static inline void real_free(task_t * task){
+    Log("freeing task's memory! %s",task->name);
     pmm->free(task->stack);
     extern void uproc_clear_space(utaskk * ut);
     uproc_clear_space(&task->utask);

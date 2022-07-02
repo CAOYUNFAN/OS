@@ -184,7 +184,7 @@ int create_all(task_t * task, const char * name, Context * ctx){
     Log("create name %s,pid=%d",name,task->pid);
     Assert(current_all[cpu_current()]==NULL||current_all[cpu_current()]->pid==1,"%s (pid %d) unexpected creator!",current_all[cpu_current()]->name,current_all[cpu_current()]->pid);
 //    Log("Task %s is added to %p",name,task);
-    task_queue_push(&runnable[cpu_current()],task);
+    task_queue_push(&runnable[(cpu_current()+1)%cpu_count()],task);
     return task->pid;
 }
 

@@ -103,17 +103,20 @@ void add_page_len(len_list * list,void * addr,int len){
     pre->nxt=add_page_2(pre->nxt,addr,len);
     return;
 }
-void * find_check(len_list * list,void * addr,int len){
+void * find_check_add(len_list * list,void * addr,int len){
     Assert(list->start&&list->start->nxt,"init not completed! %p",addr);
-    void * ret=NULL;
+    void * ret=NULL;vpage_len * to_be_added=NULL;
     for(vpage_len * pre=list->start, * now=list->start->nxt;now&&(uintptr_t)now->addr+now->len>=(uintptr_t)addr;pre=now,now=now->nxt){
+        Assert(pre->nxt==now,"invalid status %d",0);
         uintptr_t ll=(uintptr_t)now->addr+now->len,rr=(uintptr_t)pre->addr;
         if((uintptr_t)addr>=ll && (uintptr_t)addr+len<=rr){
-            
+            pre->nxt=add_page_2(now,addr,len);
             return addr; 
         } 
-        if(rr-ll>=len) ret=(void *)(rr-len);
+        if(rr-ll>=len) ret=(void *)(rr-len),to_be_added=pre;
     }
+    Assert((uintptr_t)ret>=(uintptr_t)addr,"unexpected ret %p addr %p",ret,addr);
+    to_be_added->nxt=add_page_2(to_be_added->nxt,ret,len);
     return ret;
 }
 void split_page(len_list * list,void * addr,int len_all){
@@ -267,8 +270,7 @@ static void * uproc_mmap(task_t *task, void *addr, int length, int prot, int fla
         }
         return NULL;
     }else{
-        addr=find_check(&task->utask.list,(void *)ROUNDDOWN(addr,4096),ROUNDUP(length,4096));
-        add_page_len(&task->utask.list,addr,length);
+        addr=find_check_add(&task->utask.list,(void *)ROUNDDOWN(addr,4096),ROUNDUP(length,4096));
         if(flags==MAP_SHARED){
             char * vaddr=addr;
             for(;length>0;length-=pgsize,vaddr+=pgsize) add_pg(&task->utask.start,vaddr,NULL,prot,1,NULL);

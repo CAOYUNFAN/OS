@@ -3,7 +3,6 @@
 
 #include "uproc.h"
 
-int vme_lock=0;
 extern int create_all(task_t * task, const char * name, Context * ctx);
 extern Area make_stack(task_t * task);
 static inline void lock_inside_ker(int * addr){
@@ -26,6 +25,7 @@ static inline void unlock_inside(int * addr,int status){
     if(status) iset(true);
 }
 
+int vme_lock=0;
 static inline void map_safe(AddrSpace * as,void * va,void * pa,int prot){
     int i=0;lock_inside(&vme_lock,&i);
     map(as,va,pa,prot);
@@ -87,6 +87,59 @@ void del_pg(pgs ** all,AddrSpace * as){
     pmm->free(now);
 }
 
+void add_page_len(len_list * list,void * addr,int len){
+    vpage_len * unit=pmm->alloc(sizeof(vpage_len));
+    unit->addr=addr;unit->len=len;
+    if(!list->start||(uintptr_t)addr>(uintptr_t)list->start->addr){
+        unit->nxt=list->start;list->start=unit;
+        return;
+    }
+    vpage_len * pre=list->start;
+    for(vpage_len * now=pre->nxt;now&&(uintptr_t)addr<(uintptr_t)now->addr;now=now->nxt) pre=now;
+    Assert(pre&&(uintptr_t)pre->addr>=(uintptr_t)addr+len&&(pre->nxt==NULL||(uintptr_t)pre->nxt->addr+pre->nxt->len<=(uintptr_t)addr),"Unexpected lines! %p",addr);
+    unit->nxt=pre->nxt;pre->nxt=unit;
+    return;
+}
+void * find_check(len_list * list,void * addr,int len){
+    Assert(list->start&&list->start->nxt,"init not completed! %p",addr);
+    void * ret=NULL;
+    for(vpage_len * pre=list->start, * now=list->start->nxt;now;now=now->nxt){
+        uintptr_t ll=(uintptr_t)now->addr+now->len,rr=(uintptr_t)pre->addr;
+        if((uintptr_t)addr>=ll && (uintptr_t)addr+len<=rr) return addr;
+        if(rr-ll>=len) ret=(void *)(rr-len);
+    }
+    return ret;
+}
+void split_page(len_list * list,void * addr,int len_all){
+    vpage_len * now=list->start;vpage_len ** pre=&list->start;
+    uintptr_t st_all=(uintptr_t)addr,ed_all=(uintptr_t)addr+len_all;
+    int left=len_all;
+    for(;now&&left;pre=&now->nxt,now=now->nxt){
+        uintptr_t ll=(uintptr_t)now->addr,rr=(uintptr_t)now->addr+now->len;
+        if(rr>st_all&&ll<ed_all){
+            #define Max(a,b) ((a)>(b)?(a):(b))
+            #define Min(a,b) ((a)<(b)?(a):(b))
+            uintptr_t st=Max(st_all,ll),ed=Min(ed_all,rr);
+            int len=ed-st;len_all-=len;
+            if(ll==st&&rr==ed){
+                *pre=now->nxt;
+                pmm->free(now);
+                continue;
+            }
+            if(ll==st||rr==ed){
+                now->len-=len;
+                if(ll==st) now->addr=(void *)ed;
+                continue;
+            }
+            now->addr=(void *)ed;now->len=rr-ed;
+            vpage_len * new=pmm->alloc(sizeof(vpage_len));
+            new->addr=(void *)ll;new->len=ll-st;
+            new->nxt=now->nxt;now->nxt=new;
+        }
+    }
+    return;
+}
+
 void uproc_clear_space(utaskk * ut){
     while (ut->start) del_pg(&ut->start,&ut->as);
     int i=0;lock_inside(&vme_lock,&i);    
@@ -109,7 +162,7 @@ static int uproc_fork(task_t *task){
     task_t * task_new=(task_t *)pmm->alloc(sizeof(task_t));
     iset(0);
     AddrSpace * as=&task_new->utask.as;pgs ** all=&task_new->utask.start;
-    task_new->utask.maxn=task->utask.maxn;protect_safe(as);*all=NULL;
+    protect_safe(as);*all=NULL;
     for(pgs * now=task->utask.start;now;now=now->nxt){
         Assert(real(now->va)||is_shared(now->va),"%s unexpected status %p",task->name,now->va);
         if(!real(now->va)) now->va=(void *)((uintptr_t)now->va | 16), now->pa=pmm->alloc(4096);
@@ -125,6 +178,11 @@ static int uproc_fork(task_t *task){
             map_safe(&task->utask.as,va,NULL,MMAP_NONE);
             map_safe(&task->utask.as,va,pa,MMAP_READ);
         }
+    }
+    for(vpage_len * src=task->utask.list.start, ** dst=&task_new->utask.list.start;src;src=src->nxt){
+        *dst=pmm->alloc(sizeof(vpage_len));
+        (*dst)->addr=src->addr;(*dst)->len=src->len;
+        (*dst)->nxt=NULL;dst=&(*dst)->nxt;
     }
     Context * ctx2=ucontext_safe(as,make_stack(task_new),as->area.start);
     uintptr_t rsp0=ctx2->rsp0;
@@ -186,6 +244,7 @@ static void * uproc_mmap(task_t *task, void *addr, int length, int prot, int fla
     AddrSpace * as=&task->utask.as;int pgsize=as->pgsize;
     if(flags==MAP_UNMAP){
         uintptr_t vaddr=(uintptr_t)addr;
+        split_page(&task->utask.list,addr,length);
         pgs ** pre=&task->utask.start; pgs * now=*pre;
         while (now){
             uintptr_t temp=(uintptr_t)get_vaddr(now->va);
@@ -196,8 +255,8 @@ static void * uproc_mmap(task_t *task, void *addr, int length, int prot, int fla
         }
         return NULL;
     }else{
-        addr=(void *)task->utask.maxn;
-        task->utask.maxn+=length+4095l; task->utask.maxn = task->utask.maxn & -4096l;
+        addr=find_check(&task->utask.list,(void *)ROUNDDOWN(addr,4096),ROUNDUP(length,4096));
+        add_page_len(&task->utask.list,addr,length);
         if(flags==MAP_SHARED){
             char * vaddr=addr;
             for(;length>0;length-=pgsize,vaddr+=pgsize) add_pg(&task->utask.start,vaddr,NULL,prot,1,NULL);
@@ -229,13 +288,14 @@ static void uproc_init(){
     protect_safe(as);task->utask.start=NULL;
     assert(as->pgsize==4096);
     char * pa=pmm->alloc(_init_len>4096?_init_len:4096);
-    task->utask.maxn=ROUNDUP(_init_len,4096);
+    add_page_len(&task->utask.list,as->area.start,ROUNDUP(_init_len,4096));
+    add_page_len(&task->utask.list,(void *)((uintptr_t)as->area.end-1024*4096),1024*4096);
     memcpy(pa,_init,_init_len);
     char * va=as->area.start;
     for(int len=0;len<_init_len;len+=4096,pa+=4096,va+=4096){
         add_pg(&task->utask.start,va,pa,PROT_READ|PROT_WRITE,0,NULL);
         map(as,va,pa,MMAP_ALL);
-    } 
+    }
     create_all(task,"first_uproc",ucontext_safe(as,make_stack(task),as->area.start));
     return;
 }
@@ -276,7 +336,7 @@ Context * syscall(task_t * task,Context * ctx){
 
 void pagefault_handler(void * va,int prot,task_t * task){
     Log("%s (pid %d) pagefault %p",current_all[cpu_current()]->name,current_all[cpu_current()]->pid,va);
-    va=get_vaddr(va);
+    va=(void *)ROUNDDOWN(va,4096);
     AddrSpace * as=&task->utask.as;pgs * now=task->utask.start;
     Assert((uintptr_t)va>=(uintptr_t)as->area.start&&(uintptr_t)va<(uintptr_t)as->area.end,"Unexpected virtual address %p",va);
     while(now&&get_vaddr(now->va)!=va) now=now->nxt;

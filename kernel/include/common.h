@@ -43,10 +43,19 @@ typedef struct pgstruct{
   struct pgstruct * nxt;counter * cnt;
 }pgs;
 
+typedef struct _vpage_len{
+  void * addr;int len;
+  struct _vpage_len * nxt;  
+}vpage_len;
+
+typedef struct{
+  vpage_len * start;
+}len_list;
+
 typedef struct{
   AddrSpace as;
   pgs * start;
-  uintptr_t maxn;
+  len_list list;
 }utaskk;
 
 struct task {

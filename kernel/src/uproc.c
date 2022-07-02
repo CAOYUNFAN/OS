@@ -180,7 +180,11 @@ static int uproc_fork(task_t *task){
     protect_safe(as);*all=NULL;
     for(pgs * now=task->utask.start;now;now=now->nxt){
         Assert(real(now->va)||is_shared(now->va),"%s unexpected status %p",task->name,now->va);
-        if(!real(now->va)) now->va=(void *)((uintptr_t)now->va | 16), now->pa=pmm->alloc(4096);
+        if(!real(now->va)) {
+            now->va=(void *)((uintptr_t)now->va | 16);
+            now->pa=pmm->alloc(4096);
+            Log("mmap unmaped page %p->%p",now->va,now->pa);
+        }
         if(!now->cnt) now->cnt=add_cnt(NULL);
         void * va=get_vaddr(now->va), *pa=now->pa;
         int prot=get_prot(now->va);

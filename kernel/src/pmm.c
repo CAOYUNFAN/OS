@@ -210,7 +210,7 @@ static inline void kfree_small(void * ptr,size_t size){
 static void kfree(void * ptr){
   if((uintptr_t)ptr<(uintptr_t)heap.start||(uintptr_t)ptr>=(uintptr_t)heap.end) return;
   if(LOWBIT((uintptr_t)ptr)>Unit_size&&!is_block(self,(((uintptr_t)ptr)-HEAP_OFFSET_START)/Unit_size)){
-    Log("free %p size=big",ptr);
+//    Log("free %p size=big",ptr);
     spin_lock(&self_lock);
     buddy_free(self,ptr);
     spin_unlock(&self_lock);
@@ -221,7 +221,7 @@ static void kfree(void * ptr){
     block_info * start=(block_info *)ROUNDDOWN(ptr,Unit_size);
     len=start->size;
   }
-  Log("free %p size=%d",ptr,len);
+//  Log("free %p size=%d",ptr,len);
   kfree_small(ptr,len);
 }
 
@@ -230,7 +230,7 @@ static void * kalloc_safe(size_t size){
   iset(false);//Log("waiting for alloc %d",size);
   void * ret=kalloc(size);
   if(i) iset(true);
-  Log("alloc %p %d",ret,size);
+//  Log("alloc %p %d",ret,size);
   return ret;
 }
 

@@ -190,7 +190,7 @@ static int uproc_fork(task_t *task){
         int prot=get_prot(now->va);
         if(is_shared(now->va)){
             add_pg(all,va,pa,prot,1 ,now->cnt);
-            map_safe(as,va,pa,prot);
+            map_safe(as,va,pa,MMAP_ALL);
         }else{
             add_pg(all,va,pa,prot,0 ,now->cnt);
             map_safe(as,va,pa,MMAP_READ);

@@ -87,25 +87,31 @@ void del_pg(pgs ** all,AddrSpace * as){
     pmm->free(now);
 }
 
-void add_page_len(len_list * list,void * addr,int len){
+vpage_len * add_page_2(vpage_len * nxt,void * addr,int len){
     vpage_len * unit=pmm->alloc(sizeof(vpage_len));
     unit->addr=addr;unit->len=len;
+    unit->nxt=nxt;return unit;
+}
+void add_page_len(len_list * list,void * addr,int len){
     if(!list->start||(uintptr_t)addr>(uintptr_t)list->start->addr){
-        unit->nxt=list->start;list->start=unit;
+        list->start=add_page_2(list->start,addr,len);
         return;
     }
     vpage_len * pre=list->start;
     for(vpage_len * now=pre->nxt;now&&(uintptr_t)addr<(uintptr_t)now->addr;now=now->nxt) pre=now;
     Assert(pre&&(uintptr_t)pre->addr>=(uintptr_t)addr+len&&(pre->nxt==NULL||(uintptr_t)pre->nxt->addr+pre->nxt->len<=(uintptr_t)addr),"Unexpected lines! %p",addr);
-    unit->nxt=pre->nxt;pre->nxt=unit;
+    pre->nxt=add_page_2(pre->nxt,addr,len);
     return;
 }
 void * find_check(len_list * list,void * addr,int len){
     Assert(list->start&&list->start->nxt,"init not completed! %p",addr);
     void * ret=NULL;
-    for(vpage_len * pre=list->start, * now=list->start->nxt;now;now=now->nxt){
+    for(vpage_len * pre=list->start, * now=list->start->nxt;now&&(uintptr_t)now->addr+now->len>=(uintptr_t)addr;pre=now,now=now->nxt){
         uintptr_t ll=(uintptr_t)now->addr+now->len,rr=(uintptr_t)pre->addr;
-        if((uintptr_t)addr>=ll && (uintptr_t)addr+len<=rr) return addr;
+        if((uintptr_t)addr>=ll && (uintptr_t)addr+len<=rr){
+            
+            return addr; 
+        } 
         if(rr-ll>=len) ret=(void *)(rr-len);
     }
     return ret;

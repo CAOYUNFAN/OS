@@ -145,6 +145,12 @@ void uproc_clear_space(utaskk * ut){
     int i=0;lock_inside(&vme_lock,&i);    
     unprotect(&ut->as);
     unlock_inside(&vme_lock,i);
+    vpage_len * now=ut->list.start;
+    while (now){
+        vpage_len * temp=now;
+        now=now->nxt;
+        free(temp);
+    }
     return;
 }
 

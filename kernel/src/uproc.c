@@ -64,7 +64,6 @@ counter * dec_cnt(counter * cnt){
 }
 
 void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){ 
-//    Log("va %p -> pa %p",va,pa);
     assert(cnt==NULL||pa!=NULL);
     assert(cnt==NULL||!shared);
     pgs * now=pmm->alloc(sizeof(pgs));
@@ -73,6 +72,7 @@ void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){
     else now->va=(void *)((uintptr_t)va | prot | (shared << 8) | 16);
     if(cnt) now->cnt=add_cnt(cnt);
     else now->cnt=NULL;
+    Log("va %p -> pa %p",now->va,pa);
     now->nxt=*all;*all=now;
 }
 void del_pg(pgs ** all,AddrSpace * as){

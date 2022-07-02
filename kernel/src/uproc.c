@@ -68,8 +68,8 @@ void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){
     assert(cnt==NULL||!shared);
     pgs * now=pmm->alloc(sizeof(pgs));
     now->pa=pa;
-    if(pa==NULL) now->va=(void *)((uintptr_t)va | prot | (shared << 8));
-    else now->va=(void *)((uintptr_t)va | prot | (shared << 8) | 16);
+    if(pa==NULL) now->va=(void *)((uintptr_t)va | prot | (shared << 3));
+    else now->va=(void *)((uintptr_t)va | prot | (shared << 3) | 16);
     if(cnt) now->cnt=add_cnt(cnt);
     else now->cnt=NULL;
     Log("va %p -> pa %p",now->va,pa);

@@ -27,19 +27,19 @@ static inline void unlock_inside(int * addr,int status){
 
 int vme_lock=0;
 static inline void map_safe(AddrSpace * as,void * va,void * pa,int prot){
-    int i=0;lock_inside(&vme_lock,&i);
+    int i=ienabled();iset(0);
     map(as,va,pa,prot);
-    unlock_inside(&vme_lock,i);
+    if(i) iset(1);
 }
 static inline void protect_safe(AddrSpace * as){
-    int i=0;lock_inside(&vme_lock,&i);
+    int i=ienabled();iset(0);
     protect(as);
-    unlock_inside(&vme_lock,i);
+    if(i) iset(1);
 }
 static inline Context * ucontext_safe(AddrSpace *as, Area kstack, void *entry){
-    int i=0;lock_inside(&vme_lock,&i);
+    int i=ienabled();iset(0);
     Context * ctx=ucontext(as,kstack,entry);
-    unlock_inside(&vme_lock,i);
+    if(i) iset(1);
     return ctx;
 }
 

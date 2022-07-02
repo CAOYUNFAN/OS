@@ -126,6 +126,10 @@ static Context * kmt_error(Event ev,Context * ctx){
     return NULL;
 }
 
+void dummy(void * arg){
+    while (1) yield();
+}
+
 static void kmt_init(){
     #  define INT_MIN	(-INT_MAX - 1)
     #  define INT_MAX	2147483647

@@ -36,7 +36,7 @@ typedef struct{
 #define get_vaddr(va) ((void *)((uintptr_t)va & (-4096L)))
 #define get_prot(va) ((uintptr_t)va & 0x7L)
 #define is_shared(va) (((uintptr_t)va & 0x8L) >> 3)
-#define real(va) ((uintptr_t)va & 0x16L)
+#define real(va) ((uintptr_t)va & 0x10L)
 
 typedef struct pgstruct{
   void * va, * pa;

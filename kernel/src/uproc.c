@@ -180,6 +180,7 @@ static int uproc_fork(task_t *task){
     protect_safe(as);*all=NULL;
     for(pgs * now=task->utask.start;now;now=now->nxt){
         Assert(real(now->va)||is_shared(now->va),"%s unexpected status %p",task->name,now->va);
+        Log("%p",now->va);
         if(!real(now->va)) {
             now->va=(void *)((uintptr_t)now->va | 16);
             now->pa=pmm->alloc(4096);

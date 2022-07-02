@@ -270,7 +270,7 @@ static void * uproc_mmap(task_t *task, void *addr, int length, int prot, int fla
         }
         return NULL;
     }else{
-        addr=find_check_add(&task->utask.list,(void *)ROUNDDOWN(addr,4096),ROUNDUP(length,4096));
+        addr=find_check_add(&task->utask.list,(void *)ROUNDUP(addr,4096),ROUNDUP(length,4096));
         if(flags==MAP_SHARED){
             char * vaddr=addr;
             for(;length>0;length-=pgsize,vaddr+=pgsize) add_pg(&task->utask.start,vaddr,NULL,prot,1,NULL);

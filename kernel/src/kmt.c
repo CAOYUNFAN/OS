@@ -10,7 +10,7 @@ static inline void task_queue_init(task_queue * q){
     q->lock=0;
     return;
 }
-static task_queue runnable;
+static task_queue runnable[8];
 
 static Context * kmt_context_save(Event ev,Context * ctx){
     task_t * current=current_all[cpu_current()];
@@ -55,9 +55,9 @@ static Context * kmt_schedule(Event ev,Context * ctx){
 
     if(current&&current->status==TASK_RUNNING){
         current->status=TASK_RUNABLE;
-        task_queue_push(&runnable,current);
+        task_queue_push(&runnable[cpu_current()],current);
     }
-    if(current&&current->status==TASK_DEAD) task_queue_push(&runnable,current);
+    if(current&&current->status==TASK_DEAD) task_queue_push(&runnable[cpu_current()],current);
     if(current) {
         Assert(previous_all[cpu_current()]==NULL,"previous %s has not been emptied!",previous_all[cpu_current()]->name);
         Assert(current->lock==1,"Unexpected lock status %d with name %s!",current->lock,current->name);
@@ -65,16 +65,26 @@ static Context * kmt_schedule(Event ev,Context * ctx){
     }
 
     task_t * pre=current;
-    for(current=task_queue_pop(&runnable);;current=task_queue_pop(&runnable)) {
-        if(!current) continue;
+    for(current=task_queue_pop(&runnable[cpu_current()]);;current=task_queue_pop(&runnable[cpu_current()])) {
+        if(!current) {
+            int n=cpu_count(),i=cpu_current();
+            for(int j=1;j<n;j++){
+                current=task_queue_pop(&runnable[(i+j)%n]);
+                if(current){
+                    task_queue_push(&runnable[i],current);
+                    continue;
+                }
+            }
+            continue;
+        }
         if(current!=pre&&atomic_xchg(&current->lock,1)){
-            task_queue_push(&runnable,current);
+            task_queue_push(&runnable[cpu_current()],current);
             continue;
         }
         assert(current->lock);
         if(current->status==TASK_DEAD){
             if(current!=pre) real_free(current);
-            else task_queue_push(&runnable,current);
+            else task_queue_push(&runnable[cpu_current()],current);
             continue;
         }
         break;
@@ -138,7 +148,7 @@ static void kmt_init(){
     os->on_irq(INT_MIN+10,EVENT_PAGEFAULT,kmt_pagefault);
     os->on_irq(INT_MIN+15,EVENT_SYSCALL,kmt_syscall);
     os->on_irq(INT_MIN+15,EVENT_ERROR,kmt_error);
-    task_queue_init(&runnable);
+    for(int i=0;i<cpu_count();i++) task_queue_init(&runnable[i]);
     #ifdef LOCAL
 //    kmt->create(task_alloc(), "tty_reader1", tty_reader, "tty1");
 //    kmt->create(task_alloc(), "tty_reader2", tty_reader, "tty2");
@@ -174,7 +184,7 @@ int create_all(task_t * task, const char * name, Context * ctx){
     Log("create name %s,pid=%d",name,task->pid);
     Assert(current_all[cpu_current()]==NULL||current_all[cpu_current()]->pid==1,"%s (pid %d) unexpected creator!",current_all[cpu_current()]->name,current_all[cpu_current()]->pid);
 //    Log("Task %s is added to %p",name,task);
-    task_queue_push(&runnable,task);
+    task_queue_push(&runnable[cpu_current()],task);
     return task->pid;
 }
 
@@ -211,7 +221,7 @@ static int kmt_wakeup(task_queue * q){
     Assert(nxt->status==TASK_WAITING,"Unexpected task status %s with status %d",nxt->name,nxt->status);
     nxt->status=TASK_RUNABLE;
 //    Log("                                          Free task name=%s",nxt->name);
-    task_queue_push(&runnable,nxt);
+    task_queue_push(&runnable[cpu_current()],nxt);
     return 0;
 }
 

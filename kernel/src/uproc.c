@@ -65,7 +65,6 @@ counter * dec_cnt(counter * cnt){
 
 void add_pg(pgs ** all,void * va,void * pa,int prot,int shared,counter * cnt){ 
     assert(cnt==NULL||pa!=NULL);
-    assert(cnt==NULL||!shared);
     pgs * now=pmm->alloc(sizeof(pgs));
     now->pa=pa;
     if(pa==NULL) now->va=(void *)((uintptr_t)va | prot | (shared << 3));

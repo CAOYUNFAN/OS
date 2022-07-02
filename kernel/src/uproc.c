@@ -183,6 +183,7 @@ static int uproc_fork(task_t *task){
         if(!real(now->va)) {
             now->va=(void *)((uintptr_t)now->va | 16);
             now->pa=pmm->alloc(4096);
+            map_safe(&task->utask.as,get_vaddr(now->va),now->pa,MMAP_ALL);
             Log("mmap unmaped page %p->%p",now->va,now->pa);
         }
         if(!now->cnt) now->cnt=add_cnt(NULL);

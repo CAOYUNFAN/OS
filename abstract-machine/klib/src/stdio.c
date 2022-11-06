@@ -35,11 +35,15 @@ inline static char* unum_to_str(char *st,unsigned long long d,int base){
 #define MAX_NUM_stdio 1000000
 static char temp[MAX_NUM_stdio];
 
+int lock=0;
 int printf(const char *fmt, ...) {
 	va_list ap; va_start(ap,fmt);
+	int i=ienabled();iset(0);while(atomic_xchg(&lock,1));
 	int len=vsprintf(temp,fmt,ap);
 	va_end(ap);
 	putstr(temp);
+	atomic_xchg(&lock,0);
+	iset(i);
 	return len;
 }
 
